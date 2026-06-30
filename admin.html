@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ADMIN — Portfolio Race</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap');
+:root{--bg:#0a0a0f;--card:#1a1a2e;--border:#2a2a3e;
+  --acc:#ff6b35;--a2:#00d4ff;--a3:#7fff00;--gold:#ffd700;--danger:#ff2d55;
+  --purple:#9b30ff;--text:#f0f0f0;--muted:#555;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Kanit',sans-serif;min-height:100vh;}
+
+/* LOGIN */
+#login{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:2rem;gap:1rem;}
+#login h1{font-size:2rem;font-weight:900;color:var(--acc);}
+#login input{width:100%;max-width:260px;padding:.85rem;background:var(--card);
+  border:2px solid var(--border);border-radius:10px;color:var(--text);
+  font-family:'Kanit',sans-serif;font-size:1.1rem;text-align:center;outline:none;}
+#login button{width:100%;max-width:260px;padding:.85rem;background:var(--acc);
+  border:none;border-radius:10px;color:#fff;font-family:'Kanit',sans-serif;
+  font-size:1rem;font-weight:700;cursor:pointer;}
+
+/* APP */
+#app{display:none;padding:.85rem;max-width:480px;margin:0 auto;padding-bottom:4rem;}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 0;margin-bottom:.6rem;border-bottom:1px solid var(--border);}
+.topbar h2{font-size:.9rem;font-weight:900;color:var(--acc);letter-spacing:1px;}
+.phase-badge{padding:.2rem .6rem;border-radius:12px;font-size:.65rem;font-weight:700;
+  background:var(--card);border:1px solid var(--a2);color:var(--a2);}
+
+/* STATUS BAR */
+.status-bar{display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem;flex-wrap:wrap;}
+.badge{border-radius:12px;padding:.12rem .45rem;font-size:.65rem;font-weight:700;}
+.badge-green{background:rgba(127,255,0,.15);color:var(--a3);border:1px solid var(--a3);}
+.badge-blue{background:rgba(0,212,255,.12);color:var(--a2);border:1px solid var(--a2);}
+.badge-orange{background:rgba(255,107,53,.12);color:var(--acc);border:1px solid var(--acc);}
+
+/* SCORES */
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.4rem;}
+.sc{background:var(--card);border-radius:8px;padding:.5rem .3rem;text-align:center;
+  border:1px solid var(--border);transition:all .3s;}
+.sc.frozen{border-color:#4af;background:rgba(0,60,140,.2);}
+.sc.leading{border-color:var(--gold);}
+.sc-name{font-size:.58rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-pts{font-size:1.05rem;font-weight:900;color:var(--a3);}
+.sc-meta{font-size:.52rem;color:var(--muted);margin-top:.1rem;}
+
+/* SECTIONS */
+.sec{font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:2px;
+  text-transform:uppercase;margin:.85rem 0 .3rem;}
+.div{height:1px;background:var(--border);margin:.65rem 0;}
+
+/* BUTTONS */
+.btn{width:100%;padding:.7rem;border:none;border-radius:9px;font-family:'Kanit',sans-serif;
+  font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:.3rem;}
+.btn:active{transform:scale(.97);}
+.btn-acc{background:var(--acc);color:#fff;}
+.btn-a2{background:var(--a2);color:#000;}
+.btn-a3{background:var(--a3);color:#000;}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-dark{background:var(--card);color:var(--text);border:1px solid var(--border);}
+.row{display:flex;gap:.3rem;margin-bottom:.3rem;}
+.row .btn{margin:0;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-bottom:.3rem;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;margin-bottom:.3rem;}
+
+/* DEMO CONTROL */
+.demo-bar{display:flex;gap:.3rem;align-items:center;margin-bottom:.3rem;}
+.demo-bar .btn{flex:1;margin:0;padding:.55rem;font-size:.75rem;}
+.demo-step-lbl{font-size:.65rem;color:var(--muted);text-align:center;flex:1.2;}
+
+/* Q NAV */
+.q-nav{display:flex;gap:.3rem;align-items:center;margin-bottom:.3rem;}
+.q-nav .btn{flex:1;padding:.5rem;margin:0;font-size:.75rem;}
+.q-cur{background:var(--card);border-radius:8px;padding:.5rem;text-align:center;
+  font-size:.82rem;font-weight:700;min-width:60px;border:1px solid var(--border);}
+
+/* P3 PANEL */
+.p3-box{background:var(--card);border-radius:10px;padding:.7rem;
+  border:1px solid var(--border);margin-bottom:.3rem;}
+.p3-box-title{font-size:.65rem;font-weight:700;color:var(--gold);margin-bottom:.45rem;letter-spacing:1px;}
+.sub-row{display:flex;align-items:center;gap:.35rem;font-size:.72rem;
+  background:rgba(255,255,255,.03);border-radius:6px;padding:.28rem .45rem;margin-bottom:.2rem;}
+.sub-team{font-weight:700;min-width:75px;font-size:.68rem;}
+.sub-detail{flex:1;font-size:.62rem;color:var(--muted);}
+.sub-done{color:var(--a3);}
+.sub-weapon{font-size:.65rem;}
+
+/* REVEAL CONTROLS */
+.reveal-box{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);
+  border-radius:10px;padding:.7rem;margin-bottom:.3rem;}
+.reveal-title{font-size:.65rem;font-weight:700;color:var(--gold);margin-bottom:.4rem;letter-spacing:1px;}
+
+/* PHASE 2 LAUNCH MONITOR */
+.launch-monitor{background:var(--card);border-radius:10px;padding:.7rem;
+  border:1px solid var(--border);margin-bottom:.3rem;}
+.launch-title{font-size:.65rem;font-weight:700;color:var(--a2);margin-bottom:.4rem;letter-spacing:1px;}
+.team-launch-row{display:flex;align-items:center;gap:.3rem;margin-bottom:.25rem;}
+.tl-name{font-size:.65rem;font-weight:700;min-width:70px;}
+.tier-bars{display:flex;gap:.2rem;flex:1;}
+.tier-mini{flex:1;background:#111;border-radius:4px;height:10px;overflow:hidden;position:relative;}
+.tier-mini-fill{height:100%;border-radius:4px;transition:width .4s;}
+.tier-mini-fill.A{background:var(--acc);}
+.tier-mini-fill.B{background:var(--a2);}
+.tier-mini-fill.C{background:var(--a3);}
+
+/* LEADER NAMES */
+.leader-row{display:flex;gap:.25rem;align-items:center;margin-bottom:.25rem;}
+.leader-row input{flex:1;padding:.42rem .55rem;background:var(--card);
+  border:1px solid var(--border);border-radius:7px;color:var(--text);
+  font-family:'Kanit',sans-serif;font-size:.78rem;outline:none;}
+.leader-row .save-btn{padding:.42rem .6rem;border-radius:7px;border:none;
+  background:var(--a2);color:#000;font-family:'Kanit',sans-serif;
+  font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* MANUAL ADJUST */
+.adj-grid{display:grid;grid-template-columns:1fr 1fr 52px;gap:.3rem;align-items:center;}
+select,input[type=number],input[type=text]{padding:.45rem .55rem;background:var(--card);
+  border:1px solid var(--border);border-radius:7px;color:var(--text);
+  font-family:'Kanit',sans-serif;font-size:.82rem;width:100%;outline:none;}
+
+/* DEBRIEF STATS */
+.debrief-box{background:var(--card);border-radius:10px;padding:.7rem;
+  border:1px solid var(--border);margin-bottom:.3rem;}
+.debrief-title{font-size:.65rem;font-weight:700;color:var(--acc);margin-bottom:.4rem;letter-spacing:1px;}
+.debrief-stat{font-size:.68rem;color:var(--muted);margin-bottom:.15rem;}
+.debrief-stat span{color:var(--text);font-weight:700;}
+
+/* TOAST */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+  background:var(--acc);color:#fff;padding:.45rem .9rem;border-radius:14px;
+  font-weight:700;font-size:.75rem;opacity:0;transition:opacity .3s;
+  pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h1>⚡ ADMIN</h1>
+  <p style="color:var(--muted);font-size:.8rem;">Portfolio Acceleration Race</p>
+  <input type="password" id="pwd" placeholder="Password"/>
+  <button onclick="doLogin()">เข้าสู่ระบบ</button>
+</div>
+
+<div id="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <h2>⚡ EMCEE CONTROL</h2>
+    <span class="phase-badge" id="phase-lbl">LOBBY</span>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <span class="badge badge-green" id="online-badge">0 online</span>
+    <span class="badge badge-blue" id="sub-badge">lobby</span>
+    <span class="badge badge-orange" id="q-badge">Q—</span>
+  </div>
+
+  <!-- SCORES -->
+  <div class="sec">📊 Live Scores</div>
+  <div class="score-grid" id="score-grid"></div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ PHASE 1 ═══════════ -->
+  <div class="sec">⚡ PHASE 1 — SOLO SPRINT (4 min)</div>
+
+  <!-- Demo -->
+  <div class="row2">
+    <button class="btn btn-dark" onclick="triggerDemo(1)">🎬 Start Demo</button>
+    <button class="btn btn-acc" onclick="startPhase(1)">▶ Start Trivia</button>
+  </div>
+  <div class="demo-bar" id="demo-bar-1" style="display:none;">
+    <button class="btn btn-dark" onclick="demoStep(-1)">◀</button>
+    <div class="demo-step-lbl" id="demo-lbl-1">Step 1/3</div>
+    <button class="btn btn-acc" onclick="demoStep(1)">Next ▶</button>
+  </div>
+
+  <!-- Q Navigator -->
+  <div style="font-size:.62rem;color:var(--muted);margin-bottom:.25rem;">Question Navigator (screen display):</div>
+  <div class="q-nav">
+    <button class="btn btn-dark" onclick="prevQ()">◀ Prev</button>
+    <div class="q-cur" id="q-cur">Q 1</div>
+    <button class="btn btn-acc" onclick="nextQ()">Next ▶</button>
+  </div>
+  <button class="btn btn-dark" onclick="revealAnswer()">👁️ Reveal Answer on Screen</button>
+
+  <!-- Phase 1 Debrief -->
+  <div class="div"></div>
+  <div class="sec">📊 PHASE 1 DEBRIEF</div>
+  <div class="debrief-box" id="p1-debrief">
+    <div class="debrief-title">TEAM STATS (loads after phase ends)</div>
+    <div id="p1-debrief-content" style="color:var(--muted);font-size:.68rem;">Tap "Load Stats" after Phase 1 ends</div>
+  </div>
+  <div class="row2">
+    <button class="btn btn-dark" onclick="loadP1Debrief()">📊 Load Stats</button>
+    <button class="btn btn-a2" onclick="showScoreboard(1)">🏆 Show Scoreboard</button>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ PHASE 2 ═══════════ -->
+  <div class="sec">🏭 PHASE 2 — TERRITORY (1.5 min)</div>
+  <div class="row2">
+    <button class="btn btn-dark" onclick="triggerDemo(2)">🎬 Start Demo</button>
+    <button class="btn btn-a2" onclick="startStrategy()">🧠 Strategy Min</button>
+  </div>
+  <div class="demo-bar" id="demo-bar-2" style="display:none;">
+    <button class="btn btn-dark" onclick="demoStep(-1)">◀</button>
+    <div class="demo-step-lbl" id="demo-lbl-2">Step 1/3</div>
+    <button class="btn btn-a2" onclick="demoStep(1)">Next ▶</button>
+  </div>
+  <button class="btn btn-a2" onclick="startBlitz()">⚡ Start Blitz</button>
+
+  <!-- Launch monitor -->
+  <div class="launch-monitor">
+    <div class="launch-title">🚀 TIER CHARGE MONITOR</div>
+    <div id="launch-monitor"></div>
+  </div>
+
+  <!-- Phase 2 Debrief -->
+  <div class="row2">
+    <button class="btn btn-dark" onclick="loadP2Debrief()">📊 Portfolio Analysis</button>
+    <button class="btn btn-a2" onclick="showScoreboard(2)">🏆 Show Scoreboard</button>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ PHASE 3 ═══════════ -->
+  <div class="sec">🧠 PHASE 3 — STRATEGIC FINALE</div>
+  <div class="row2">
+    <button class="btn btn-dark" onclick="triggerDemo(3)">🎬 Start Demo</button>
+    <button class="btn btn-a3" onclick="startPhase(3)">▶ Start Finale</button>
+  </div>
+  <div class="demo-bar" id="demo-bar-3" style="display:none;">
+    <button class="btn btn-dark" onclick="demoStep(-1)">◀</button>
+    <div class="demo-step-lbl" id="demo-lbl-3">Step 1/3</div>
+    <button class="btn btn-a3" onclick="demoStep(1)">Next ▶</button>
+  </div>
+
+  <!-- Q3 navigator -->
+  <div class="q-nav">
+    <button class="btn btn-dark" onclick="prevQ3()">◀ Prev Q</button>
+    <div class="q-cur" id="q3-cur">Q 1/4</div>
+    <button class="btn btn-a3" onclick="nextQ3()">Next Q ▶</button>
+  </div>
+  <div class="row2">
+    <button class="btn btn-dark" onclick="openSubs()">🔓 Open Submissions</button>
+    <button class="btn btn-danger" onclick="closeSubs()">🔒 Close</button>
+  </div>
+
+  <!-- Submissions viewer -->
+  <div class="p3-box" id="p3-subs-box">
+    <div class="p3-box-title">📨 SUBMISSIONS — Q<span id="p3-q-lbl">1</span></div>
+    <div id="p3-subs-list"></div>
+    <button class="btn btn-danger" style="margin-top:.4rem;" onclick="resolveQ()">⚡ RESOLVE — Apply Scores</button>
+  </div>
+
+  <!-- Reveal controls -->
+  <div class="reveal-box">
+    <div class="reveal-title">🎬 PHASE 3 REVEAL CONTROLS</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-bottom:.3rem;">After resolving scores:</div>
+    <div class="row2">
+      <button class="btn btn-gold" onclick="triggerRevealSequence()">▶ Run Reveal Animation</button>
+      <button class="btn btn-dark" onclick="prepQ4Reveal()">🔒 Prep Q4 Blur</button>
+    </div>
+    <div style="font-size:.62rem;color:var(--muted);margin:.25rem 0;">Q4 Sequential Reveal:</div>
+    <div class="row3">
+      <button class="btn btn-gold" onclick="revealNext()">👆 Reveal Next</button>
+      <button class="btn btn-acc" onclick="autoRevealAll()">⚡ Auto All</button>
+      <button class="btn btn-dark" onclick="showScoreboard(3)">🏆 Board</button>
+    </div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ GAME FLOW ═══════════ -->
+  <div class="sec">🎮 Game Flow</div>
+  <div class="row2">
+    <button class="btn btn-gold" onclick="setPhase(4)">🏆 Final Results</button>
+    <button class="btn btn-danger" onclick="resetGame()">🔄 Full Reset</button>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ LEADER NAMES ═══════════ -->
+  <div class="sec">🏷️ Leader / Team Names</div>
+  <div id="leader-names"></div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ MANUAL SCORE ═══════════ -->
+  <div class="sec">✏️ Manual Score Adjust</div>
+  <div class="adj-grid">
+    <select id="adj-team">
+      <option value="1">ทีม 1</option><option value="2">ทีม 2</option>
+      <option value="3">ทีม 3</option><option value="4">ทีม 4</option>
+      <option value="5">ทีม 5</option><option value="6">ทีม 6</option>
+    </select>
+    <input type="number" id="adj-pts" placeholder="±pts"/>
+    <button class="btn btn-acc" style="margin:0;padding:.45rem;" onclick="adjustScore()">+/−</button>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- ═══════════ ADMIN FREEZE ═══════════ -->
+  <div class="sec">❄️ Admin Freeze Override</div>
+  <div id="freeze-rows"></div>
+
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
+const ADMIN_PWD = 'race2025'; // ← Change before event
+const PHASE_LABELS = {0:'LOBBY',1:'PHASE 1',2:'PHASE 2',3:'PHASE 3',4:'RESULTS'};
+const DEMO_STEPS = {1:3,2:3,3:3};
+const TC = {1:'#38bdf8',2:'#a78bfa',3:'#fbbf24',4:'#34d399',5:'#fb7185',6:'#67e8f9'};
+const TIER_CELLS = {A:8,B:30,C:100};
+
+const {createClient} = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let gs = null, teams = [], factQs = [];
+let currentDemoPhase = 1;
+
+// ── LOGIN ──────────────────────────────────────────────
+function doLogin(){
+  if(document.getElementById('pwd').value === ADMIN_PWD){
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initAdmin();
+  } else {
+    document.getElementById('pwd').style.borderColor = 'var(--danger)';
+    setTimeout(()=>document.getElementById('pwd').style.borderColor='',1000);
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+});
+
+// ── INIT ───────────────────────────────────────────────
+async function initAdmin(){
+  await Promise.all([loadGS(), loadTeams(), loadFactQs()]);
+  render();
+  subscribeRT();
+  pollOnline();
+  renderLeaderNameFields();
+  renderFreezeRows();
+}
+
+async function loadGS(){const{data}=await sb.from('game_state').select('*').eq('id',1).single();if(data)gs=data;}
+async function loadTeams(){const{data}=await sb.from('teams').select('*').order('id');if(data)teams=data;}
+async function loadFactQs(){const{data}=await sb.from('fact_questions').select('*').order('sort_order');if(data)factQs=data;}
+
+function subscribeRT(){
+  sb.channel('admin-gs').on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_state'},p=>{
+    gs=p.new;render();
+  }).subscribe();
+  sb.channel('admin-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},async()=>{
+    await loadTeams();renderScores();renderLaunchMonitor();
+  }).subscribe();
+}
+
+function pollOnline(){
+  setInterval(async()=>{
+    const{count}=await sb.from('players').select('*',{count:'exact',head:true});
+    document.getElementById('online-badge').textContent=`${count||0} online`;
+  },3000);
+}
+
+// ── RENDER ─────────────────────────────────────────────
+function render(){
+  if(!gs) return;
+  const p=gs.phase, sub=gs.sub_state||'lobby';
+  document.getElementById('phase-lbl').textContent=PHASE_LABELS[p]||'LOBBY';
+  document.getElementById('sub-badge').textContent=sub;
+  document.getElementById('q-badge').textContent=`Q${(gs.active_question||0)+1}`;
+  document.getElementById('q-cur').textContent=`Q ${(gs.active_question||0)+1}`;
+  const q3=gs.phase===3?(gs.active_question||0):0;
+  document.getElementById('q3-cur').textContent=`Q${q3+1}/4`;
+  document.getElementById('p3-q-lbl').textContent=q3+1;
+  renderScores();
+  renderLaunchMonitor();
+  loadP3Subs();
+  // Demo bars
+  [1,2,3].forEach(ph=>{
+    const bar=document.getElementById(`demo-bar-${ph}`);
+    if(bar) bar.style.display=(sub==='demo'&&p===ph)?'flex':'none';
+    const lbl=document.getElementById(`demo-lbl-${ph}`);
+    if(lbl) lbl.textContent=`Step ${(gs.demo_step||0)+1}/${DEMO_STEPS[ph]||3}`;
+  });
+}
+
+function renderScores(){
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const el=document.getElementById('score-grid');
+  el.innerHTML=sorted.map((t,rank)=>{
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name||`ทีม ${t.id}`;
+    const frozen=t.frozen_until&&new Date(t.frozen_until)>new Date();
+    return `<div class="sc ${frozen?'frozen':''} ${rank===0?'leading':''}" style="border-color:${clr}33;">
+      <div class="sc-name" style="color:${clr};" title="${nm}">${nm}</div>
+      <div class="sc-pts">${(t.total_score||0).toLocaleString()}</div>
+      <div class="sc-meta">
+        ${frozen?'❄️ ':''} ${t.weapon_charges>0?`💣×${t.weapon_charges}`:''}
+        ${rank===0?'👑':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderLaunchMonitor(){
+  const el=document.getElementById('launch-monitor');
+  if(!el)return;
+  el.innerHTML=teams.map(t=>{
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name||`ทีม ${t.id}`;
+    const ac=Math.max(t.active_player_count||0,15);
+    const tA=t.tier_a_taps||0,tB=t.tier_b_taps||0,tC=t.tier_c_taps||0;
+    const nA=ac*4,nB=ac*12,nC=ac*40;
+    const pA=Math.min(100,(tA/nA)*100),pB=Math.min(100,(tB/nB)*100),pC=Math.min(100,(tC/nC)*100);
+    return `<div class="team-launch-row">
+      <div class="tl-name" style="color:${clr};">${nm}</div>
+      <div class="tier-bars">
+        <div class="tier-mini" title="Tier A ${Math.round(pA)}%">
+          <div class="tier-mini-fill A" style="width:${pA}%"></div>
+        </div>
+        <div class="tier-mini" title="Tier B ${Math.round(pB)}%">
+          <div class="tier-mini-fill B" style="width:${pB}%"></div>
+        </div>
+        <div class="tier-mini" title="Tier C ${Math.round(pC)}%">
+          <div class="tier-mini-fill C" style="width:${pC}%"></div>
+        </div>
+      </div>
+      <div style="font-size:.58rem;color:var(--muted);min-width:55px;text-align:right;">
+        A:${t.tier_a_launches||0} B:${t.tier_b_launches||0} C:${t.tier_c_launches||0}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PHASE 1 ────────────────────────────────────────────
+async function triggerDemo(phase){
+  currentDemoPhase=phase;
+  await sb.from('game_state').update({
+    phase, sub_state:'demo', demo_step:0,
+    phase_start_at:new Date().toISOString()
+  }).eq('id',1);
+  toast(`🎬 Demo Phase ${phase}`);
+}
+
+async function demoStep(dir){
+  const max=DEMO_STEPS[currentDemoPhase||gs?.phase]||3;
+  const next=Math.max(0,Math.min(max-1,(gs?.demo_step||0)+dir));
+  await sb.from('game_state').update({demo_step:next}).eq('id',1);
+  toast(`Step ${next+1}/${max}`);
+}
+
+async function startPhase(p){
+  const dur={1:240,2:90,3:0};
+  await sb.from('game_state').update({
+    phase:p, sub_state:'active',
+    phase_start_at:new Date().toISOString(),
+    active_question:0, demo_step:0,
+    submissions_open:false
+  }).eq('id',1);
+  toast(`▶ Phase ${p} Started`);
+}
+
+async function prevQ(){
+  const n=Math.max(0,(gs?.active_question||0)-1);
+  await sb.from('game_state').update({active_question:n}).eq('id',1);
+  toast(`⬅️ Q${n+1}`);
+}
+async function nextQ(){
+  const n=(gs?.active_question||0)+1;
+  await sb.from('game_state').update({active_question:n}).eq('id',1);
+  toast(`➡️ Q${n+1}`);
+}
+async function revealAnswer(){
+  // Nudge screen to re-render trivia with answer highlight
+  await sb.from('game_state').update({active_question:gs?.active_question||0}).eq('id',1);
+  toast('👁️ Answer revealed');
+}
+
+async function loadP1Debrief(){
+  await sb.from('game_state').update({sub_state:'debrief1'}).eq('id',1);
+  const[{data:ans},{data:atks}]=await Promise.all([
+    sb.from('trivia_answers').select('team_id,is_correct,streak_at_answer'),
+    sb.from('attack_log').select('attacker_team_id').eq('phase',1)
+  ]);
+  if(!ans){toast('No data yet');return;}
+  const stats={};
+  teams.forEach(t=>{stats[t.id]={correct:0,wrong:0,maxStreak:0};});
+  ans.forEach(a=>{
+    if(!stats[a.team_id])return;
+    a.is_correct?stats[a.team_id].correct++:stats[a.team_id].wrong++;
+    if((a.streak_at_answer||0)>stats[a.team_id].maxStreak)
+      stats[a.team_id].maxStreak=a.streak_at_answer||0;
+  });
+  const freezes={};
+  (atks||[]).forEach(a=>{freezes[a.attacker_team_id]=(freezes[a.attacker_team_id]||0)+1;});
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  document.getElementById('p1-debrief-content').innerHTML=sorted.map(t=>{
+    const s=stats[t.id]||{correct:0,wrong:0,maxStreak:0};
+    const total=Math.max(1,s.correct+s.wrong);
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name;
+    return `<div class="debrief-stat" style="border-left:2px solid ${clr};padding-left:.4rem;margin-bottom:.3rem;">
+      <div style="color:${clr};font-weight:700;font-size:.72rem;">${nm}</div>
+      ✅<span>${s.correct}</span> · ❌<span>${s.wrong}</span> ·
+      Acc:<span>${Math.round((s.correct/total)*100)}%</span> ·
+      🔥<span>${s.maxStreak}</span> · 💣<span>${freezes[t.id]||0}</span>
+    </div>`;
+  }).join('');
+  toast('📊 P1 Debrief → Big Screen!');
+}
+
+async function loadP2Debrief(){
+  await sb.from('game_state').update({sub_state:'debrief2'}).eq('id',1);
+  toast('📊 Portfolio Mix → Big Screen!');
+}
+
+// ── PHASE 3 ────────────────────────────────────────────
+async function prevQ3(){
+  const n=Math.max(0,(gs?.active_question||0)-1);
+  await sb.from('game_state').update({active_question:n,submissions_open:false}).eq('id',1);
+  toast(`⬅️ Q${n+1}`);
+}
+async function nextQ3(){
+  const n=Math.min(3,(gs?.active_question||0)+1);
+  await sb.from('game_state').update({active_question:n,submissions_open:false}).eq('id',1);
+  toast(`➡️ Q${n+1}`);
+}
+async function openSubs(){
+  await sb.from('game_state').update({submissions_open:true}).eq('id',1);
+  toast('🔓 Submissions Open!');
+}
+async function closeSubs(){
+  await sb.from('game_state').update({submissions_open:false}).eq('id',1);
+  toast('🔒 Submissions Closed');
+}
+
+async function loadP3Subs(){
+  if(!gs||gs.phase!==3) return;
+  const qi=gs.active_question||0;
+  const{data}=await sb.from('phase3_submissions').select('*').eq('question_index',qi);
+  const el=document.getElementById('p3-subs-list');
+  if(!el)return;
+  if(!data||!data.length){
+    el.innerHTML=`<div style="color:var(--muted);font-size:.68rem;">ยังไม่มีการส่ง...</div>`;
+    return;
+  }
+  const submitted=new Set(data.map(r=>r.team_id));
+  el.innerHTML=teams.map(t=>{
+    const sub=data.find(r=>r.team_id===t.id);
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name;
+    if(!sub) return `<div class="sub-row">
+      <div class="sub-team" style="color:${clr};">${nm}</div>
+      <div class="sub-detail">⏳ ยังไม่ส่ง</div>
+    </div>`;
+    const ansMap={true:'✅ จริง',false:'❌ เท็จ',notsure:'🤔 ไม่แน่ใจ'};
+    const weapons=`${sub.use_multiplier?'🛡️':''}${sub.use_takeover?`💣→ทีม ${sub.takeover_target}`:''}`;
+    return `<div class="sub-row">
+      <div class="sub-team sub-done" style="color:${clr};">${nm}</div>
+      <div class="sub-detail">${ansMap[sub.answer]||sub.answer} · ${(sub.wager||0).toLocaleString()}pts</div>
+      <div class="sub-weapon">${weapons}</div>
+    </div>`;
+  }).join('');
+}
+
+async function resolveQ(){
+  const qi=gs?.active_question||0;
+  const q=factQs[qi];
+  if(!q){toast('ไม่พบคำถาม — ตรวจสอบ editor');return;}
+  if(!confirm(`Resolve Q${qi+1}?\nCorrect answer: ${q.correct_answer}`)) return;
+  const{error}=await sb.rpc('resolve_phase3_question',{
+    p_question_index:qi, p_correct_answer:q.correct_answer
+  });
+  if(error){toast('Error: '+error.message);return;}
+  await loadTeams();renderScores();
+  toast(`✅ Q${qi+1} resolved! Correct: ${q.correct_answer}`);
+}
+
+async function triggerRevealSequence(){
+  // Signal screen.html to run its reveal animation
+  // Screen picks up sub_state change and runs the sequence
+  const qi=gs?.active_question||0;
+  const q=factQs[qi];
+  if(!q){toast('ไม่พบคำถาม');return;}
+  const{data:subs}=await sb.from('phase3_submissions').select('*').eq('question_index',qi);
+  // Screen handles the animation locally when it gets the resolve signal
+  await sb.from('game_state').update({sub_state:`reveal:${qi}:${q.correct_answer}`}).eq('id',1);
+  toast('🎬 Reveal animation triggered');
+}
+
+async function prepQ4Reveal(){
+  await sb.from('game_state').update({sub_state:'q4_reveal_prep'}).eq('id',1);
+  toast('🔒 Q4 scores blurred on screen');
+}
+async function revealNext(){
+  await sb.from('game_state').update({sub_state:'q4_reveal_next'}).eq('id',1);
+  setTimeout(()=>sb.from('game_state').update({sub_state:'active'}).eq('id',1),500);
+  toast('👆 Revealed next team');
+}
+async function autoRevealAll(){
+  await sb.from('game_state').update({sub_state:'q4_reveal_auto'}).eq('id',1);
+  toast('⚡ Auto reveal started');
+}
+
+// ── GAME FLOW ──────────────────────────────────────────
+async function setPhase(p){
+  await sb.from('game_state').update({phase:p,sub_state:p===4?'ended':'active'}).eq('id',1);
+  toast(p===4?'🏆 Final Results!':'Phase '+p);
+}
+
+async function resetGame(){
+  if(!confirm('รีเซ็ตทั้งหมด? This cannot be undone.')) return;
+  await sb.from('game_state').update({
+    phase:0,sub_state:'lobby',phase_start_at:null,
+    active_question:0,demo_step:0,submissions_open:false
+  }).eq('id',1);
+  await sb.from('teams').update({
+    total_score:0,trivia_score:0,correct_pool:0,active_player_count:0,
+    weapon_charges:0,frozen_until:null,shield_until:null,frozen_by_team:null,
+    tier_a_taps:0,tier_b_taps:0,tier_c_taps:0,
+    tier_a_launches:0,tier_b_launches:0,tier_c_launches:0,
+    pipeline_score:0,fact_score:0,
+    multiplier_used:false,takeover_used:false,
+    current_wager:0,current_answer:'',
+    current_use_multiplier:false,current_use_takeover:false,
+    current_takeover_target:null,submitted_at:null
+  }).gte('id',1);
+  await sb.from('players').delete().gte('session_score',-999999);
+  await sb.from('trivia_answers').delete().gte('id',1);
+  await sb.from('tap_events').delete().gte('id',1);
+  await sb.from('attack_log').delete().gte('id',1);
+  await sb.from('phase3_submissions').delete().gte('id',1);
+  await loadTeams();renderScores();
+  toast('🔄 Reset complete!');
+}
+
+async function adjustScore(){
+  const team=parseInt(document.getElementById('adj-team').value);
+  const pts=parseInt(document.getElementById('adj-pts').value);
+  if(isNaN(pts)){toast('ใส่คะแนน');return;}
+  const t=teams.find(x=>x.id===team)||{};
+  const newScore=Math.max(0,(t.total_score||0)+pts);
+  await sb.from('teams').update({total_score:newScore}).eq('id',team);
+  toast(`✅ ทีม ${team}: ${pts>0?'+':''}${pts}`);
+}
+
+// ── LEADER NAMES ────────────────────────────────────────
+function renderLeaderNameFields(){
+  const el=document.getElementById('leader-names');
+  el.innerHTML=teams.map(t=>`
+    <div class="leader-row">
+      <div style="font-size:.65rem;color:${TC[t.id]||'#fff'};min-width:38px;font-weight:700;">ทีม ${t.id}</div>
+      <input type="text" id="ln-${t.id}" value="${t.leader_name||''}" placeholder="Leader / Team name"/>
+      <button class="save-btn" onclick="saveLeaderName(${t.id})">💾</button>
+    </div>`).join('');
+}
+
+async function saveLeaderName(id){
+  const name=document.getElementById(`ln-${id}`)?.value.trim()||'';
+  await sb.from('teams').update({leader_name:name}).eq('id',id);
+  await loadTeams();renderScores();
+  toast(`✅ ทีม ${id}: "${name}"`);
+}
+
+// ── FREEZE OVERRIDE ─────────────────────────────────────
+function renderFreezeRows(){
+  const el=document.getElementById('freeze-rows');
+  el.innerHTML=teams.map(t=>`
+    <div class="row" style="margin-bottom:.25rem;">
+      <div style="font-size:.68rem;color:${TC[t.id]||'#fff'};font-weight:700;
+        display:flex;align-items:center;min-width:70px;">ทีม ${t.id}</div>
+      <button class="btn btn-a2" style="margin:0;padding:.45rem;font-size:.72rem;"
+        onclick="adminFreeze(${t.id})">❄️ Freeze</button>
+      <button class="btn btn-acc" style="margin:0;padding:.45rem;font-size:.72rem;"
+        onclick="adminThaw(${t.id})">☀️ Thaw</button>
+    </div>`).join('');
+}
+
+async function adminFreeze(id){
+  await sb.from('teams').update({
+    frozen_until:new Date(Date.now()+12000).toISOString(),
+    frozen_by_team:0
+  }).eq('id',id);
+  toast(`❄️ ทีม ${id} Frozen!`);
+}
+async function adminThaw(id){
+  await sb.from('teams').update({frozen_until:null,frozen_by_team:null}).eq('id',id);
+  toast(`☀️ ทีม ${id} Thawed!`);
+}
+
+// ── TOAST ───────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>

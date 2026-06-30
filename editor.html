@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EDITOR — Portfolio Race</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+:root{--bg:#0f0f18;--card:#1e1e30;--sur:#161624;--border:#2a2a40;
+  --acc:#ff6b35;--a2:#00d4ff;--a3:#7fff00;--gold:#ffd700;--danger:#ff2d55;
+  --text:#f0f0f0;--muted:#666;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Kanit',sans-serif;padding:1.5rem;max-width:960px;margin:0 auto;}
+h1{font-size:1.5rem;font-weight:900;color:var(--acc);margin-bottom:.2rem;}
+.sub{color:var(--muted);margin-bottom:1.2rem;font-size:.82rem;}
+.tabs{display:flex;gap:0;margin-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;}
+.tab{padding:.45rem .9rem;cursor:pointer;font-family:'Kanit',sans-serif;font-size:.8rem;
+  font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc);}
+.panel{display:none;}.panel.active{display:block;}
+.box{background:var(--card);border-radius:11px;padding:1.1rem;margin-bottom:1rem;border:1px solid var(--border);}
+.box h2{font-size:.85rem;font-weight:900;color:var(--a2);margin-bottom:.7rem;letter-spacing:1px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.55rem;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.55rem;margin-bottom:.55rem;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.55rem;margin-bottom:.55rem;}
+label{font-size:.68rem;color:var(--muted);font-weight:700;letter-spacing:1px;display:block;margin-bottom:.2rem;}
+input,select,textarea{width:100%;padding:.5rem .65rem;background:var(--sur);
+  border:1px solid var(--border);border-radius:7px;color:var(--text);
+  font-family:'Kanit',sans-serif;font-size:.85rem;outline:none;transition:border .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--a2);}
+textarea{resize:vertical;min-height:50px;}
+.brow{display:flex;gap:.55rem;flex-wrap:wrap;margin-top:.7rem;}
+.btn{padding:.55rem 1rem;border-radius:7px;border:none;cursor:pointer;
+  font-family:'Kanit',sans-serif;font-size:.82rem;font-weight:700;transition:all .15s;}
+.btn:active{transform:scale(.97);}
+.btn-acc{background:var(--acc);color:#fff;}
+.btn-a2{background:var(--a2);color:#000;}
+.btn-a3{background:var(--a3);color:#000;}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-dark{background:var(--border);color:var(--text);}
+.status{padding:.38rem .7rem;border-radius:6px;font-size:.78rem;font-weight:700;margin-top:.55rem;display:none;}
+.status.ok{background:rgba(127,255,0,.1);color:var(--a3);border:1px solid var(--a3);display:block;}
+.status.err{background:rgba(255,45,85,.1);color:var(--danger);border:1px solid var(--danger);display:block;}
+.qlist{display:flex;flex-direction:column;gap:.35rem;margin-top:.7rem;}
+.qi{background:var(--sur);border-radius:7px;padding:.55rem .7rem;
+  border:1px solid var(--border);display:flex;align-items:center;gap:.55rem;}
+.qn{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--acc);min-width:2rem;}
+.qt{flex:1;font-size:.78rem;line-height:1.3;}
+.qa{font-size:.68rem;color:var(--a3);font-weight:700;}
+.qdel{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.85rem;padding:.1rem;}
+.csv-box{background:var(--sur);border-radius:7px;padding:.7rem;font-family:'Share Tech Mono',monospace;
+  font-size:.65rem;color:var(--a2);border:1px solid var(--border);margin-bottom:.7rem;
+  white-space:pre-wrap;word-break:break-all;}
+.sq{background:var(--sur);border-radius:7px;padding:.7rem;margin-bottom:.35rem;
+  border:1px solid var(--border);font-size:.78rem;line-height:1.5;}
+.sq-cat{font-size:.62rem;color:var(--acc);font-weight:700;letter-spacing:1px;margin-bottom:.25rem;}
+.sq-ans{color:var(--a3);font-weight:700;font-size:.68rem;}
+</style>
+</head>
+<body>
+<h1>⚙️ CONTENT EDITOR</h1>
+<p class="sub">Portfolio Acceleration Race — จัดการคำถามและตั้งค่าเกม</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('trivia',this)">📝 Trivia (Phase 1)</div>
+  <div class="tab" onclick="switchTab('fact',this)">🔥 Fact/Fiction (Phase 3)</div>
+  <div class="tab" onclick="switchTab('config',this)">⚙️ Config</div>
+  <div class="tab" onclick="switchTab('samples',this)">💡 Samples</div>
+  <div class="tab" onclick="switchTab('import',this)">📥 CSV Import</div>
+</div>
+
+<!-- TRIVIA -->
+<div id="panel-trivia" class="panel active">
+  <div class="box">
+    <h2>➕ ADD TRIVIA QUESTION (3-4 ตัวเลือก)</h2>
+    <div style="margin-bottom:.55rem;"><label>คำถาม (TH) *</label><textarea id="t-q-th"></textarea></div>
+    <div style="margin-bottom:.55rem;"><label>Question (EN) — optional</label><textarea id="t-q-en"></textarea></div>
+    <div class="g2">
+      <div><label>A (TH) *</label><input id="t-a-th"/></div>
+      <div><label>A (EN)</label><input id="t-a-en"/></div>
+    </div>
+    <div class="g2">
+      <div><label>B (TH) *</label><input id="t-b-th"/></div>
+      <div><label>B (EN)</label><input id="t-b-en"/></div>
+    </div>
+    <div class="g2">
+      <div><label>C (TH)</label><input id="t-c-th"/></div>
+      <div><label>C (EN)</label><input id="t-c-en"/></div>
+    </div>
+    <div class="g2">
+      <div><label>D (TH)</label><input id="t-d-th"/></div>
+      <div><label>D (EN)</label><input id="t-d-en"/></div>
+    </div>
+    <div class="g3">
+      <div><label>ตอบถูก *</label>
+        <select id="t-correct"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+      </div>
+      <div><label>หมวด</label>
+        <select id="t-cat"><option value="insurance">🏥 Insurance</option><option value="trivia">🎯 Trivia</option><option value="maths">🔢 Maths</option></select>
+      </div>
+      <div><label>ลำดับ</label><input type="number" id="t-order" value="0"/></div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-acc" onclick="addTrivia()">➕ เพิ่ม</button>
+      <button class="btn btn-dark" onclick="clearTriviaForm()">ล้าง</button>
+    </div>
+    <div id="ts" class="status"></div>
+  </div>
+  <div class="box">
+    <h2>📋 TRIVIA LIST (<span id="t-count">0</span> ข้อ)</h2>
+    <div class="brow" style="margin-top:0;margin-bottom:.6rem;">
+      <button class="btn btn-a2" onclick="loadTriviaList()">🔄</button>
+      <button class="btn btn-danger" onclick="delAllTrivia()">🗑️ ลบทั้งหมด</button>
+    </div>
+    <div id="trivia-list" class="qlist"></div>
+  </div>
+</div>
+
+<!-- FACT -->
+<div id="panel-fact" class="panel">
+  <div class="box">
+    <h2>➕ ADD FACT OR FICTION (4 questions for Phase 3)</h2>
+    <div style="margin-bottom:.55rem;"><label>ประโยค (TH) *</label><textarea id="f-th"></textarea></div>
+    <div style="margin-bottom:.55rem;"><label>Statement (EN) — optional</label><textarea id="f-en"></textarea></div>
+    <div class="g3">
+      <div><label>คำตอบ *</label>
+        <select id="f-correct">
+          <option value="true">✅ จริง</option>
+          <option value="false">❌ เท็จ</option>
+          <option value="notsure">🤔 ไม่แน่ใจ</option>
+        </select>
+      </div>
+      <div><label>Takeover อนุญาต?</label>
+        <select id="f-takeover"><option value="true">✅ Yes (Q2/Q3)</option><option value="false">❌ No (Q1/Q4)</option></select>
+      </div>
+      <div><label>ลำดับ (Q1=0,Q2=1...)</label><input type="number" id="f-order" value="0"/></div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-acc" onclick="addFact()">➕ เพิ่ม</button>
+      <button class="btn btn-dark" onclick="clearFactForm()">ล้าง</button>
+    </div>
+    <div id="fs" class="status"></div>
+  </div>
+  <div class="box">
+    <h2>📋 FACT LIST (<span id="f-count">0</span> ข้อ) — ต้องมีพอดี 4 ข้อ</h2>
+    <div class="brow" style="margin-top:0;margin-bottom:.6rem;">
+      <button class="btn btn-a2" onclick="loadFactList()">🔄</button>
+      <button class="btn btn-danger" onclick="delAllFact()">🗑️ ลบทั้งหมด</button>
+    </div>
+    <div id="fact-list" class="qlist"></div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div id="panel-config" class="panel">
+  <div class="box">
+    <h2>🏷️ Team Names (จะอัปเดตได้จาก Admin ก็ได้)</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.55rem;" id="team-names"></div>
+    <div class="brow"><button class="btn btn-gold" onclick="saveTeamNames()">💾 Save Team Names</button></div>
+  </div>
+  <div class="box">
+    <h2>📦 Product / Tier Names (Phase 2)</h2>
+    <div class="g3">
+      <div><label>Tier A (Strategic)</label><input id="pn-A" placeholder="Run-Rate Vector"/></div>
+      <div><label>Tier B (Mid-Market)</label><input id="pn-B" placeholder="Mid-Market Surge"/></div>
+      <div><label>Tier C (Enterprise)</label><input id="pn-C" placeholder="Enterprise Peak"/></div>
+    </div>
+    <div class="brow"><button class="btn btn-gold" onclick="saveProductNames()">💾 Save Tier Names</button></div>
+  </div>
+  <div id="cfg-status" class="status"></div>
+</div>
+
+<!-- SAMPLES -->
+<div id="panel-samples" class="panel">
+  <div class="box">
+    <h2>💡 20 Sample Questions (ประกันชีวิต + ทั่วไป + คณิตฯ)</h2>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:.7rem;">คลิก Load เพื่อนำเข้าทันที — แต่ละผู้เล่นจะได้ลำดับสลับต่างกัน</p>
+    <button class="btn btn-gold" onclick="loadSamples()">⬆️ Load ทั้ง 20 ข้อ</button>
+    <div id="sample-status" class="status"></div>
+    <div style="margin-top:1rem;" id="sample-preview"></div>
+  </div>
+</div>
+
+<!-- CSV IMPORT -->
+<div id="panel-import" class="panel">
+  <div class="box">
+    <h2>📥 Import Trivia CSV</h2>
+    <div class="csv-box">question_th,question_en,option_a_th,option_b_th,option_c_th,option_d_th,option_a_en,option_b_en,option_c_en,option_d_en,correct_answer,category,sort_order</div>
+    <input type="file" id="trivia-csv" accept=".csv" style="padding:.4rem;background:var(--sur);border:1px dashed var(--border);border-radius:7px;width:100%;cursor:pointer;color:var(--text);">
+    <div class="brow"><button class="btn btn-acc" onclick="importTriviaCsv()">📥 Import</button></div>
+    <div id="ti-status" class="status"></div>
+  </div>
+  <div class="box">
+    <h2>📥 Import Fact/Fiction CSV</h2>
+    <div class="csv-box">statement_th,statement_en,correct_answer,takeover_allowed,sort_order</div>
+    <input type="file" id="fact-csv" accept=".csv" style="padding:.4rem;background:var(--sur);border:1px dashed var(--border);border-radius:7px;width:100%;cursor:pointer;color:var(--text);">
+    <div class="brow"><button class="btn btn-a2" onclick="importFactCsv()">📥 Import</button></div>
+    <div id="fi-status" class="status"></div>
+  </div>
+  <div class="box">
+    <h2>📤 Export</h2>
+    <div class="brow">
+      <button class="btn btn-dark" onclick="exportTrivia()">⬇️ Trivia CSV</button>
+      <button class="btn btn-dark" onclick="exportFact()">⬇️ Fact CSV</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
+const {createClient} = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const SAMPLES = [
+  {question_th:'ผลประโยชน์กรณีเสียชีวิตของกรมธรรม์ประกันชีวิตแบบตลอดชีพ คือข้อใด?',question_en:'Death benefit of Whole Life insurance?',option_a_th:'คืนเบี้ย',option_b_th:'จ่ายทุนประกัน',option_c_th:'จ่ายเงินปันผล',option_d_th:'ยกเว้นเบี้ย',option_a_en:'Return premium',option_b_en:'Pay sum assured',option_c_en:'Pay dividend',option_d_en:'Waive premium',correct_answer:'B',category:'insurance',sort_order:1},
+  {question_th:'Grace Period ในกรมธรรม์ประกันชีวิตโดยทั่วไปคือกี่วัน?',question_en:'How many days is the typical Grace Period?',option_a_th:'15 วัน',option_b_th:'30 วัน',option_c_th:'45 วัน',option_d_th:'60 วัน',option_a_en:'15 days',option_b_en:'30 days',option_c_en:'45 days',option_d_en:'60 days',correct_answer:'B',category:'insurance',sort_order:2},
+  {question_th:'สัญญาเพิ่มเติมสุขภาพ (Health Rider) คืออะไร?',question_en:'What is a Health Rider?',option_a_th:'กรมธรรม์แยก',option_b_th:'สัญญาแนบท้าย',option_c_th:'บัตรสุขภาพ',option_d_th:'การันตีต่ออายุ',option_a_en:'Separate policy',option_b_en:'Rider on main policy',option_c_en:'Health card',option_d_en:'Renewal guarantee',correct_answer:'B',category:'insurance',sort_order:3},
+  {question_th:'Underwriting มีจุดประสงค์หลักเพื่ออะไร?',question_en:'Main purpose of Underwriting?',option_a_th:'เพิ่มยอดขาย',option_b_th:'ประเมินความเสี่ยง',option_c_th:'กำหนดเงินปันผล',option_d_th:'คำนวณคอมมิชชั่น',option_a_en:'Increase sales',option_b_en:'Assess risk',option_c_en:'Set dividends',option_d_en:'Calculate commission',correct_answer:'B',category:'insurance',sort_order:4},
+  {question_th:'"ผู้รับประโยชน์" หมายถึงใคร?',question_en:'Who is the Beneficiary?',option_a_th:'คนจ่ายเบี้ย',option_b_th:'คนเอาประกัน',option_c_th:'คนรับเงิน',option_d_th:'ตัวแทน',option_a_en:'Premium payer',option_b_en:'Insured',option_c_en:'Payout receiver',option_d_en:'Agent',correct_answer:'C',category:'insurance',sort_order:5},
+  {question_th:'ประกันชีวิตแบบบำนาญ (Annuity) เหมาะกับเป้าหมายใด?',question_en:'Annuity insurance is best for?',option_a_th:'คุ้มครองหนี้สิน',option_b_th:'วางแผนเกษียณ',option_c_th:'ออมระยะสั้น',option_d_th:'คุ้มครองอุบัติเหตุ',option_a_en:'Debt protection',option_b_en:'Retirement planning',option_c_en:'Short savings',option_d_en:'Accident cover',correct_answer:'B',category:'insurance',sort_order:6},
+  {question_th:'Free Look Period ให้ผู้เอาประกันทำอะไรได้?',question_en:'What does Free Look Period allow?',option_a_th:'เพิ่มทุนประกัน',option_b_th:'ยกเลิกและรับเบี้ยคืน',option_c_th:'เปลี่ยนแผน',option_d_th:'เพิ่ม Rider',option_a_en:'Increase coverage',option_b_en:'Cancel and get refund',option_c_en:'Change plan',option_d_en:'Add rider',correct_answer:'B',category:'insurance',sort_order:7},
+  {question_th:'ประกันชีวิตแบบใดไม่มีมูลค่าเงินสด?',question_en:'Which life insurance has no cash value?',option_a_th:'Whole Life',option_b_th:'Endowment',option_c_th:'Term Life',option_d_th:'Universal Life',option_a_en:'Whole Life',option_b_en:'Endowment',option_c_en:'Term Life',option_d_en:'Universal Life',correct_answer:'C',category:'insurance',sort_order:8},
+  {question_th:'"ทุนประกัน" หมายถึงอะไร?',question_en:'What is "Sum Assured"?',option_a_th:'เบี้ยรายปี',option_b_th:'เงินที่บริษัทจ่าย',option_c_th:'มูลค่าเวนคืน',option_d_th:'เงินปันผล',option_a_en:'Annual premium',option_b_en:'Insurer payout',option_c_en:'Surrender value',option_d_en:'Dividend',correct_answer:'B',category:'insurance',sort_order:9},
+  {question_th:'กรมธรรม์ขาดอายุ (Lapse) ควรทำอะไรก่อน?',question_en:'What to do first when policy lapses?',option_a_th:'ซื้อใหม่',option_b_th:'ต่ออายุชำระเบี้ยค้าง',option_c_th:'ยกเลิก',option_d_th:'เปลี่ยนผู้รับประโยชน์',option_a_en:'Buy new',option_b_en:'Reinstate with overdue premium',option_c_en:'Cancel',option_d_en:'Change beneficiary',correct_answer:'B',category:'insurance',sort_order:10},
+  {question_th:'ข้อใดไม่ใช่ปัจจัยคำนวณเบี้ยประกันชีวิต?',question_en:'Which is NOT a premium calculation factor?',option_a_th:'อายุ',option_b_th:'เพศ',option_c_th:'สีผิว',option_d_th:'สุขภาพ',option_a_en:'Age',option_b_en:'Gender',option_c_en:'Skin color',option_d_en:'Health',correct_answer:'C',category:'insurance',sort_order:11},
+  {question_th:'Waiting Period หมายถึงอะไร?',question_en:'What is Waiting Period?',option_a_th:'รอรับเงินปันผล',option_b_th:'ต้องมีชีวิตหลังทำสัญญา',option_c_th:'ผ่อนผันเบี้ย',option_d_th:'พิจารณารับประกัน',option_a_en:'Wait for dividend',option_b_en:'Survival period after signing',option_c_en:'Premium grace',option_d_en:'Underwriting time',correct_answer:'B',category:'insurance',sort_order:12},
+  {question_th:'ประเทศใดมีประชากรมากที่สุดในโลก?',question_en:'Most populated country?',option_a_th:'อินเดีย',option_b_th:'จีน',option_c_th:'สหรัฐอเมริกา',option_d_th:'อินโดนีเซีย',option_a_en:'India',option_b_en:'China',option_c_en:'USA',option_d_en:'Indonesia',correct_answer:'A',category:'trivia',sort_order:13},
+  {question_th:'AI ย่อมาจากอะไร?',question_en:'AI stands for?',option_a_th:'Automated Interface',option_b_th:'Artificial Intelligence',option_c_th:'Advanced Integration',option_d_th:'Automated Industry',option_a_en:'Automated Interface',option_b_en:'Artificial Intelligence',option_c_en:'Advanced Integration',option_d_en:'Automated Industry',correct_answer:'B',category:'trivia',sort_order:14},
+  {question_th:'กีฬาใดนิยมมากที่สุดในโลก?',question_en:'Most popular sport globally?',option_a_th:'บาสเกตบอล',option_b_th:'คริกเกต',option_c_th:'ฟุตบอล',option_d_th:'เทนนิส',option_a_en:'Basketball',option_b_en:'Cricket',option_c_en:'Football',option_d_en:'Tennis',correct_answer:'C',category:'trivia',sort_order:15},
+  {question_th:'มหาสมุทรใดใหญ่ที่สุด?',question_en:'Largest ocean?',option_a_th:'แอตแลนติก',option_b_th:'อินเดีย',option_c_th:'แปซิฟิก',option_d_th:'อาร์กติก',option_a_en:'Atlantic',option_b_en:'Indian',option_c_en:'Pacific',option_d_en:'Arctic',correct_answer:'C',category:'trivia',sort_order:16},
+  {question_th:'200 + 5 × 10 = ?',question_en:'200 + 5 × 10 = ?',option_a_th:'2,050',option_b_th:'250',option_c_th:'205',option_d_th:'300',option_a_en:'2,050',option_b_en:'250',option_c_en:'205',option_d_en:'300',correct_answer:'B',category:'maths',sort_order:17},
+  {question_th:'ทุน 1,000,000 บาท คอมมิชชั่น 15% = ?',question_en:'Sum 1,000,000 THB × 15% commission = ?',option_a_th:'10,000 บาท',option_b_th:'150,000 บาท',option_c_th:'15,000 บาท',option_d_th:'100,000 บาท',option_a_en:'10,000',option_b_en:'150,000',option_c_en:'15,000',option_d_en:'100,000',correct_answer:'B',category:'maths',sort_order:18},
+  {question_th:'"Premium" ในบริบทประกันชีวิต หมายถึงอะไร?',question_en:'"Premium" in life insurance context means?',option_a_th:'ของรางวัล',option_b_th:'เบี้ยประกัน',option_c_th:'ผลประโยชน์พิเศษ',option_d_th:'เงินออม',option_a_en:'Prize',option_b_en:'Insurance payment',option_c_en:'Special benefit',option_d_en:'Savings',correct_answer:'B',category:'insurance',sort_order:19},
+  {question_th:'เบี้ยรายปี 12,000 บาท เบี้ยรายเดือน = ?',question_en:'Annual premium 12,000 → monthly = ?',option_a_th:'1,200 บาท',option_b_th:'1,000 บาท',option_c_th:'600 บาท',option_d_th:'2,000 บาท',option_a_en:'1,200',option_b_en:'1,000',option_c_en:'600',option_d_en:'2,000',correct_answer:'B',category:'maths',sort_order:20},
+];
+
+// ── TABS ───────────────────────────────────────────────
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+  if(name==='trivia') loadTriviaList();
+  if(name==='fact') loadFactList();
+  if(name==='config') loadConfig();
+  if(name==='samples') renderSamplePreview();
+}
+
+// ── TRIVIA ─────────────────────────────────────────────
+async function addTrivia(){
+  const q={
+    question_th:v('t-q-th'),question_en:v('t-q-en')||null,
+    option_a_th:v('t-a-th'),option_b_th:v('t-b-th'),
+    option_c_th:v('t-c-th')||null,option_d_th:v('t-d-th')||null,
+    option_a_en:v('t-a-en')||null,option_b_en:v('t-b-en')||null,
+    option_c_en:v('t-c-en')||null,option_d_en:v('t-d-en')||null,
+    correct_answer:v('t-correct'),category:v('t-cat'),
+    sort_order:parseInt(v('t-order'))||0
+  };
+  if(!q.question_th||!q.option_a_th||!q.option_b_th){ss('ts','กรุณากรอกคำถามและตัวเลือก A, B','err');return;}
+  const{error}=await sb.from('trivia_questions').insert(q);
+  if(error){ss('ts','Error: '+error.message,'err');return;}
+  ss('ts','✅ เพิ่มสำเร็จ!','ok');clearTriviaForm();loadTriviaList();
+}
+function clearTriviaForm(){['t-q-th','t-q-en','t-a-th','t-b-th','t-c-th','t-d-th','t-a-en','t-b-en','t-c-en','t-d-en'].forEach(id=>document.getElementById(id).value='');document.getElementById('t-order').value='0';}
+async function loadTriviaList(){
+  const{data}=await sb.from('trivia_questions').select('*').order('sort_order').order('id');
+  document.getElementById('t-count').textContent=data?.length||0;
+  const el=document.getElementById('trivia-list');
+  if(!data?.length){el.innerHTML='<div style="color:var(--muted);font-size:.78rem;">ยังไม่มีคำถาม</div>';return;}
+  const cats={insurance:'🏥',trivia:'🎯',maths:'🔢'};
+  el.innerHTML=data.map(q=>`<div class="qi">
+    <div class="qn">#${q.id}</div>
+    <div class="qt"><div>${cats[q.category]||''} ${q.question_th}</div>
+      <div style="font-size:.65rem;color:var(--muted);">A:${q.option_a_th} B:${q.option_b_th}${q.option_c_th?' C:'+q.option_c_th:''}${q.option_d_th?' D:'+q.option_d_th:''}</div>
+    </div>
+    <div class="qa">✅${q.correct_answer}</div>
+    <button class="qdel" onclick="delTrivia(${q.id})">🗑️</button>
+  </div>`).join('');
+}
+async function delTrivia(id){if(!confirm('ลบ?'))return;await sb.from('trivia_questions').delete().eq('id',id);loadTriviaList();}
+async function delAllTrivia(){if(!confirm('ลบทั้งหมด?'))return;await sb.from('trivia_questions').delete().gte('id',0);loadTriviaList();}
+
+// ── FACT ───────────────────────────────────────────────
+async function addFact(){
+  const q={
+    statement_th:v('f-th'),statement_en:v('f-en')||null,
+    correct_answer:v('f-correct'),
+    takeover_allowed:v('f-takeover')==='true',
+    sort_order:parseInt(v('f-order'))||0
+  };
+  if(!q.statement_th){ss('fs','กรุณาใส่ประโยค','err');return;}
+  const{error}=await sb.from('fact_questions').insert(q);
+  if(error){ss('fs','Error: '+error.message,'err');return;}
+  ss('fs','✅ เพิ่มสำเร็จ!','ok');clearFactForm();loadFactList();
+}
+function clearFactForm(){['f-th','f-en'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-order').value='0';}
+async function loadFactList(){
+  const{data}=await sb.from('fact_questions').select('*').order('sort_order').order('id');
+  document.getElementById('f-count').textContent=data?.length||0;
+  const el=document.getElementById('fact-list');
+  if(!data?.length){el.innerHTML='<div style="color:var(--muted);font-size:.78rem;">ยังไม่มีประโยค — ต้องมีพอดี 4 ข้อ</div>';return;}
+  const icons={true:'✅',false:'❌',notsure:'🤔'};
+  el.innerHTML=data.map((q,i)=>`<div class="qi">
+    <div class="qn">Q${i+1}</div>
+    <div class="qt"><div>${q.statement_th}</div>
+      <div style="font-size:.63rem;color:var(--muted);">${q.takeover_allowed?'💣 Takeover OK':'🚫 No Takeover'}</div>
+    </div>
+    <div class="qa">${icons[q.correct_answer]}</div>
+    <button class="qdel" onclick="delFact(${q.id})">🗑️</button>
+  </div>`).join('');
+}
+async function delFact(id){if(!confirm('ลบ?'))return;await sb.from('fact_questions').delete().eq('id',id);loadFactList();}
+async function delAllFact(){if(!confirm('ลบทั้งหมด?'))return;await sb.from('fact_questions').delete().gte('id',0);loadFactList();}
+
+// ── CONFIG ─────────────────────────────────────────────
+async function loadConfig(){
+  const{data:tm}=await sb.from('teams').select('*').order('id');
+  if(tm){
+    const el=document.getElementById('team-names');
+    el.innerHTML=tm.map(t=>`
+      <div><label>ทีม ${t.id} Name TH</label><input id="tn${t.id}-th" value="${t.name||'ทีม '+t.id}"/></div>
+      <div><label>ทีม ${t.id} Name EN</label><input id="tn${t.id}-en" value="${t.name||'Team '+t.id}"/></div>
+      <div></div>`).join('');
+  }
+  const{data:gs}=await sb.from('game_state').select('product_names').eq('id',1).single();
+  if(gs?.product_names){['A','B','C'].forEach(p=>{const el=document.getElementById(`pn-${p}`);if(el)el.value=gs.product_names[p]||'';});}
+}
+async function saveTeamNames(){
+  const{data:tm}=await sb.from('teams').select('id').order('id');
+  if(!tm)return;
+  await Promise.all(tm.map(t=>sb.from('teams').update({name:document.getElementById(`tn${t.id}-th`)?.value.trim()||`ทีม ${t.id}`}).eq('id',t.id)));
+  ss('cfg-status','✅ บันทึกชื่อทีมสำเร็จ!','ok');
+}
+async function saveProductNames(){
+  const pn={A:v('pn-A')||'Tier A',B:v('pn-B')||'Tier B',C:v('pn-C')||'Tier C'};
+  const{error}=await sb.from('game_state').update({product_names:pn}).eq('id',1);
+  ss('cfg-status',error?'Error: '+error.message:'✅ บันทึก Tier Names สำเร็จ!',error?'err':'ok');
+}
+
+// ── SAMPLES ────────────────────────────────────────────
+function renderSamplePreview(){
+  const cats={insurance:'🏥 Insurance',trivia:'🎯 Trivia',maths:'🔢 Maths'};
+  document.getElementById('sample-preview').innerHTML=SAMPLES.map((q,i)=>`
+    <div class="sq">
+      <div class="sq-cat">${cats[q.category]} · Q${i+1}</div>
+      <div>${q.question_th}</div>
+      <div style="font-size:.67rem;color:var(--muted);margin-top:.15rem;">A:${q.option_a_th} B:${q.option_b_th}${q.option_c_th?' C:'+q.option_c_th:''}${q.option_d_th?' D:'+q.option_d_th:''}</div>
+      <div class="sq-ans">✅ ${q.correct_answer}: ${q[`option_${q.correct_answer.toLowerCase()}_th`]}</div>
+    </div>`).join('');
+}
+async function loadSamples(){
+  const{error}=await sb.from('trivia_questions').insert(SAMPLES);
+  ss('sample-status',error?'Error: '+error.message:`✅ โหลด ${SAMPLES.length} ข้อสำเร็จ!`,error?'err':'ok');
+}
+
+// ── CSV ────────────────────────────────────────────────
+function parseCSV(text){
+  const lines=text.trim().split('\n');
+  const hdrs=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const vals=[];let cur='';let inQ=false;
+    for(const c of line){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=c;}
+    vals.push(cur.trim());
+    const obj={};hdrs.forEach((h,i)=>obj[h]=(vals[i]||'').replace(/^"|"$/g,''));return obj;
+  });
+}
+async function importTriviaCsv(){
+  const file=document.getElementById('trivia-csv').files[0];
+  if(!file){ss('ti-status','เลือกไฟล์ก่อน','err');return;}
+  const rows=parseCSV(await file.text());
+  const ins=rows.map((r,i)=>({
+    question_th:r.question_th||'',question_en:r.question_en||null,
+    option_a_th:r.option_a_th||'',option_b_th:r.option_b_th||'',
+    option_c_th:r.option_c_th||null,option_d_th:r.option_d_th||null,
+    option_a_en:r.option_a_en||null,option_b_en:r.option_b_en||null,
+    option_c_en:r.option_c_en||null,option_d_en:r.option_d_en||null,
+    correct_answer:(r.correct_answer||'A').toUpperCase(),
+    category:r.category||'insurance',sort_order:parseInt(r.sort_order)||i
+  })).filter(r=>r.question_th);
+  if(!ins.length){ss('ti-status','ไม่พบข้อมูล','err');return;}
+  const{error}=await sb.from('trivia_questions').insert(ins);
+  ss('ti-status',error?'Error: '+error.message:`✅ Import ${ins.length} ข้อสำเร็จ!`,error?'err':'ok');
+}
+async function importFactCsv(){
+  const file=document.getElementById('fact-csv').files[0];
+  if(!file){ss('fi-status','เลือกไฟล์ก่อน','err');return;}
+  const rows=parseCSV(await file.text());
+  const ins=rows.map((r,i)=>({
+    statement_th:r.statement_th||'',statement_en:r.statement_en||null,
+    correct_answer:r.correct_answer||'true',
+    takeover_allowed:r.takeover_allowed!=='false',
+    sort_order:parseInt(r.sort_order)||i
+  })).filter(r=>r.statement_th);
+  if(!ins.length){ss('fi-status','ไม่พบข้อมูล','err');return;}
+  const{error}=await sb.from('fact_questions').insert(ins);
+  ss('fi-status',error?'Error: '+error.message:`✅ Import ${ins.length} ข้อสำเร็จ!`,error?'err':'ok');
+}
+async function exportTrivia(){
+  const{data}=await sb.from('trivia_questions').select('*').order('sort_order');
+  if(!data?.length){alert('ไม่มีข้อมูล');return;}
+  dl(['question_th,question_en,option_a_th,option_b_th,option_c_th,option_d_th,option_a_en,option_b_en,option_c_en,option_d_en,correct_answer,category,sort_order',
+    ...data.map(q=>`"${q.question_th}","${q.question_en||''}","${q.option_a_th}","${q.option_b_th}","${q.option_c_th||''}","${q.option_d_th||''}","${q.option_a_en||''}","${q.option_b_en||''}","${q.option_c_en||''}","${q.option_d_en||''}",${q.correct_answer},${q.category},${q.sort_order}`)
+  ].join('\n'),'trivia.csv');
+}
+async function exportFact(){
+  const{data}=await sb.from('fact_questions').select('*').order('sort_order');
+  if(!data?.length){alert('ไม่มีข้อมูล');return;}
+  dl(['statement_th,statement_en,correct_answer,takeover_allowed,sort_order',
+    ...data.map(q=>`"${q.statement_th}","${q.statement_en||''}",${q.correct_answer},${q.takeover_allowed},${q.sort_order}`)
+  ].join('\n'),'fact.csv');
+}
+function dl(content,fn){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}));a.download=fn;a.click();}
+
+// ── UTILS ──────────────────────────────────────────────
+function v(id){return document.getElementById(id)?.value.trim()||'';}
+function ss(id,msg,type){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.className=`status ${type}`;setTimeout(()=>el.className='status',4000);}
+
+loadTriviaList();
+</script>
+</body>
+</html>
