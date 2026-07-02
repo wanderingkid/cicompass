@@ -337,7 +337,8 @@ body::before{content:'';position:fixed;inset:0;
 .launch-btn{flex:1;padding:.75rem .2rem;border-radius:var(--r2);
   border:none;font-family:'Kanit',sans-serif;
   font-size:.78rem;font-weight:900;cursor:pointer;
-  transition:all .2s;}
+  transition:all .2s;opacity:.45;}
+.launch-btn.ready{opacity:1;box-shadow:0 0 16px currentColor;}
 .launch-btn:active{transform:scale(.96);}
 .launch-btn.A{background:linear-gradient(135deg,#d97706,var(--gold));color:#000;}
 .launch-btn.B{background:linear-gradient(135deg,#1d4ed8,var(--blue2));color:#fff;}
@@ -590,7 +591,7 @@ body::before{content:'';position:fixed;inset:0;
     </div>
   </div>
   <div class="tap-zone" id="tap-zone" style="margin:.5rem .9rem;flex:1;"
-    ontouchstart="doTap(event)" onclick="doTapClick()">
+    ontouchstart="doTap(event)" onclick="doTapClick(event)">
     <div style="font-size:2.5rem;pointer-events:none;">👆</div>
     <div class="tap-count" id="tap-count">0</div>
     <div class="tap-lbl" id="tap-pipe-lbl">เลือก Tier ก่อน</div>
@@ -688,9 +689,9 @@ body::before{content:'';position:fixed;inset:0;
       <div class="tier-prog-row" id="lcmd2-tier-prog"></div>
     </div>
     <div class="launch-row">
-      <button class="launch-btn A" onclick="leaderLaunch('A')">🚀 Launch A<span class="launch-lbl">+500 pts</span></button>
-      <button class="launch-btn B" onclick="leaderLaunch('B')">🚀 Launch B<span class="launch-lbl">+2,000 pts</span></button>
-      <button class="launch-btn C" onclick="leaderLaunch('C')">🚀 Launch C<span class="launch-lbl">+6,000 pts</span></button>
+      <button class="launch-btn A" id="launch-btn-A" onclick="leaderLaunch('A')">🚀 Launch A<span class="launch-lbl">+500 pts</span></button>
+      <button class="launch-btn B" id="launch-btn-B" onclick="leaderLaunch('B')">🚀 Launch B<span class="launch-lbl">+2,000 pts</span></button>
+      <button class="launch-btn C" id="launch-btn-C" onclick="leaderLaunch('C')">🚀 Launch C<span class="launch-lbl">+6,000 pts</span></button>
     </div>
     <div style="font-size:.62rem;color:var(--text3);text-align:center;" id="lcmd2-launches"></div>
     <div class="standings-card" style="flex:1;min-height:0;overflow-y:auto;">
@@ -717,12 +718,17 @@ body::before{content:'';position:fixed;inset:0;
 <div id="toast"></div>
 
 <script>
+/* ============================================================
+   SUPABASE CREDENTIALS — already filled in for this project
+   ============================================================ */
 const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
 const LOGO_URL = ''; // paste your logo URL here when ready
 
 const STREAK_BONUS = [0,0,0,15,25,35,45,50];
 const PIPE_MULT = {A:4,B:12,C:40};
+const TIER_PTS = {A:500,B:2000,C:6000};
+const TIER_CELLS = {A:8,B:30,C:100};
 const FREEZE_SECS = 12;
 const STRATEGY_SECS = 60;
 const DEMO_AUTO_SECS = 4;
@@ -741,7 +747,7 @@ const DEMO_CONTENT = {
         <div style="text-align:center;margin-top:.4rem;"><span style="color:var(--green);font-weight:900;font-size:1rem;">+50 pts ✅</span></div>
       </div>`;
      }},
-    {title:'🔥 Streak Bonus',body:'ตอบถูกติดต่อกัน 3 ครั้งขึ้นไป = โบนัสพิเศษ! ตอบผิด = streak归零',
+    {title:'🔥 Streak Bonus',body:'ตอบถูกติดต่อกัน 3 ครั้งขึ้นไป = โบนัสพิเศษ! ตอบผิด = streak หายหมด',
      buildMock:()=>{
       return `<div style="width:100%;text-align:center;">
         <div class="mock-streak">
@@ -785,7 +791,6 @@ const DEMO_CONTENT = {
      }},
     {title:'⚡ Team Blitz — แตะ!',body:'เลือก Tier แล้วแตะหน้าจอให้เร็ว · Leader กด Launch เมื่อชาร์จเต็ม',
      buildMock:()=>{
-      // Animated territory mini mock
       const cells = Array(40).fill(0).map((_,i)=>{
         const team = i<8?1:i<15?2:i<20?3:i<25?4:i<30?5:i<35?6:0;
         const colors = ['#0a0e27','#60a5fa','#a78bfa','#fbbf24','#34d399','#fb7185','#67e8f9'];
@@ -805,7 +810,7 @@ const DEMO_CONTENT = {
     {title:'🚀 Launch = Score!',body:'Leader กด Launch เมื่อ Tier ชาร์จครบ — คะแนนล็อกทันที ดินแดนขยายบนจอใหญ่',
      buildMock:()=>{
       return `<div style="width:100%;text-align:center;">
-        <div style="font-size:2rem;animation:glow-pulse 1s infinite alternate;">🚀</div>
+        <div style="font-size:2rem;">🚀</div>
         <div style="font-size:1.1rem;font-weight:900;color:var(--green);margin:.2rem 0;">+6,000 pts!</div>
         <div style="font-size:.7rem;color:var(--text3);">ดินแดน +100 ช่อง</div>
         <div style="margin-top:.5rem;display:flex;gap:.3rem;justify-content:center;">
@@ -860,11 +865,11 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let player=null,gameState=null,teams=[],triviaQs=[],factQs=[];
 let lang='th',selTeam=null,selRoleVal='player';
 let phase=0,answeredTrivia={},answeredFact={};
-let localTaps=0,selTierVal=null,tapBuffer=0,tapTimer=null;
+let localTaps=0,selTierVal=null,tapBuffer=0,tapTimer=null,tapFlushInterval=null;
 let frozenTimer=null,penaltyTimer=null,stratTimer=null,demoTimer=null;
-let isFrozen=false,isPenalty=false;
+let isFrozen=false,isPenalty=false,lastTouchTime=0;
 let shuffledQs=[];
-let p3Wager=0,p3Answer='',p3UseShield=false,p3UseTakeover=false,p3Submitted=false;
+let p3Wager=0,p3Answer='',p3UseShield=false,p3UseTakeover=false,p3Submitted=false,p3LastQIndex=-1;
 let lastMomentumFetch=0;
 
 // LOGO
@@ -891,6 +896,21 @@ function setLang(l){
   document.getElementById('join-btn').textContent=th?'เข้าร่วมเกม ⚡':'Join Game ⚡';
   if(phase===1)renderTrivia();
   if(phase===3)renderFact();
+}
+
+// TOAST
+function toast(msg){
+  const t=document.getElementById('toast');
+  if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// SCREEN SWITCHER
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el)el.classList.add('active');
 }
 
 // INIT
@@ -945,6 +965,9 @@ function onTeamsUpdate(){
   if(phase===2){
     if(isLeader){renderLeaderP2Dashboard();return;}
     updateTierProg();
+  }
+  if(phase===3){
+    updateFactHud();
   }
 }
 
@@ -1011,12 +1034,13 @@ function applyState(){
       break;
     case 2:
       if(sub==='strategy')showStrategyScreen();
-      else if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();}
-      else{showScreen('s-tapping');renderTapping();}
+      else if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();}
+      else{showScreen('s-tapping');renderTapping();startTapFlushLoop();}
       break;
     case 3:showScreen('s-fact');renderFact();break;
     case 4:showScreen('s-results');renderResults();break;
   }
+  if(phase!==2&&tapFlushInterval){clearInterval(tapFlushInterval);tapFlushInterval=null;}
   if(phase===3&&isLeader)renderLeaderP3();
 }
 function updateLp3(){
@@ -1042,7 +1066,6 @@ function renderDemoSlide(){
   document.getElementById('demo-body').textContent=c.body||'';
   const dots=document.getElementById('demo-dots');
   dots.innerHTML=content.map((_,i)=>`<div class="demo-dot ${i===step?'on':''}"></div>`).join('');
-  // Auto-progress bar
   if(demoAutoInt)clearInterval(demoAutoInt);
   if(demoProgInt)clearInterval(demoProgInt);
   demoProgVal=0;
@@ -1052,6 +1075,16 @@ function renderDemoSlide(){
     document.getElementById('demo-prog-fill').style.width=Math.min(100,demoProgVal)+'%';
     if(demoProgVal>=100)clearInterval(demoProgInt);
   },50);
+}
+
+// PRODUCT NAMES
+function updateProductNames(){
+  const pn=gameState?.product_names||{};
+  const map={A:['pn-A-s','pn-A'],B:['pn-B-s','pn-B'],C:['pn-C-s','pn-C']};
+  const fallback={A:'Run-Rate',B:'Mid-Market',C:'Enterprise'};
+  Object.entries(map).forEach(([tier,ids])=>{
+    ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pn[tier]||fallback[tier]||`Tier ${tier}`;});
+  });
 }
 
 // STRATEGY
@@ -1071,7 +1104,6 @@ function showStrategyScreen(){
 
 function selTier(t){
   selTierVal=t;
-  // Blitz tabs
   document.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('sel'));
   document.querySelector(`.tier-tab.${t}`)?.classList.add('sel');
   const tz=document.getElementById('tap-zone');
@@ -1079,7 +1111,6 @@ function selTier(t){
   const pn=gameState?.product_names||{};
   const lbl=document.getElementById('tap-pipe-lbl');
   if(lbl)lbl.textContent=pn[t]||`Tier ${t}`;
-  // Strategy cards
   document.querySelectorAll('.tier-sel-card').forEach(c=>c.classList.remove('sel'));
   document.getElementById(`strat-card-${t}`)?.classList.add('sel');
   const msg=document.getElementById('strat-sel-msg');
@@ -1160,6 +1191,9 @@ async function answerTrivia(letter,qId,correct){
     } else {
       startPenalty();
     }
+  } else if(error){
+    toast('Error: '+error.message);
+    console.error(error);
   }
 }
 function startPenalty(){
@@ -1238,9 +1272,310 @@ async function loadMomentum(){
   const onFire=data.filter(p=>(p.streak||0)>=3).length;
   document.getElementById('lcmd1-momentum').textContent=onFire>0?`🔥 ${onFire} คนกำลัง Streak 3+!`:'';
 }
+
+// FREEZE TARGETING (leader)
 function openTargets(){
   const tg=document.getElementById('tgt-grid');
-  tg.style.display=tg.style.display==='grid'?'none':'grid';
-  if(tg.style.display==='grid'){
+  const willShow=tg.style.display!=='grid';
+  tg.style.display=willShow?'grid':'none';
+  if(willShow){
     tg.innerHTML=teams.filter(t=>t.id!==player.team_id).map(t=>{
-      const fro
+      const frozenAlready=t.frozen_until&&new Date(t.frozen_until)>new Date();
+      return `<div class="tgt-btn frz" onclick="fireFreeze(${t.id})">🎯 ${t.leader_name||t.name}${frozenAlready?' ❄️':''}</div>`;
+    }).join('');
+  }
+}
+async function fireFreeze(targetId){
+  const my=teams.find(t=>t.id===player.team_id);
+  if(!my||(my.weapon_charges||0)<=0){toast('ยังไม่มี Charge!');return;}
+  document.getElementById('tgt-grid').style.display='none';
+  const{error:e1}=await sb.from('teams').update({weapon_charges:(my.weapon_charges||1)-1}).eq('id',player.team_id);
+  const{error:e2}=await sb.from('teams').update({
+    frozen_until:new Date(Date.now()+FREEZE_SECS*1000).toISOString(),
+    frozen_by_team:player.team_id
+  }).eq('id',targetId);
+  await sb.from('attack_log').insert({attacker_team_id:player.team_id,target_team_id:targetId,action_type:'freeze',phase:1});
+  if(e1||e2){toast('Error firing freeze');console.error(e1,e2);return;}
+  toast(`❄️ Freeze ยิงแล้ว!`);
+  await loadTeams();renderLeaderP1Dashboard();
+}
+
+// PHASE 2 — TAPPING (player)
+function renderTapping(){
+  const my=teams.find(t=>t.id===player?.team_id)||{};
+  document.getElementById('tap-team').textContent=my.leader_name||my.name||`ทีม ${player?.team_id}`;
+  updateProductNames();
+  localTaps=0;tapBuffer=0;
+  document.getElementById('tap-count').textContent='0';
+  if(selTierVal)selTier(selTierVal);
+  updateTierProg();
+}
+function startTapFlushLoop(){
+  if(tapFlushInterval)return;
+  tapFlushInterval=setInterval(flushTaps,200);
+}
+function spawnRipple(x,y){
+  const zone=document.getElementById('tap-zone');
+  if(!zone)return;
+  const rect=zone.getBoundingClientRect();
+  const rip=document.createElement('div');
+  rip.className='tap-rip';
+  const size=90;
+  rip.style.width=size+'px';rip.style.height=size+'px';
+  rip.style.left=(x-rect.left-size/2)+'px';
+  rip.style.top=(y-rect.top-size/2)+'px';
+  zone.appendChild(rip);
+  setTimeout(()=>rip.remove(),650);
+}
+function registerTap(x,y){
+  if(!selTierVal){toast('เลือก Tier ก่อน!');return;}
+  if(gameState?.sub_state!=='blitz')return;
+  localTaps++;tapBuffer++;
+  const cEl=document.getElementById('tap-count');
+  if(cEl)cEl.textContent=localTaps;
+  const tEl=document.getElementById('tap-taps');
+  if(tEl)tEl.textContent=`${localTaps} taps`;
+  spawnRipple(x,y);
+}
+function doTap(event){
+  event.preventDefault();
+  lastTouchTime=Date.now();
+  for(const touch of event.changedTouches){registerTap(touch.clientX,touch.clientY);}
+}
+function doTapClick(event){
+  if(Date.now()-lastTouchTime<500)return; // ignore synthetic click after touch
+  registerTap(event.clientX,event.clientY);
+}
+async function flushTaps(){
+  if(tapBuffer===0||!selTierVal||!player)return;
+  const n=tapBuffer;tapBuffer=0;
+  const{error}=await sb.rpc('log_taps',{p_team_id:player.team_id,p_tier:selTierVal,p_count:n});
+  if(error){
+    // Fallback: direct increment if log_taps RPC isn't defined yet
+    const col=`tier_${selTierVal.toLowerCase()}_taps`;
+    const my=teams.find(t=>t.id===player.team_id);
+    const current=(my&&my[col])||0;
+    await sb.from('teams').update({[col]:current+n}).eq('id',player.team_id);
+  }
+}
+function tierThreshold(tier,my){
+  const ac=Math.max(my?.active_player_count||0,15);
+  return ac*(PIPE_MULT[tier]||1);
+}
+function updateTierProg(){
+  const my=teams.find(t=>t.id===player?.team_id);
+  if(!my)return;
+  const el=document.getElementById('tier-prog');
+  if(!el)return;
+  el.innerHTML=['A','B','C'].map(tier=>{
+    const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
+    const threshold=tierThreshold(tier,my);
+    const pct=Math.min(100,(taps/threshold)*100);
+    return `<div class="tp-item">
+      <div class="tp-lbl">Tier ${tier}</div>
+      <div class="tp-bar"><div class="tp-fill ${tier}" style="width:${pct}%"></div></div>
+      <div class="tp-pct">${Math.round(pct)}%</div>
+    </div>`;
+  }).join('');
+}
+
+// LEADER P2
+function renderLeaderP2Dashboard(){
+  if(!player||player.role!=='leader'||phase!==2)return;
+  const my=teams.find(t=>t.id===player.team_id);if(!my)return;
+  document.getElementById('lcmd2-team').textContent=my.leader_name||my.name||`ทีม ${player.team_id}`;
+  document.getElementById('lcmd2-score').textContent=`${(my.total_score||0).toLocaleString()} pts`;
+  const el=document.getElementById('lcmd2-tier-prog');
+  ['A','B','C'].forEach(tier=>{
+    const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
+    const threshold=tierThreshold(tier,my);
+    const ready=taps>=threshold;
+    const btn=document.getElementById(`launch-btn-${tier}`);
+    if(btn)btn.classList.toggle('ready',ready);
+  });
+  if(el){
+    el.innerHTML=['A','B','C'].map(tier=>{
+      const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
+      const threshold=tierThreshold(tier,my);
+      const pct=Math.min(100,(taps/threshold)*100);
+      return `<div class="tp-item">
+        <div class="tp-lbl">Tier ${tier}${pct>=100?' ✅':''}</div>
+        <div class="tp-bar"><div class="tp-fill ${tier}" style="width:${pct}%"></div></div>
+        <div class="tp-pct">${Math.round(pct)}%</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('lcmd2-launches').textContent=
+    `Launches: A×${my.tier_a_launches||0} B×${my.tier_b_launches||0} C×${my.tier_c_launches||0}`;
+  const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
+  document.getElementById('lcmd2-standings').innerHTML=sorted.map((t,i)=>{
+    const nm=t.leader_name||t.name;const isMe=t.id===player.team_id;
+    return `<div class="s-row ${isMe?'me':''}" style="border-left-color:${isMe?'var(--blue2)':'transparent'}">
+      <div class="s-rank" style="color:${TC[t.id]};">${i+1}</div>
+      <div class="s-name" style="color:${TC[t.id]};">${nm}${isMe?' 👈':''}</div>
+      <div class="s-pts">${(t.pipeline_score||0).toLocaleString()}</div>
+      <div class="s-ico">A${t.tier_a_launches||0}B${t.tier_b_launches||0}C${t.tier_c_launches||0}</div>
+    </div>`;
+  }).join('');
+}
+async function leaderLaunch(tier){
+  const my=teams.find(t=>t.id===player.team_id);if(!my)return;
+  const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
+  const threshold=tierThreshold(tier,my);
+  if(taps<threshold){toast(`Tier ${tier} ยังไม่ชาร์จเต็ม!`);return;}
+  const col=`tier_${tier.toLowerCase()}_taps`;
+  const launchCol=`tier_${tier.toLowerCase()}_launches`;
+  const pts=TIER_PTS[tier]||0;
+  const{error}=await sb.from('teams').update({
+    [col]:taps-threshold,
+    [launchCol]:(my[launchCol]||0)+1,
+    pipeline_score:(my.pipeline_score||0)+pts,
+    total_score:(my.total_score||0)+pts
+  }).eq('id',player.team_id);
+  if(error){toast('Error: '+error.message);console.error(error);return;}
+  await sb.from('game_state').update({sub_state:`launch:${player.team_id}:${tier}`}).eq('id',1);
+  toast(`🚀 Launch Tier ${tier}! +${pts.toLocaleString()} pts`);
+  await loadTeams();renderLeaderP2Dashboard();
+}
+
+// PHASE 3 — FACT/FICTION
+function updateFactHud(){
+  const my=teams.find(t=>t.id===player?.team_id)||{};
+  const teamEl=document.getElementById('f-team');
+  if(teamEl)teamEl.textContent=my.leader_name||my.name||`ทีม ${player?.team_id}`;
+  const ptsEl=document.getElementById('f-pts');
+  if(ptsEl)ptsEl.textContent=`${(my.total_score||0).toLocaleString()} pts`;
+}
+function renderFact(){
+  if(!player||!gameState)return;
+  const qi=gameState.active_question||0;
+  const q=factQs[qi];
+  updateFactHud();
+  document.getElementById('fact-q').textContent=q?((lang==='th'?q.statement_th:q.statement_en)||q.statement_th):'รอคำถาม...';
+  const status=document.getElementById('fact-status');
+  if(status){
+    status.textContent=player.role==='leader'
+      ?'👑 คุณเป็น Leader — เลือก Wager และคำตอบด้านล่าง'
+      :'👁️ อ่านคำถามและหารือกับทีม — Leader เป็นผู้ส่งคำตอบ';
+  }
+}
+
+async function renderLeaderP3(){
+  const qi=gameState.active_question||0;
+  const my=teams.find(t=>t.id===player.team_id);
+  const q=factQs[qi];
+  if(qi!==p3LastQIndex){
+    p3LastQIndex=qi;
+    p3Wager=0;p3Answer='';p3UseShield=false;p3UseTakeover=false;p3Submitted=false;
+    document.querySelectorAll('.wager-btn').forEach(b=>b.classList.remove('sel'));
+    document.querySelectorAll('.fact-ans').forEach(b=>b.classList.remove('sel'));
+    document.getElementById('wpn-shield')?.classList.remove('on');
+    document.getElementById('wpn-takeover')?.classList.remove('on');
+    document.getElementById('tgt-row').style.display='none';
+    document.getElementById('lp3-wager-disp').textContent='-';
+    // reset form visibility
+    ['wager-grid','tgt-row'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='';});
+    document.querySelector('.ans-row').style.display='';
+    document.querySelector('.wpn-row').style.display='';
+    document.getElementById('p3-submit').style.display='';
+    document.getElementById('p3-submitted').style.display='none';
+    // check if already submitted for this question (e.g. reload mid-game)
+    const{data}=await sb.from('phase3_submissions').select('*').eq('question_index',qi).eq('team_id',player.team_id).maybeSingle?.()||{data:null};
+  }
+  // weapon availability
+  const shieldBtn=document.getElementById('wpn-shield');
+  const takeoverBtn=document.getElementById('wpn-takeover');
+  if(shieldBtn)shieldBtn.classList.toggle('dis',!!my?.multiplier_used);
+  if(takeoverBtn)takeoverBtn.classList.toggle('dis',!!my?.takeover_used||!(q&&q.takeover_allowed));
+  document.getElementById('takeover-lbl').textContent=(q&&q.takeover_allowed)?'1 ครั้ง':'ใช้ไม่ได้ข้อนี้';
+  // target dropdown
+  const sel=document.getElementById('tgt-select');
+  if(sel&&!sel.dataset.filled){
+    sel.innerHTML=teams.filter(t=>t.id!==player.team_id).map(t=>`<option value="${t.id}">${t.leader_name||t.name}</option>`).join('');
+    sel.dataset.filled='1';
+  }
+  updateP3SubmitState();
+}
+
+function selWager(n){
+  if(p3Submitted)return;
+  p3Wager=n;
+  document.querySelectorAll('.wager-btn').forEach(b=>b.classList.toggle('sel',parseInt(b.textContent.replace(/,/g,''))===n));
+  document.getElementById('lp3-wager-disp').textContent=n.toLocaleString();
+  updateP3SubmitState();
+}
+function selFactAns(a){
+  if(p3Submitted)return;
+  p3Answer=a;
+  const map={true:'.true-a',false:'.false-a',notsure:'.ns-a'};
+  document.querySelectorAll('.fact-ans').forEach(b=>b.classList.remove('sel'));
+  document.querySelector(map[a])?.classList.add('sel');
+  updateP3SubmitState();
+}
+function toggleShield(){
+  if(p3Submitted)return;
+  const my=teams.find(t=>t.id===player.team_id);
+  if(my?.multiplier_used){toast('ใช้ Shield ไปแล้ว!');return;}
+  p3UseShield=!p3UseShield;
+  document.getElementById('wpn-shield').classList.toggle('on',p3UseShield);
+  updateP3SubmitState();
+}
+function toggleTakeover(){
+  if(p3Submitted)return;
+  const qi=gameState.active_question||0;
+  const q=factQs[qi];
+  const my=teams.find(t=>t.id===player.team_id);
+  if(!q||!q.takeover_allowed){toast('ใช้ไม่ได้ในข้อนี้');return;}
+  if(my?.takeover_used){toast('ใช้ Takeover ไปแล้ว!');return;}
+  p3UseTakeover=!p3UseTakeover;
+  document.getElementById('wpn-takeover').classList.toggle('on',p3UseTakeover);
+  document.getElementById('tgt-row').style.display=p3UseTakeover?'block':'none';
+  updateP3SubmitState();
+}
+function updateP3SubmitState(){
+  const btn=document.getElementById('p3-submit');
+  if(!btn)return;
+  btn.disabled=!(p3Wager>0&&p3Answer&&!p3Submitted);
+}
+async function submitP3(){
+  if(p3Submitted||!p3Wager||!p3Answer)return;
+  const qi=gameState.active_question||0;
+  const payload={
+    question_index:qi,team_id:player.team_id,answer:p3Answer,wager:p3Wager,
+    use_multiplier:p3UseShield,use_takeover:p3UseTakeover,
+    takeover_target:p3UseTakeover?parseInt(document.getElementById('tgt-select').value):null
+  };
+  const{error}=await sb.from('phase3_submissions').insert(payload);
+  if(error){toast('Error: '+error.message);console.error(error);return;}
+  p3Submitted=true;
+  document.getElementById('wager-grid').style.display='none';
+  document.querySelector('.ans-row').style.display='none';
+  document.querySelector('.wpn-row').style.display='none';
+  document.getElementById('tgt-row').style.display='none';
+  document.getElementById('p3-submit').style.display='none';
+  document.getElementById('p3-submitted').style.display='block';
+  toast('✅ ส่งคำตอบแล้ว!');
+}
+
+// RESULTS
+function renderResults(){
+  const my=teams.find(t=>t.id===player?.team_id);
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
+  document.getElementById('r-score').textContent=(my?.total_score||0).toLocaleString();
+  document.getElementById('r-rank').textContent=`${my?.leader_name||my?.name||''} — อันดับที่ ${rankIdx+1} ${MEDALS[rankIdx]||''}`;
+  document.getElementById('r-rows').innerHTML=sorted.map((t,i)=>{
+    const isMe=t.id===player?.team_id;
+    return `<div class="res-row ${isMe?'me':''}">
+      <div style="color:${TC[t.id]};font-weight:900;">${MEDALS[i]||i+1} ${t.leader_name||t.name}</div>
+      <div style="font-weight:900;color:var(--green);">${(t.total_score||0).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  confetti({particleCount:100,spread:100,origin:{y:.6}});
+}
+
+// GO!
+init();
+</script>
+</body>
+</html>
