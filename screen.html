@@ -414,6 +414,158 @@ body::before{content:'';position:fixed;inset:0;
 .prs-btn.info{background:linear-gradient(135deg,var(--blue2),var(--cyan));color:#000;}
 .prs-btn.success{background:linear-gradient(135deg,var(--green),#059669);color:#fff;}
 .prs-btn.gold{background:linear-gradient(135deg,var(--gold),#d97706);color:#000;}
+
+/* ============================================================
+   COMPASS HUD v1.0 — PRODUCTION (frozen, merged from compass-hud.css)
+   ============================================================ */
+.chud-svg{
+  --chud-electric-blue:#3b82f6;--chud-cyan:#22d3ee;--chud-ice-blue:#93c5fd;
+  --chud-slate:#64748b;--chud-royal-purple:#8b5cf6;
+  --chud-victory-gold:#fbbf24;--chud-victory-gold-2:#fde68a;
+  --chud-white:#f8fafc;--chud-bg:#0a0e27;
+  --chud-primary-color:var(--chud-electric-blue);
+  --chud-needle-angle:12deg;--chud-team-color:transparent;
+  --chud-charge:0;--chud-sweep-duration:8s;
+  width:100%;height:100%;overflow:visible;display:block;
+}
+.chud-ring-stroke{fill:none;stroke:var(--chud-primary-color);stroke-width:1.5px;
+  vector-effect:non-scaling-stroke;opacity:.5;transition:stroke .4s ease,opacity .4s ease;}
+#chud-outer-ring-circle{stroke-width:2px;}
+.chud-static-mark{stroke:var(--chud-slate);stroke-width:1px;vector-effect:non-scaling-stroke;opacity:.55;fill:none;}
+.chud-tick{stroke:var(--chud-ice-blue);vector-effect:non-scaling-stroke;transition:opacity .4s ease,stroke .4s ease;}
+.chud-tick-major{stroke-width:2.4px;opacity:.95;}
+.chud-tick-minor{stroke-width:.6px;opacity:.25;}
+.chud-microscale line,#chud-microscale line{stroke:var(--chud-ice-blue);stroke-width:.35px;opacity:.3;vector-effect:non-scaling-stroke;}
+.chud-glass{pointer-events:none;}
+.chud-particle{fill:var(--chud-primary-color);opacity:.35;}
+.chud-team-arc{fill:none;stroke:var(--chud-team-color);stroke-width:1.5px;vector-effect:non-scaling-stroke;opacity:0;transition:opacity .5s ease;}
+.chud-svg[data-has-team="true"] .chud-team-arc{opacity:.95;}
+#chud-needle{transform-box:view-box;transform-origin:100px 100px;transform:rotate(var(--chud-needle-angle));
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1);}
+.chud-needle-blade{fill:var(--chud-primary-color);stroke:var(--chud-primary-color);stroke-width:1px;
+  transition:fill .4s ease,stroke .4s ease;filter:drop-shadow(0 0 2px var(--chud-primary-color));}
+.chud-needle-facet{stroke:var(--chud-bg);stroke-width:.5px;opacity:.4;vector-effect:non-scaling-stroke;}
+.chud-needle-reticle line{stroke:var(--chud-primary-color);stroke-width:.8px;opacity:.28;vector-effect:non-scaling-stroke;transition:stroke .4s ease;}
+#chud-core{transform-box:view-box;transform-origin:100px 100px;}
+.chud-core-ring-outer{fill:none;stroke:var(--chud-primary-color);stroke-width:.5px;vector-effect:non-scaling-stroke;opacity:.15;}
+.chud-core-iris{fill:none;stroke:var(--chud-primary-color);stroke-width:1px;vector-effect:non-scaling-stroke;opacity:.6;transition:stroke .4s ease;}
+.chud-core-halo{fill:var(--chud-primary-color);opacity:.35;transition:fill .4s ease;filter:drop-shadow(0 0 3px var(--chud-primary-color));}
+.chud-core-dot{fill:var(--chud-white);opacity:.85;filter:drop-shadow(0 0 3px var(--chud-primary-color));}
+.chud-polaris-mark{fill:var(--chud-victory-gold);animation:chud-polaris-pulse 5.4s ease-in-out infinite;}
+.chud-polaris-mark--icon{animation:none;opacity:.85;}
+@keyframes chud-polaris-pulse{0%,100%{opacity:.7}50%{opacity:1}}
+.chud-sweep{transform-box:view-box;transform-origin:100px 100px;animation:chud-sweep-spin var(--chud-sweep-duration) linear infinite;}
+.chud-sweep-seg{fill:none;stroke:var(--chud-primary-color);stroke-width:1.2px;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:var(--seg-op,.5);}
+@keyframes chud-sweep-spin{to{transform:rotate(360deg)}}
+[data-state="idle"] .chud-core-halo,[data-state="idle"] .chud-core-dot{animation:chud-breathe-core 4s ease-in-out infinite;}
+[data-state="idle"] .chud-needle-blade{animation:chud-breathe-needle-echo 4s ease-in-out infinite;}
+@keyframes chud-breathe-core{0%,100%{opacity:.55}50%{opacity:.68}}
+@keyframes chud-breathe-needle-echo{0%,100%{filter:drop-shadow(0 0 1.4px var(--chud-primary-color))}50%{filter:drop-shadow(0 0 2.2px var(--chud-primary-color))}}
+[data-state="charging"]{--chud-primary-color:var(--chud-cyan);--chud-sweep-duration:calc(7s - (5s * var(--chud-charge)));}
+[data-state="charging"] #chud-needle{animation:chud-charging-rotate 5s linear infinite;}
+[data-state="charging"] .chud-core-halo,[data-state="charging"] .chud-core-dot{opacity:calc(.4 + .5 * var(--chud-charge));}
+[data-state="charging"] #chud-core-ring-outer{animation:chud-sweep-spin 6s linear infinite;opacity:.3;}
+@keyframes chud-charging-rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+[data-state="charging"] #chud-inner-ring-circle{stroke:var(--chud-cyan);stroke-dasharray:calc(377 * var(--chud-charge)) 377;
+  transform:rotate(-90deg);transform-box:view-box;transform-origin:100px 100px;opacity:.8;}
+[data-state="ready"]{--chud-needle-angle:0deg;}
+[data-state="ready"] .chud-core-dot{animation:chud-ready-flash .7s ease-out 1;}
+[data-state="ready"] .chud-ready-pulse{fill:none;stroke:var(--chud-white);stroke-width:1px;vector-effect:non-scaling-stroke;animation:chud-ready-pulse-expand .8s ease-out 1;}
+@keyframes chud-ready-flash{0%{fill:var(--chud-white);opacity:.85}30%{fill:#fff;opacity:1;filter:drop-shadow(0 0 5px #fff)}100%{fill:var(--chud-white);opacity:1}}
+@keyframes chud-ready-pulse-expand{0%{r:60;opacity:.5}100%{r:95;opacity:0}}
+[data-state="freeze"]{--chud-primary-color:var(--chud-ice-blue);--chud-needle-angle:180deg;}
+[data-state="freeze"] .chud-sweep{animation-play-state:paused;opacity:0;}
+[data-state="freeze"] .chud-ring-stroke,[data-state="freeze"] .chud-tick{filter:saturate(.35);}
+[data-state="freeze"] .chud-core-halo,[data-state="freeze"] .chud-core-dot,[data-state="freeze"] .chud-needle-blade{animation:none;}
+[data-state="freeze"] .chud-core-halo{opacity:.2;}
+[data-state="freeze"] .chud-freeze-fx{opacity:1;}
+[data-state="freeze"] .chud-freeze-crystal{stroke:var(--chud-ice-blue);stroke-width:.7px;vector-effect:non-scaling-stroke;opacity:0;animation:chud-freeze-crystallize .3s ease-out forwards;}
+[data-state="freeze"] .chud-freeze-countdown{fill:none;stroke:var(--chud-ice-blue);stroke-width:1.8px;vector-effect:non-scaling-stroke;opacity:.7;
+  transform:rotate(-90deg);transform-box:view-box;transform-origin:100px 100px;stroke-dasharray:377;stroke-dashoffset:0;animation:chud-freeze-deplete 12s linear forwards;}
+.chud-freeze-fx{opacity:0;transition:opacity .2s ease;}
+@keyframes chud-freeze-crystallize{from{opacity:0;transform:scale(.6)}to{opacity:.6;transform:scale(1)}}
+@keyframes chud-freeze-deplete{from{stroke-dashoffset:0}to{stroke-dashoffset:377}}
+[data-state="signal-lost"]{--chud-primary-color:var(--chud-slate);}
+[data-state="signal-lost"] .chud-ring-stroke,[data-state="signal-lost"] .chud-tick,[data-state="signal-lost"] .chud-needle-blade,
+[data-state="signal-lost"] .chud-core-halo,[data-state="signal-lost"] .chud-core-dot{filter:grayscale(1);animation:chud-signal-flicker 1.2s steps(6,end) infinite;}
+[data-state="signal-lost"] #chud-needle{animation:chud-signal-jitter .4s ease-in-out 1,chud-signal-droop .3s ease-out .4s forwards;}
+[data-state="signal-lost"] .chud-sweep{animation:chud-sweep-spin 8s steps(10,end) infinite;}
+@keyframes chud-signal-flicker{0%,100%{opacity:1}10%{opacity:.4}20%{opacity:1}35%{opacity:.7}50%{opacity:1}70%{opacity:.5}}
+@keyframes chud-signal-jitter{0%,100%{transform:rotate(0deg)}20%{transform:rotate(8deg)}40%{transform:rotate(-6deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-8deg)}}
+@keyframes chud-signal-droop{to{transform:rotate(14deg)}}
+[data-state="deploy"]{--chud-needle-angle:0deg;}
+[data-state="deploy"] #chud-needle{transition:transform .3s cubic-bezier(.34,1.8,.5,1);}
+[data-state="deploy"] #chud-core{animation:chud-deploy-core-response .4s ease-out 1;}
+[data-state="deploy"] .chud-deploy-fx{opacity:1;}
+[data-state="deploy"] .chud-deploy-ring{fill:none;stroke-width:1.2px;vector-effect:non-scaling-stroke;
+  stroke:color-mix(in srgb,var(--chud-electric-blue) 60%,var(--chud-royal-purple));opacity:0;animation:chud-deploy-propagate .5s ease-out forwards;}
+.chud-deploy-ring-1{animation-delay:0s;}.chud-deploy-ring-2{animation-delay:.06s;}.chud-deploy-ring-3{animation-delay:.12s;}
+.chud-deploy-fx{opacity:0;}
+@keyframes chud-deploy-propagate{0%{r:20;opacity:.65}100%{r:130;opacity:0}}
+@keyframes chud-deploy-core-response{0%{transform:scale(1)}25%{transform:scale(.92)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+[data-state="victory"]{--chud-primary-color:var(--chud-victory-gold);}
+[data-state="victory"] .chud-core-halo,[data-state="victory"] .chud-core-dot{animation:chud-victory-bloom .7s ease-out 1;}
+[data-state="victory"] .chud-tick-major{animation:chud-victory-tick-wave .4s ease-out 1;animation-delay:calc(var(--tick-index,0) * 15ms);}
+@keyframes chud-victory-bloom{0%{opacity:.4}40%{opacity:1;filter:drop-shadow(0 0 6px var(--chud-victory-gold))}100%{opacity:.85}}
+@keyframes chud-victory-tick-wave{0%,100%{opacity:.95}50%{opacity:1;filter:drop-shadow(0 0 3px var(--chud-victory-gold))}}
+[data-state="champion"]{--chud-primary-color:var(--chud-victory-gold);--chud-needle-angle:0deg;}
+[data-state="champion"] #chud-needle{animation:chud-champion-lap 2s ease-in-out 1;}
+[data-state="champion"] .chud-ring-stroke,[data-state="champion"] .chud-tick{stroke:var(--chud-victory-gold);opacity:.85;}
+[data-state="champion"] .chud-particle{fill:var(--chud-victory-gold);opacity:.6;}
+[data-state="champion"] .chud-champion-fx{opacity:1;}
+[data-state="champion"] .chud-champion-ray{stroke:var(--chud-victory-gold-2);stroke-width:1px;vector-effect:non-scaling-stroke;opacity:0;animation:chud-champion-ray-fire .8s ease-out .3s forwards;}
+[data-state="champion"] .chud-champion-bloom{fill:var(--chud-victory-gold);opacity:0;animation:chud-champion-bloom-grow 2.5s ease-out .2s forwards;filter:blur(6px);}
+.chud-champion-fx{opacity:0;}
+@keyframes chud-champion-lap{0%{transform:rotate(0deg)}70%{transform:rotate(340deg)}100%{transform:rotate(360deg)}}
+@keyframes chud-champion-ray-fire{0%{opacity:0;transform:scaleX(.3)}50%{opacity:.9}100%{opacity:.5;transform:scaleX(1)}}
+@keyframes chud-champion-bloom-grow{0%{opacity:0;transform:scale(.6)}30%{opacity:.35}100%{opacity:.18;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.chud-svg *,.chud-svg *::before,.chud-svg *::after{
+  animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;}}
+
+/* ============================================================
+   ARENA — LOBBY (Compass HUD hero + team shields)
+   ============================================================ */
+.lobby-hud-wrap{width:clamp(140px,16vh,220px);height:clamp(140px,16vh,220px);position:relative;}
+.lobby-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:140%;height:140%;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.14) 0%,rgba(59,130,246,.06) 45%,transparent 72%);
+  pointer-events:none;z-index:0;}
+.lobby-teams-v2{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+.lobby-team-shield{display:flex;flex-direction:column;align-items:center;gap:.3rem;
+  padding:.5rem .3rem;border-radius:14px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);min-width:clamp(64px,7vw,96px);}
+.lobby-team-shield svg{width:clamp(28px,3.2vw,40px);height:auto;}
+.lobby-team-shield .lts-name{font-size:clamp(.6rem,1vw,.82rem);font-weight:900;}
+.lobby-team-shield .lts-count{font-size:clamp(.55rem,.85vw,.72rem);color:var(--text3);}
+.lobby-ready-copy{font-size:clamp(.6rem,1vw,.82rem);color:var(--gold2);letter-spacing:2px;
+  font-weight:700;animation:tUrgentPulseArena 2.2s ease-in-out infinite;}
+@keyframes tUrgentPulseArena{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* Freeze-readiness pill inside rank rows (Game 1 Live) */
+.rr-freeze-ready{font-size:clamp(.55rem,.85vw,.7rem);font-weight:700;color:var(--gold2);
+  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);
+  border-radius:10px;padding:.05rem .4rem;display:inline-flex;align-items:center;gap:.25rem;
+  animation:tUrgentPulseArena 1.6s ease-in-out infinite;}
+.p1-pool-lbl{font-size:clamp(.55rem,.85vw,.72rem);color:var(--text3);text-align:center;}
+
+/* ============================================================
+   ARENA — FREEZE EVENT (dedicated hero view)
+   ============================================================ */
+#v-freeze-event{align-items:center;justify-content:center;gap:1rem;position:relative;overflow:hidden;}
+.fe-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;pointer-events:none;z-index:0;}
+.fe-blob.target{width:46vw;height:46vw;top:-10%;left:-12%;}
+.fe-blob.attacker{width:38vw;height:38vw;bottom:-14%;right:-10%;}
+.fe-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.6rem;}
+.fe-title{font-size:clamp(1.4rem,3.2vw,3rem);font-weight:900;font-style:italic;
+  letter-spacing:2px;text-align:center;color:var(--blue3);text-shadow:0 0 30px rgba(147,197,253,.5);}
+.fe-subtitle{font-size:clamp(.85rem,1.6vw,1.3rem);color:var(--text2);text-align:center;}
+.fe-subtitle b{font-weight:900;}
+.fe-hud-wrap{width:clamp(90px,11vh,150px);height:clamp(90px,11vh,150px);}
+.fe-countdown{font-family:'Share Tech Mono',monospace;font-weight:900;
+  font-size:clamp(5rem,16vw,12rem);line-height:1;color:var(--blue2);
+  text-shadow:0 0 60px rgba(96,165,250,.6);}
+.fe-countdown.urgent{color:var(--red);text-shadow:0 0 60px rgba(244,63,94,.6);animation:urgPulse .5s infinite;}
+.fe-caption{font-size:clamp(.7rem,1.3vw,1rem);letter-spacing:4px;color:var(--text3);}
 </style>
 </head>
 <body>
@@ -427,12 +579,202 @@ body::before{content:'';position:fixed;inset:0;
   <!-- LOBBY -->
   <div id="v-lobby" class="view active">
     <div class="lobby-logo">
+      <div class="lobby-hud-wrap">
+        <div class="lobby-glow" aria-hidden="true"></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="chud-lobby-hud" class="chud-svg" data-component="compass-hud" data-tier="hero" data-state="idle">
+  <defs>
+    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
+    <line id="chud-tick-major-def" x1="0" y1="-78" x2="0" y2="-66"/>
+    <line id="chud-tick-minor-def" x1="0" y1="-78" x2="0" y2="-74.5"/>
+    <line id="chud-microscale-def" x1="0" y1="-57" x2="0" y2="-55.5"/>
+    <radialGradient id="chud-glass-gradient" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#f8fafc" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="compass-hud" transform="translate(100,100)">
+    <g id="chud-particles" class="chud-layer chud-particles" aria-hidden="true">
+      <circle class="chud-particle" cx="27.95" cy="-104.32" r="0.8"/>
+      <circle class="chud-particle" cx="83.23" cy="-74.94" r="0.8"/>
+      <circle class="chud-particle" cx="94.57" cy="38.21" r="0.8"/>
+      <circle class="chud-particle" cx="57" cy="98.73" r="0.8"/>
+      <circle class="chud-particle" cx="-33.52" cy="92.09" r="0.8"/>
+      <circle class="chud-particle" cx="-108.33" cy="19.1" r="0.8"/>
+      <circle class="chud-particle" cx="-90.07" cy="-52" r="0.8"/>
+      <circle class="chud-particle" cx="-39.33" cy="-108.06" r="0.8"/>
+    </g>
+    <g id="chud-glass" class="chud-layer chud-glass" aria-hidden="true">
+      <ellipse cx="-28" cy="-28" rx="50" ry="28" fill="url(#chud-glass-gradient)" transform="rotate(-35)"/>
+    </g>
+    <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
+      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
+      <g id="chud-sweep" class="chud-sweep">
+        <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.75" d="M -16.79 -86.38 A 88 88 0 0 0 -22.78 -85"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.68" d="M -24.99 -84.38 A 88 88 0 0 0 -30.82 -82.43"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.60" d="M -32.97 -81.59 A 88 88 0 0 0 -38.58 -79.09"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.53" d="M -40.63 -78.06 A 88 88 0 0 0 -45.98 -75.03"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.45" d="M -47.93 -73.8 A 88 88 0 0 0 -52.96 -70.28"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.38" d="M -54.78 -68.87 A 88 88 0 0 0 -59.45 -64.88"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.30" d="M -61.13 -63.3 A 88 88 0 0 0 -65.4 -58.88"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.23" d="M -66.92 -57.15 A 88 88 0 0 0 -70.74 -52.34"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.15" d="M -72.09 -50.47 A 88 88 0 0 0 -75.43 -45.32"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.08" d="M -76.59 -43.33 A 88 88 0 0 0 -79.43 -37.88"/>
+      </g>
+    </g>
+    <line id="chud-service-mark" class="chud-layer chud-static-mark" x1="-78.75" y1="39.27" x2="-80.7" y2="35.09"/>
+    <g id="chud-ticks" class="chud-layer chud-ticks">
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(0)" style="--tick-index:0"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(15)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(30)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(45)" style="--tick-index:1"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(60)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(75)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(90)" style="--tick-index:2"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(105)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(120)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(135)" style="--tick-index:3"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(150)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(165)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(180)" style="--tick-index:4"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(195)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(210)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(225)" style="--tick-index:5"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(240)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(255)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(270)" style="--tick-index:6"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(285)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(300)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(315)" style="--tick-index:7"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(330)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(345)"/>
+    </g>
+    <g id="chud-calibration-notch" class="chud-layer chud-static-mark">
+      <line x1="70.16" y1="26.51" x2="65.48" y2="24.74"/>
+      <line x1="68.88" y1="29.67" x2="64.29" y2="27.69"/>
+    </g>
+    <g id="chud-microscale" class="chud-layer chud-microscale" aria-hidden="true">
+      <use href="#chud-microscale-def" transform="rotate(0)"/>
+      <use href="#chud-microscale-def" transform="rotate(6)"/>
+      <use href="#chud-microscale-def" transform="rotate(12)"/>
+      <use href="#chud-microscale-def" transform="rotate(18)"/>
+      <use href="#chud-microscale-def" transform="rotate(24)"/>
+      <use href="#chud-microscale-def" transform="rotate(30)"/>
+      <use href="#chud-microscale-def" transform="rotate(36)"/>
+      <use href="#chud-microscale-def" transform="rotate(42)"/>
+      <use href="#chud-microscale-def" transform="rotate(48)"/>
+      <use href="#chud-microscale-def" transform="rotate(54)"/>
+      <use href="#chud-microscale-def" transform="rotate(60)"/>
+      <use href="#chud-microscale-def" transform="rotate(66)"/>
+      <use href="#chud-microscale-def" transform="rotate(72)"/>
+      <use href="#chud-microscale-def" transform="rotate(78)"/>
+      <use href="#chud-microscale-def" transform="rotate(84)"/>
+      <use href="#chud-microscale-def" transform="rotate(90)"/>
+      <use href="#chud-microscale-def" transform="rotate(96)"/>
+      <use href="#chud-microscale-def" transform="rotate(102)"/>
+      <use href="#chud-microscale-def" transform="rotate(108)"/>
+      <use href="#chud-microscale-def" transform="rotate(114)"/>
+      <use href="#chud-microscale-def" transform="rotate(120)"/>
+      <use href="#chud-microscale-def" transform="rotate(126)"/>
+      <use href="#chud-microscale-def" transform="rotate(132)"/>
+      <use href="#chud-microscale-def" transform="rotate(138)"/>
+      <use href="#chud-microscale-def" transform="rotate(144)"/>
+      <use href="#chud-microscale-def" transform="rotate(150)"/>
+      <use href="#chud-microscale-def" transform="rotate(156)"/>
+      <use href="#chud-microscale-def" transform="rotate(162)"/>
+      <use href="#chud-microscale-def" transform="rotate(168)"/>
+      <use href="#chud-microscale-def" transform="rotate(174)"/>
+      <use href="#chud-microscale-def" transform="rotate(180)"/>
+      <use href="#chud-microscale-def" transform="rotate(186)"/>
+      <use href="#chud-microscale-def" transform="rotate(192)"/>
+      <use href="#chud-microscale-def" transform="rotate(198)"/>
+      <use href="#chud-microscale-def" transform="rotate(204)"/>
+      <use href="#chud-microscale-def" transform="rotate(210)"/>
+      <use href="#chud-microscale-def" transform="rotate(216)"/>
+      <use href="#chud-microscale-def" transform="rotate(222)"/>
+      <use href="#chud-microscale-def" transform="rotate(228)"/>
+      <use href="#chud-microscale-def" transform="rotate(234)"/>
+      <use href="#chud-microscale-def" transform="rotate(240)"/>
+      <use href="#chud-microscale-def" transform="rotate(246)"/>
+      <use href="#chud-microscale-def" transform="rotate(252)"/>
+      <use href="#chud-microscale-def" transform="rotate(258)"/>
+      <use href="#chud-microscale-def" transform="rotate(264)"/>
+      <use href="#chud-microscale-def" transform="rotate(270)"/>
+      <use href="#chud-microscale-def" transform="rotate(276)"/>
+      <use href="#chud-microscale-def" transform="rotate(282)"/>
+      <use href="#chud-microscale-def" transform="rotate(288)"/>
+      <use href="#chud-microscale-def" transform="rotate(294)"/>
+      <use href="#chud-microscale-def" transform="rotate(300)"/>
+      <use href="#chud-microscale-def" transform="rotate(306)"/>
+      <use href="#chud-microscale-def" transform="rotate(312)"/>
+      <use href="#chud-microscale-def" transform="rotate(318)"/>
+      <use href="#chud-microscale-def" transform="rotate(324)"/>
+      <use href="#chud-microscale-def" transform="rotate(330)"/>
+      <use href="#chud-microscale-def" transform="rotate(336)"/>
+      <use href="#chud-microscale-def" transform="rotate(342)"/>
+      <use href="#chud-microscale-def" transform="rotate(348)"/>
+      <use href="#chud-microscale-def" transform="rotate(354)"/>
+    </g>
+    <g id="chud-inner-ring" class="chud-layer">
+      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
+      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
+    </g>
+    <g id="chud-needle" class="chud-layer">
+      <g id="chud-needle-reticle" class="chud-needle-reticle" aria-hidden="true">
+        <line x1="0" y1="0" x2="24.75" y2="-24.75"/>
+        <line x1="0" y1="0" x2="24.75" y2="24.75"/>
+        <line x1="0" y1="0" x2="-24.75" y2="24.75"/>
+        <line x1="0" y1="0" x2="-24.75" y2="-24.75"/>
+      </g>
+      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
+      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
+    </g>
+    <g id="chud-core" class="chud-layer">
+      <circle id="chud-core-ring-outer" class="chud-core-ring-outer" cx="0" cy="0" r="9"/>
+      <circle id="chud-core-iris" class="chud-core-iris" cx="0" cy="0" r="7.5"/>
+      <circle id="chud-core-halo" class="chud-core-halo" cx="0" cy="0" r="5"/>
+      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
+    </g>
+    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
+    <g id="chud-fx" class="chud-fx" aria-hidden="true">
+      <g id="chud-freeze-fx" class="chud-freeze-fx">
+        <path class="chud-freeze-crystal" d="M23.81 -88.87 L36.55 -95.23 M23.81 -88.87 L15.64 -98.77"/>
+        <path class="chud-freeze-crystal" d="M75.36 -52.77 L89.21 -49.45 M75.36 -52.77 L75.47 -65.61"/>
+        <path class="chud-freeze-crystal" d="M91.65 8.02 L100.13 19.46 M91.65 8.02 L99.98 -1.75"/>
+        <path class="chud-freeze-crystal" d="M-38.88 83.38 L-52.53 87.43 M-38.88 83.38 L-32.56 94.55"/>
+        <path class="chud-freeze-crystal" d="M-86.45 31.47 L-98.97 24.68 M-86.45 31.47 L-89.88 43.84"/>
+        <path class="chud-freeze-crystal" d="M-79.67 -46 L-82.52 -59.95 M-79.67 -46 L-91.35 -40.67"/>
+        <circle id="chud-freeze-countdown" class="chud-freeze-countdown" cx="0" cy="0" r="60"/>
+      </g>
+      <g id="chud-deploy-fx" class="chud-deploy-fx">
+        <circle class="chud-deploy-ring chud-deploy-ring-1" cx="0" cy="0" r="20"/>
+        <circle class="chud-deploy-ring chud-deploy-ring-2" cx="0" cy="0" r="20"/>
+        <circle class="chud-deploy-ring chud-deploy-ring-3" cx="0" cy="0" r="20"/>
+      </g>
+      <circle id="chud-ready-pulse" class="chud-ready-pulse" cx="0" cy="0" r="60"/>
+      <g id="chud-champion-fx" class="chud-champion-fx">
+        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="-16"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="-11.31"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="16" y2="0"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="11.31"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="16"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="11.31"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="-16" y2="0"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="-11.31"/>
+        <circle id="chud-champion-bloom" class="chud-champion-bloom" cx="0" cy="0" r="130"/>
+      </g>
+    </g>
+  </g>
+</svg>
+      </div>
       <img id="lobby-logo-img" alt="CI Compass">
-      <div class="lobby-title" id="lobby-title-text">PORTFOLIO<br>ACCELERATION RACE</div>
+      <div class="lobby-title" id="lobby-title-text">COMPASS OS</div>
     </div>
-    <div class="lobby-sub">SCAN QR TO JOIN · สแกน QR เพื่อเข้าร่วม</div>
-    <div class="lobby-teams" id="lobby-teams"></div>
+    <div class="lobby-sub">TEAMS ARE ASSEMBLING · สแกน QR เพื่อเข้าร่วม</div>
+    <div class="lobby-teams-v2" id="lobby-teams"></div>
     <div class="lobby-count">Players joined: <span id="lobby-count">0</span></div>
+    <div class="lobby-ready-copy">⚡ GET READY</div>
   </div>
 
   <!-- DEMO -->
@@ -452,9 +794,117 @@ body::before{content:'';position:fixed;inset:0;
   <div id="v-phase1" class="view">
     <div class="p1-header">
       <div class="p1-label">⚡ PHASE 1: SOLO SPRINT</div>
+      <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
       <div class="p1-timer" id="p1-timer">04:00</div>
     </div>
     <div class="rank-list" id="rank-list"></div>
+  </div>
+
+  <!-- FREEZE EVENT (Game 1 hero takeover — Compass HUD 'freeze' state) -->
+  <div id="v-freeze-event" class="view">
+    <div class="fe-blob target" id="fe-blob-target" aria-hidden="true"></div>
+    <div class="fe-blob attacker" id="fe-blob-attacker" aria-hidden="true"></div>
+    <div class="fe-content">
+      <div class="fe-title" id="fe-title">TEAM FROZEN</div>
+      <div class="fe-subtitle">Frozen by <b id="fe-attacker-name">—</b></div>
+      <div class="fe-hud-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="chud-fe-hud" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="freeze">
+  <defs>
+    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
+    <line id="chud-tick-major-def" x1="0" y1="-78" x2="0" y2="-66"/>
+    <line id="chud-tick-minor-def" x1="0" y1="-78" x2="0" y2="-74.5"/>
+  </defs>
+  <g id="compass-hud" transform="translate(100,100)">
+    <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
+      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
+      <g id="chud-sweep" class="chud-sweep">
+        <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.75" d="M -16.79 -86.38 A 88 88 0 0 0 -22.78 -85"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.68" d="M -24.99 -84.38 A 88 88 0 0 0 -30.82 -82.43"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.60" d="M -32.97 -81.59 A 88 88 0 0 0 -38.58 -79.09"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.53" d="M -40.63 -78.06 A 88 88 0 0 0 -45.98 -75.03"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.45" d="M -47.93 -73.8 A 88 88 0 0 0 -52.96 -70.28"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.38" d="M -54.78 -68.87 A 88 88 0 0 0 -59.45 -64.88"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.30" d="M -61.13 -63.3 A 88 88 0 0 0 -65.4 -58.88"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.23" d="M -66.92 -57.15 A 88 88 0 0 0 -70.74 -52.34"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.15" d="M -72.09 -50.47 A 88 88 0 0 0 -75.43 -45.32"/>
+        <path class="chud-sweep-seg" style="--seg-op:0.08" d="M -76.59 -43.33 A 88 88 0 0 0 -79.43 -37.88"/>
+      </g>
+    </g>
+    <line id="chud-service-mark" class="chud-layer chud-static-mark" x1="-78.75" y1="39.27" x2="-80.7" y2="35.09"/>
+    <g id="chud-ticks" class="chud-layer chud-ticks">
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(0)" style="--tick-index:0"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(30)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(60)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(90)" style="--tick-index:1"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(120)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(150)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(180)" style="--tick-index:2"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(210)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(240)"/>
+      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(270)" style="--tick-index:3"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(300)"/>
+      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(330)"/>
+    </g>
+    <g id="chud-calibration-notch" class="chud-layer chud-static-mark">
+      <line x1="70.16" y1="26.51" x2="65.48" y2="24.74"/>
+      <line x1="68.88" y1="29.67" x2="64.29" y2="27.69"/>
+    </g>
+    <g id="chud-inner-ring" class="chud-layer">
+      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
+      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
+    </g>
+    <g id="chud-needle" class="chud-layer">
+      <g id="chud-needle-reticle" class="chud-needle-reticle" aria-hidden="true">
+        <line x1="0" y1="0" x2="24.75" y2="-24.75"/>
+        <line x1="0" y1="0" x2="24.75" y2="24.75"/>
+        <line x1="0" y1="0" x2="-24.75" y2="24.75"/>
+        <line x1="0" y1="0" x2="-24.75" y2="-24.75"/>
+      </g>
+      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
+      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
+    </g>
+    <g id="chud-core" class="chud-layer">
+      <circle id="chud-core-iris" class="chud-core-iris" cx="0" cy="0" r="7.5"/>
+      <circle id="chud-core-halo" class="chud-core-halo" cx="0" cy="0" r="5"/>
+      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
+    </g>
+    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
+    <g id="chud-fx" class="chud-fx" aria-hidden="true">
+      <g id="chud-freeze-fx" class="chud-freeze-fx">
+        <path class="chud-freeze-crystal" d="M23.81 -88.87 L36.55 -95.23 M23.81 -88.87 L15.64 -98.77"/>
+        <path class="chud-freeze-crystal" d="M75.36 -52.77 L89.21 -49.45 M75.36 -52.77 L75.47 -65.61"/>
+        <path class="chud-freeze-crystal" d="M91.65 8.02 L100.13 19.46 M91.65 8.02 L99.98 -1.75"/>
+        <path class="chud-freeze-crystal" d="M-38.88 83.38 L-52.53 87.43 M-38.88 83.38 L-32.56 94.55"/>
+        <path class="chud-freeze-crystal" d="M-86.45 31.47 L-98.97 24.68 M-86.45 31.47 L-89.88 43.84"/>
+        <path class="chud-freeze-crystal" d="M-79.67 -46 L-82.52 -59.95 M-79.67 -46 L-91.35 -40.67"/>
+        <circle id="chud-freeze-countdown" class="chud-freeze-countdown" cx="0" cy="0" r="60"/>
+      </g>
+      <g id="chud-deploy-fx" class="chud-deploy-fx">
+        <circle class="chud-deploy-ring chud-deploy-ring-1" cx="0" cy="0" r="20"/>
+        <circle class="chud-deploy-ring chud-deploy-ring-2" cx="0" cy="0" r="20"/>
+        <circle class="chud-deploy-ring chud-deploy-ring-3" cx="0" cy="0" r="20"/>
+      </g>
+      <circle id="chud-ready-pulse" class="chud-ready-pulse" cx="0" cy="0" r="60"/>
+      <g id="chud-champion-fx" class="chud-champion-fx">
+        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="-16"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="-11.31"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="16" y2="0"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="11.31"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="16"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="11.31"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="-16" y2="0"/>
+        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="-11.31"/>
+        <circle id="chud-champion-bloom" class="chud-champion-bloom" cx="0" cy="0" r="130"/>
+      </g>
+    </g>
+  </g>
+</svg>
+      </div>
+      <div class="fe-countdown" id="fe-countdown">12</div>
+      <div class="fe-caption">SECONDS LEFT</div>
+    </div>
   </div>
 
   <!-- PHASE 2 -->
@@ -662,6 +1112,46 @@ let terrCtx=null;
 let p3RevealQueue=[],p3RevealIdx=0,p3AutoReveal=false;
 let demoProgInt=null,demoProgVal=0;
 
+// UTILITIES (previously called but undefined — required for Phase 1 / Freeze Event)
+function hexRgb(hex){
+  if(!hex)return '255,255,255';
+  const h=hex.replace('#','');
+  const bigint=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);
+  return `${(bigint>>16)&255},${(bigint>>8)&255},${bigint&255}`;
+}
+function tName(teamId){
+  const t=teams.find(x=>x.id===teamId);
+  return t?(t.leader_name||t.name||`ทีม ${teamId}`):`ทีม ${teamId}`;
+}
+function addFeed(msg){
+  const feed=document.getElementById('atk-feed');
+  if(!feed)return;
+  const el=document.createElement('div');
+  el.className='atk-entry';el.textContent=msg;
+  feed.appendChild(el);
+  while(feed.children.length>4)feed.removeChild(feed.firstChild);
+  setTimeout(()=>el.remove(),8000);
+}
+async function updateLobbyTeams(){
+  const el=document.getElementById('lobby-teams');
+  if(!el||!teams.length)return;
+  const{data:players}=await sb.from('players').select('team_id,role');
+  el.innerHTML=teams.map(t=>{
+    const clr=TC[t.id]||'#fff';
+    const cnt=(players||[]).filter(p=>p.team_id===t.id).length;
+    const hasLeader=(players||[]).some(p=>p.team_id===t.id&&p.role==='leader');
+    const nm=t.leader_name||t.name||`ทีม ${t.id}`;
+    return `<div class="lobby-team-shield" style="border-color:${clr}33;">
+      <svg viewBox="0 0 24 28" aria-hidden="true">
+        <path d="M12 1 L22 5.5 L22 13 C22 20 17.5 25 12 27 C6.5 25 2 20 2 13 L2 5.5 Z" fill="${clr}" fill-opacity="0.16" stroke="${clr}" stroke-width="1.4"/>
+        <path d="M12 9 L15 14 L12 19 L9 14 Z" fill="${clr}"/>
+      </svg>
+      <div class="lts-name" style="color:${clr};">${nm}</div>
+      <div class="lts-count">${cnt} ${hasLeader?'👑':'⏳'}</div>
+    </div>`;
+  }).join('');
+}
+
 // LOGO
 function initLogo(){
   if(!LOGO_URL)return;
@@ -791,8 +1281,13 @@ function applyState(){
   if(sub==='q4_reveal_auto'){p3AutoReveal=true;autoRevealAll();return;}
 
   switch(p){
-    case 0:showView('v-lobby');break;
-    case 1:showView('v-phase1');renderRankList();startTimer('p1-timer',1);break;
+    case 0:showView('v-lobby');updateLobbyTeams();break;
+    case 1:
+      renderRankList();startTimer('p1-timer',1);
+      // Don't stomp an in-progress Freeze Event takeover with an incidental
+      // game_state update (e.g. admin's "Reveal Answer" nav) — let it finish.
+      if(!freezeEventInt)showView('v-phase1');
+      break;
     case 2:
       if(sub==='strategy'){showView('v-demo');renderDemo();}
       else{showView('v-phase2');startTimer('p2-timer',2);updateTerritoryScores();}
@@ -869,7 +1364,7 @@ function renderDemo(){
 // TIMER
 function startTimer(elId,phase){
   if(timerInt)clearInterval(timerInt);
-  const dur=PHASE_DUR[phase]||0;if(!dur)return;
+  const dur=(phase===1&&gs?.phase1_duration)||PHASE_DUR[phase]||0;if(!dur)return;
   timerInt=setInterval(()=>{
     if(!gs?.phase_start_at)return;
     const elapsed=(Date.now()-new Date(gs.phase_start_at).getTime())/1000;
@@ -886,6 +1381,8 @@ function renderRankList(){
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
   const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
   const container=document.getElementById('rank-list');
+  const poolLbl=document.getElementById('p1-pool-lbl');
+  if(poolLbl)poolLbl.textContent=triviaQs.length?`${triviaQs.length} QUESTIONS IN PLAY`:'';
   sorted.forEach((t,rank)=>{
     const clr=TC[t.id]||'#fff';
     const frozen=t.frozen_until&&new Date(t.frozen_until)>new Date();
@@ -905,7 +1402,7 @@ function renderRankList(){
       <div style="flex:1.4;min-width:0;">
         <div class="rank-name" style="color:${clr};">${nm}</div>
         ${frozen?`<div class="frozen-tag">❄️ Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${frozenRem}s</div>`:''}
-        ${t.weapon_charges>0&&!frozen?`<div style="font-size:clamp(.5rem,.8vw,.68rem);color:var(--red);">💣 ${t.weapon_charges} charge${t.weapon_charges>1?'s':''} ready</div>`:''}
+        ${t.weapon_charges>0&&!frozen?`<div class="rr-freeze-ready">⚡ FREEZE READY ×${t.weapon_charges}</div>`:''}
       </div>
       <div class="rank-bar-wrap">
         <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}88,${clr});"></div>
@@ -939,6 +1436,46 @@ function checkFreezeEvents(prev){
   const nowFrz=teams.filter(t=>t.frozen_until&&new Date(t.frozen_until)>new Date()).map(t=>t.id);
   if(nowFrz.some(id=>!prevFrozen.includes(id)))sfxFreeze();
   prevFrozen=nowFrz;
+}
+
+// FREEZE EVENT — Arena hero takeover for the duration of an active Freeze.
+// Brief flash sting on #frz-overlay (existing element, preserved), then holds
+// on the dedicated #v-freeze-event view with a real giant countdown for the
+// actual freeze duration, auto-reverting to Game 1 Live (#v-phase1) after.
+let freezeEventInt=null;
+function showFreezeOverlay(attackerId,targetId){
+  const txt=document.getElementById('frz-txt');
+  const ov=document.getElementById('frz-overlay');
+  if(txt)txt.textContent=`❄️ ${tName(targetId)} FROZEN!`;
+  if(ov){ov.classList.remove('show');void ov.offsetWidth;ov.classList.add('show');}
+  const targetTeam=teams.find(t=>t.id===targetId);
+  const durMs=targetTeam?.frozen_until?(new Date(targetTeam.frozen_until).getTime()-Date.now()):FREEZE_SECS*1000;
+  setTimeout(()=>enterFreezeEventView(attackerId,targetId),500);
+}
+function enterFreezeEventView(attackerId,targetId){
+  if(gs?.phase!==1)return; // Freeze only occurs in Phase 1
+  const attClr=TC[attackerId]||'#fff', tgtClr=TC[targetId]||'#93c5fd';
+  document.getElementById('fe-title').textContent=`${tName(targetId).toUpperCase()} FROZEN`;
+  document.getElementById('fe-title').style.color=tgtClr;
+  document.getElementById('fe-attacker-name').textContent=tName(attackerId);
+  document.getElementById('fe-attacker-name').style.color=attClr;
+  document.getElementById('fe-blob-target').style.background=tgtClr;
+  document.getElementById('fe-blob-attacker').style.background=attClr;
+  showView('v-freeze-event');
+  if(freezeEventInt)clearInterval(freezeEventInt);
+  const tick=()=>{
+    const t=teams.find(x=>x.id===targetId);
+    const remMs=t?.frozen_until?(new Date(t.frozen_until).getTime()-Date.now()):0;
+    const rem=Math.max(0,Math.ceil(remMs/1000));
+    const el=document.getElementById('fe-countdown');
+    if(el){el.textContent=rem;el.classList.toggle('urgent',rem<=3&&rem>0);}
+    if(remMs<=0){
+      clearInterval(freezeEventInt);freezeEventInt=null;
+      if(gs?.phase===1)showView('v-phase1');
+    }
+  };
+  tick();
+  freezeEventInt=setInterval(tick,250);
 }
 
 // TERRITORY (Phase 2)
@@ -1156,17 +1693,17 @@ async function revealNextTeam(){
 }
 async function autoRevealAll(){p3AutoReveal=true;while(p3RevealIdx<p3RevealQueue.length){await revealNextTeam();if(p3RevealIdx<p3RevealQueue.length)await sleep(3000);}}
 
-// SCOREBOARD (between phases)
+// SCOREBOARD (between phases / End of Game 1)
 function renderScoreboard(){
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
   const title=document.getElementById('sb-title');
-  if(title)title.textContent=`📊 PHASE ${gs?.phase||1} RESULTS`;
+  const isEndOfGame1=gs?.phase===1;
+  if(title)title.textContent=isEndOfGame1?'🏆 GAME 1 — FINAL RESULTS':`📊 PHASE ${gs?.phase||1} RESULTS`;
   const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
   // Top 3
   const top3=sorted.slice(0,3);
   const rankCls=['rank1','rank2','rank3'];
-  const rankLabels=['1st Place 🥇','2nd Place 🥈','3rd Place 🥉'];
-  const phaseColors=['var(--acc)','var(--blue2)','var(--green)'];
+  const rankLabels=isEndOfGame1?['🏆 WINNER','2nd Place 🥈','3rd Place 🥉']:['1st Place 🥇','2nd Place 🥈','3rd Place 🥉'];
   document.getElementById('sb-top3').innerHTML=top3.map((t,i)=>{
     const clr=TC[t.id]||'#fff';const nm=t.leader_name||t.name;
     const pct=Math.max(4,((t.total_score||0)/maxScore)*92);
@@ -1180,4 +1717,66 @@ function renderScoreboard(){
         <span class="sb-phase-tag" style="color:var(--blue2);">P2: ${(t.pipeline_score||0).toLocaleString()}</span>
         <span class="sb-phase-tag" style="color:var(--green);">P3: ${(t.fact_score||0).toLocaleString()}</span>
       </div>
- 
+      <div class="sb-podium-bar-wrap"><div class="sb-podium-bar" style="width:${pct}%;background:${clr};"></div></div>
+    </div>`;
+  }).join('');
+  // Bottom 3 (ranks 4-6)
+  const bottom3=sorted.slice(3,6);
+  document.getElementById('sb-bottom3').innerHTML=bottom3.map((t,i)=>{
+    const clr=TC[t.id]||'#fff';const nm=t.leader_name||t.name;
+    const pct=Math.max(4,((t.total_score||0)/maxScore)*92);
+    return `<div class="sb-rank-row" style="border-color:${clr}22;">
+      <div class="sb-rr-badge" style="color:${clr};">${MEDALS[i+3]||i+4}</div>
+      <div class="sb-rr-name" style="color:${clr};">${nm}</div>
+      <div class="sb-rr-bar-wrap"><div class="sb-rr-bar" style="width:${pct}%;background:${clr};"></div></div>
+      <div class="sb-rr-score" style="color:${clr};">${(t.total_score||0).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  if(isEndOfGame1)confetti({particleCount:100,spread:100,origin:{y:.4}});
+}
+
+// DEBRIEF 1 / DEBRIEF 2 — functional data-bound stubs (Phase 2/3 Arena
+// design is out of scope for RPC-004; these exist only so applyState()'s
+// existing sub_state routing doesn't throw when an admin reaches them).
+function renderDebrief1(){
+  const el=document.getElementById('db1-grid');if(!el)return;
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  el.innerHTML=sorted.map(t=>{
+    const clr=TC[t.id]||'#fff';
+    return `<div class="db1-card" style="border-color:${clr}33;">
+      <div class="db1-name" style="color:${clr};">${t.leader_name||t.name}</div>
+      <div class="db1-acc" style="color:${clr};">${(t.total_score||0).toLocaleString()}</div>
+      <div class="db1-acc-lbl">TOTAL SCORE</div>
+    </div>`;
+  }).join('');
+}
+function renderDebrief2(){
+  const el=document.getElementById('db2-grid');if(!el)return;
+  const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
+  el.innerHTML=sorted.map(t=>{
+    const clr=TC[t.id]||'#fff';
+    return `<div class="db2-card" style="border-color:${clr}33;">
+      <div class="db2-name" style="color:${clr};">${t.leader_name||t.name}</div>
+      <div class="db2-pts">${(t.pipeline_score||0).toLocaleString()} pts</div>
+    </div>`;
+  }).join('');
+}
+function renderResults(){
+  const el=document.getElementById('podium');if(!el)return;
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const plinths=['pp1','pp2','pp3'];
+  el.innerHTML=sorted.slice(0,3).map((t,i)=>{
+    const clr=TC[t.id]||'#fff';
+    return `<div class="pod-block">
+      <div style="color:${clr};font-weight:900;">${t.leader_name||t.name}</div>
+      <div class="pod-plinth ${plinths[i]}">${MEDALS[i]}</div>
+      <div style="font-weight:900;">${(t.total_score||0).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  confetti({particleCount:150,spread:120,origin:{y:.35}});
+}
+
+init();
+</script>
+</body>
+</html>
