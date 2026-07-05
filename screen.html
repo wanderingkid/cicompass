@@ -6,7 +6,7 @@
 <title>CI Compass — Big Screen</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,700;0,900;1,900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra Petch:ital,wght@0,400;0,700;0,900;1,900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg1:#07091f;--bg2:#0d1b4b;--bg3:#0a0e27;
@@ -24,12 +24,12 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100vw;height:100vh;overflow:hidden;
   background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
-  color:var(--text);font-family:'Inter',sans-serif;}
+  color:var(--text);font-family:'Chakra Petch',sans-serif;}
 body::before{content:'';position:fixed;inset:0;
   background:
     radial-gradient(ellipse at 20% 10%,rgba(59,130,246,0.07) 0%,transparent 50%),
     radial-gradient(ellipse at 80% 90%,rgba(139,92,246,0.05) 0%,transparent 50%);
-  pointer-events:none;z-index:0;}
+  poChakra Petch-events:none;z-index:0;}
 
 /* ── HERO STRIP ── */
 #hero-strip{
@@ -47,12 +47,12 @@ body::before{content:'';position:fixed;inset:0;
 }
 .hero-cell:last-child{border:none;}
 .hero-cell.rank1::after{content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(245,158,11,0.08),transparent);pointer-events:none;}
-.hero-rank{font-size:.65rem;font-weight:700;opacity:.55;line-height:1;font-family:'Inter',happy;}
+  background:linear-gradient(180deg,rgba(245,158,11,0.08),transparent);poChakra Petch-events:none;}
+.hero-rank{font-size:.65rem;font-weight:700;opacity:.55;line-height:1;font-family:'Chakra Petch',monospace;}
 .hero-name{font-size:clamp(.6rem,1vw,.88rem);font-weight:900;line-height:1.1;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .hero-score{font-size:clamp(.85rem,1.5vw,1.2rem);font-weight:900;
-  font-family:'Inter',happy;color:var(--green);line-height:1;}
+  font-family:'Chakra Petch',monospace;color:var(--green);line-height:1;}
 .hero-delta{font-size:.52rem;font-weight:700;line-height:1;min-height:.7rem;}
 .hero-status{position:absolute;top:3px;right:4px;font-size:.6rem;}
 .hero-cell.rank-up{animation:heroUp .5s ease-out;}
@@ -142,7 +142,7 @@ body::before{content:'';position:fixed;inset:0;
 /* Right-side status zone: the artwork leaves this area empty by design. */
 .p1-status-zone{position:absolute;top:5vh;right:3.5vw;z-index:2;
   display:flex;flex-direction:column;align-items:flex-end;gap:.4vh;}
-.p1-timer{font-family:'Inter',happy;
+.p1-timer{font-family:'Chakra Petch',monospace;
   font-size:clamp(1.6rem,3vw,2.6rem);font-weight:300;
   color:#fff;text-shadow:0 0 20px rgba(96,165,250,0.5);letter-spacing:1px;}
 .p1-timer.urgent{color:var(--red);animation:urgPulse .5s infinite;}
@@ -173,7 +173,7 @@ body::before{content:'';position:fixed;inset:0;
 @keyframes rShake{0%{transform:translateX(0)}33%{transform:translateX(-2px)}66%{transform:translateX(2px)}100%{transform:translateX(0)}}
 .rank-num{font-size:clamp(1.5rem,2.8vw,3rem);font-weight:300;font-style:normal;
   min-width:clamp(2.2rem,3.6vw,4rem);text-align:center;line-height:1;opacity:.85;
-  font-family:'Inter',happy;}
+  font-family:'Chakra Petch',monospace;}
 .rank-name{font-size:clamp(1rem,1.7vw,1.6rem);font-weight:500;flex:1;line-height:1.1;
   letter-spacing:.3px;}
 .rank-bar-wrap{flex:2;height:clamp(10px,1.5vw,18px);
@@ -186,7 +186,7 @@ body::before{content:'';position:fixed;inset:0;
 .rank-bar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:10px;
   background:rgba(255,255,255,.9);filter:blur(2.5px);border-radius:20px;}
 .rank-score{font-size:clamp(.85rem,1.5vw,1.4rem);font-weight:600;
-  font-family:'Inter',happy;letter-spacing:.5px;
+  font-family:'Chakra Petch',monospace;letter-spacing:.5px;
   min-width:clamp(5.5rem,8vw,9rem);text-align:right;line-height:1;}
 .rank-status{min-width:clamp(4rem,6vw,7rem);text-align:center;}
 .frozen-tag{font-size:clamp(.55rem,.9vw,.78rem);color:#93c5fd;font-weight:600;
@@ -206,7 +206,7 @@ body::before{content:'';position:fixed;inset:0;
 .p2-tscore{font-size:clamp(.6rem,.95vw,.8rem);font-weight:700;
   padding:.15rem .5rem;border-radius:12px;
   background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);}
-.p2-timer{font-family:'Inter',happy;
+.p2-timer{font-family:'Chakra Petch',monospace;
   font-size:clamp(1.4rem,2.3vw,2rem);font-weight:900;
   color:var(--blue2);}
 .p2-timer.urgent{color:var(--red);animation:urgPulse .5s infinite;}
@@ -217,7 +217,7 @@ body::before{content:'';position:fixed;inset:0;
   font-size:clamp(.58rem,.9vw,.75rem);font-weight:700;}
 .p2-leg-dot{width:12px;height:12px;border-radius:3px;}
 /* Launch flash */
-.launch-flash{position:fixed;inset:0;z-index:200;pointer-events:none;
+.launch-flash{position:fixed;inset:0;z-index:200;poChakra Petch-events:none;
   display:flex;align-items:center;justify-content:center;
   animation:lFlash .9s ease-out forwards;}
 @keyframes lFlash{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}}
@@ -255,7 +255,7 @@ body::before{content:'';position:fixed;inset:0;
   transition:all .5s;position:relative;overflow:hidden;}
 .p3-pname{font-size:clamp(.8rem,1.3vw,1.15rem);font-weight:900;line-height:1;}
 .p3-pscore{font-size:clamp(1rem,1.8vw,1.6rem);font-weight:900;
-  font-family:'Inter',happy;color:var(--green);line-height:1;}
+  font-family:'Chakra Petch',monospace;color:var(--green);line-height:1;}
 .p3-pwager{font-size:clamp(.58rem,.9vw,.78rem);color:var(--text3);}
 .p3-pdelta{font-size:clamp(.78rem,1.2vw,1.05rem);font-weight:900;min-height:1.1rem;}
 .p3-pwpn{font-size:clamp(.62rem,.95vw,.8rem);min-height:.9rem;}
@@ -271,7 +271,7 @@ body::before{content:'';position:fixed;inset:0;
 @keyframes stFlash{0%{background:rgba(245,158,11,0.4)}100%{background:rgba(255,255,255,0.04)}}
 
 /* ── LASER ── */
-#laser-canvas{position:fixed;inset:0;pointer-events:none;z-index:150;}
+#laser-canvas{position:fixed;inset:0;poChakra Petch-events:none;z-index:150;}
 
 /* ── SCOREBOARD ── */
 #v-scoreboard{align-items:center;justify-content:center;gap:1.5rem;padding:1.5rem;}
@@ -298,7 +298,7 @@ body::before{content:'';position:fixed;inset:0;
   color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
 .sb-podium-name{font-size:clamp(1.2rem,2vw,2rem);font-weight:900;line-height:1.1;}
 .sb-podium-score{font-size:clamp(1.6rem,2.8vw,2.8rem);font-weight:900;
-  font-family:'Inter',happy;color:var(--green);line-height:1;}
+  font-family:'Chakra Petch',monospace;color:var(--green);line-height:1;}
 .sb-podium-phases{display:flex;gap:.4rem;flex-wrap:wrap;}
 .sb-phase-tag{font-size:clamp(.55rem,.85vw,.72rem);padding:.12rem .4rem;
   border-radius:6px;background:rgba(255,255,255,0.07);font-weight:700;}
@@ -319,7 +319,7 @@ body::before{content:'';position:fixed;inset:0;
 .sb-rr-name{font-size:clamp(.9rem,1.6vw,1.5rem);font-weight:900;flex:1;line-height:1.1;}
 .sb-rr-phases{display:flex;gap:.35rem;}
 .sb-rr-score{font-size:clamp(.85rem,1.5vw,1.4rem);font-weight:900;
-  font-family:'Inter',happy;color:var(--green);
+  font-family:'Chakra Petch',monospace;color:var(--green);
   min-width:clamp(5rem,8vw,9rem);text-align:right;}
 .sb-rr-bar-wrap{flex:1;height:10px;background:rgba(0,0,0,0.25);
   border-radius:5px;overflow:hidden;}
@@ -337,12 +337,12 @@ body::before{content:'';position:fixed;inset:0;
   display:flex;flex-direction:column;gap:.4rem;}
 .db1-name{font-size:clamp(1rem,1.7vw,1.6rem);font-weight:900;line-height:1;}
 .db1-acc{font-size:clamp(2rem,4vw,4rem);font-weight:900;
-  font-family:'Inter',happy;line-height:1;}
+  font-family:'Chakra Petch',monospace;line-height:1;}
 .db1-acc-lbl{font-size:clamp(.6rem,.9vw,.75rem);color:var(--text3);margin-top:-.3rem;}
 .db1-row{display:flex;justify-content:space-between;align-items:baseline;
   font-size:clamp(.72rem,1.1vw,.95rem);}
 .db1-row .lbl{color:var(--text3);}
-.db1-row .val{font-weight:900;font-family:'Inter',happy;}
+.db1-row .val{font-weight:900;font-family:'Chakra Petch',monospace;}
 
 /* ── DEBRIEF 2 ── */
 #v-debrief2{align-items:center;justify-content:center;gap:1.2rem;padding:1.2rem;}
@@ -355,7 +355,7 @@ body::before{content:'';position:fixed;inset:0;
   display:flex;flex-direction:column;align-items:center;gap:.5rem;}
 .db2-name{font-size:clamp(1rem,1.7vw,1.6rem);font-weight:900;line-height:1;}
 .db2-pts{font-size:clamp(1.1rem,1.8vw,1.7rem);font-weight:900;
-  color:var(--green);font-family:'Inter',happy;}
+  color:var(--green);font-family:'Chakra Petch',monospace;}
 .db2-bars{display:flex;gap:10px;height:clamp(80px,12vh,140px);
   align-items:flex-end;justify-content:center;}
 .db2-bar{width:clamp(28px,3vw,42px);border-radius:6px 6px 0 0;
@@ -406,7 +406,7 @@ body::before{content:'';position:fixed;inset:0;
 @keyframes feedUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── FREEZE OVERLAY ── */
-#frz-overlay{position:fixed;inset:0;z-index:160;pointer-events:none;
+#frz-overlay{position:fixed;inset:0;z-index:160;poChakra Petch-events:none;
   display:none;align-items:center;justify-content:center;
   background:rgba(30,58,138,0.15);}
 #frz-overlay.show{display:flex;animation:frzAnim 1.5s forwards;}
@@ -416,7 +416,7 @@ body::before{content:'';position:fixed;inset:0;
   text-shadow:0 0 80px var(--blue2),0 0 160px rgba(96,165,250,0.5);}
 
 /* ── TAKEOVER OVERLAY ── */
-#tko-overlay{position:fixed;inset:0;z-index:155;pointer-events:none;
+#tko-overlay{position:fixed;inset:0;z-index:155;poChakra Petch-events:none;
   display:none;align-items:center;justify-content:center;
   background:rgba(127,29,29,0.12);}
 #tko-overlay.show{display:flex;animation:frzAnim 1.8s forwards;}
@@ -427,7 +427,7 @@ body::before{content:'';position:fixed;inset:0;
 /* ── BIG MESSAGE ── */
 .big-msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
   z-index:250;font-size:clamp(2rem,5vw,5.5rem);font-weight:900;
-  text-align:center;pointer-events:none;
+  text-align:center;poChakra Petch-events:none;
   animation:bigMsgAnim .9s ease-out forwards;}
 @keyframes bigMsgAnim{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}
   50%{transform:translate(-50%,-50%) scale(1.1);opacity:1}
@@ -442,8 +442,8 @@ body::before{content:'';position:fixed;inset:0;
 #presenter.hidden{display:none;}
 .prs-title{font-size:.62rem;color:var(--text3);font-weight:700;
   letter-spacing:1px;text-align:center;text-transform:uppercase;}
-.prs-btn{padding:.48rem .7rem;border-radius:9px;border:none;cursor:pointer;
-  font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;
+.prs-btn{padding:.48rem .7rem;border-radius:9px;border:none;cursor:poChakra Petch;
+  font-family:'Chakra Petch',sans-serif;font-size:.75rem;font-weight:700;
   background:rgba(255,255,255,0.08);color:var(--text);transition:all .15s;}
 .prs-btn:active{transform:scale(.96);}
 .prs-btn.primary{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;}
@@ -472,7 +472,7 @@ body::before{content:'';position:fixed;inset:0;
 .chud-tick-major{stroke-width:2.4px;opacity:.95;}
 .chud-tick-minor{stroke-width:.6px;opacity:.25;}
 .chud-microscale line,#chud-microscale line{stroke:var(--chud-ice-blue);stroke-width:.35px;opacity:.3;vector-effect:non-scaling-stroke;}
-.chud-glass{pointer-events:none;}
+.chud-glass{poChakra Petch-events:none;}
 .chud-particle{fill:var(--chud-primary-color);opacity:.35;}
 .chud-team-arc{fill:none;stroke:var(--chud-team-color);stroke-width:1.5px;vector-effect:non-scaling-stroke;opacity:0;transition:opacity .5s ease;}
 .chud-svg[data-has-team="true"] .chud-team-arc{opacity:.95;}
@@ -574,7 +574,7 @@ body::before{content:'';position:fixed;inset:0;
    ARENA — FREEZE EVENT (dedicated hero view)
    ============================================================ */
 #v-freeze-event{align-items:center;justify-content:center;gap:1rem;position:relative;overflow:hidden;}
-.fe-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;pointer-events:none;z-index:0;}
+.fe-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;poChakra Petch-events:none;z-index:0;}
 .fe-blob.target{width:46vw;height:46vw;top:-10%;left:-12%;}
 .fe-blob.attacker{width:38vw;height:38vw;bottom:-14%;right:-10%;}
 .fe-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.6rem;}
@@ -583,7 +583,7 @@ body::before{content:'';position:fixed;inset:0;
 .fe-subtitle{font-size:clamp(.85rem,1.6vw,1.3rem);color:var(--text2);text-align:center;}
 .fe-subtitle b{font-weight:900;}
 .fe-hud-wrap{width:clamp(90px,11vh,150px);height:clamp(90px,11vh,150px);}
-.fe-countdown{font-family:'Inter',happy;font-weight:900;
+.fe-countdown{font-family:'Chakra Petch',monospace;font-weight:900;
   font-size:clamp(5rem,16vw,12rem);line-height:1;color:var(--blue2);
   text-shadow:0 0 60px rgba(96,165,250,.6);}
 .fe-countdown.urgent{color:var(--red);text-shadow:0 0 60px rgba(244,63,94,.6);animation:urgPulse .5s infinite;}
@@ -1062,7 +1062,7 @@ function subscribeRT(){
 }
 
 function pollPlayers(){
-  setInterval(async()=>{
+  setChakra Petchval(async()=>{
     const{count}=await sb.from('players').select('*',{count:'exact',head:true});
     const el=document.getElementById('lobby-count');if(el)el.textContent=count||0;
     if(gs?.phase===0)updateLobbyTeams();
@@ -1188,27 +1188,27 @@ function renderDemo(){
   document.getElementById('demo-body').textContent=c.body||'';
   document.getElementById('demo-dots').innerHTML=content.map((_,i)=>`<div class="demo-dot ${i===step?'on':''}"></div>`).join('');
   // Progress bar
-  if(demoProgInt)clearInterval(demoProgInt);
+  if(demoProgInt)clearChakra Petchval(demoProgInt);
   demoProgVal=0;document.getElementById('demo-prog-fill').style.width='0%';
-  demoProgInt=setInterval(()=>{
+  demoProgInt=setChakra Petchval(()=>{
     demoProgVal+=100/(DEMO_AUTO_SECS*20);
     document.getElementById('demo-prog-fill').style.width=Math.min(100,demoProgVal)+'%';
-    if(demoProgVal>=100)clearInterval(demoProgInt);
+    if(demoProgVal>=100)clearChakra Petchval(demoProgInt);
   },50);
 }
 
 // TIMER
 function startTimer(elId,phase){
-  if(timerInt)clearInterval(timerInt);
+  if(timerInt)clearChakra Petchval(timerInt);
   const dur=(phase===1&&gs?.phase1_duration)||PHASE_DUR[phase]||0;if(!dur)return;
-  timerInt=setInterval(()=>{
+  timerInt=setChakra Petchval(()=>{
     if(!gs?.phase_start_at)return;
     const elapsed=(Date.now()-new Date(gs.phase_start_at).getTime())/1000;
     const rem=Math.max(0,dur-elapsed);
     const m=Math.floor(rem/60),s=Math.floor(rem%60);
     const el=document.getElementById(elId);
     if(el){el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;el.classList.toggle('urgent',rem<=30);}
-    if(rem<=0)clearInterval(timerInt);
+    if(rem<=0)clearChakra Petchval(timerInt);
   },500);
 }
 
@@ -1252,9 +1252,9 @@ function startFrozenCountdowns(){
   teams.forEach(t=>{
     if(t.frozen_until&&new Date(t.frozen_until)>new Date()){
       const end=new Date(t.frozen_until).getTime();
-      const iv=setInterval(()=>{
+      const iv=setChakra Petchval(()=>{
         const row=document.getElementById(`rr-${t.id}`);
-        if(!row){clearInterval(iv);return;}
+        if(!row){clearChakra Petchval(iv);return;}
         const rem=Math.max(0,Math.ceil((end-Date.now())/1000));
         const tag=row.querySelector('.frozen-tag');
         if(tag){
@@ -1263,7 +1263,7 @@ function startFrozenCountdowns(){
           const byClr=byTeam?TC[byTeam.id]||'#fff':'#fff';
           tag.innerHTML=`❄️ Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${rem}s`;
         }
-        if(rem<=0)clearInterval(iv);
+        if(rem<=0)clearChakra Petchval(iv);
       },500);
     }
   });
@@ -1298,7 +1298,7 @@ function enterFreezeEventView(attackerId,targetId){
   document.getElementById('fe-blob-target').style.background=tgtClr;
   document.getElementById('fe-blob-attacker').style.background=attClr;
   showView('v-freeze-event');
-  if(freezeEventInt)clearInterval(freezeEventInt);
+  if(freezeEventInt)clearChakra Petchval(freezeEventInt);
   const tick=()=>{
     const t=teams.find(x=>x.id===targetId);
     const remMs=t?.frozen_until?(new Date(t.frozen_until).getTime()-Date.now()):0;
@@ -1306,12 +1306,12 @@ function enterFreezeEventView(attackerId,targetId){
     const el=document.getElementById('fe-countdown');
     if(el){el.textContent=rem;el.classList.toggle('urgent',rem<=3&&rem>0);}
     if(remMs<=0){
-      clearInterval(freezeEventInt);freezeEventInt=null;
+      clearChakra Petchval(freezeEventInt);freezeEventInt=null;
       if(gs?.phase===1)showView('v-phase1');
     }
   };
   tick();
-  freezeEventInt=setInterval(tick,250);
+  freezeEventInt=setChakra Petchval(tick,250);
 }
 
 // TERRITORY (Phase 2)
