@@ -2173,7 +2173,7 @@ function renderLeaderP1Dashboard(){
   document.getElementById('lcmd1-team').textContent=myName;
   document.getElementById('lcmd1-score').textContent=`${(my.total_score||0).toLocaleString()} pts`;
   // Freeze Charge Threshold = chargePerPlayer × activeTeamSize (Game Economy, configurable)
-  const active=Math.max(my.active_player_count||0,15);
+  const active=Math.max(my.active_player_count||0,0);
   const target=active*g1ChargePerPlayer(),pool=my.correct_pool||0,rem=pool%target;
   const pct=Math.min(100,(rem/target)*100);
   const charges=my.weapon_charges||0;
