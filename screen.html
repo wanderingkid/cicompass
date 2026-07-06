@@ -22,9 +22,32 @@
   --glow-gold:0 0 30px rgba(245,158,11,0.3);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100vw;height:100vh;overflow:hidden;
-  background:#07091f;
-  color:var(--text);font-family:'Kanit',sans-serif;
+html,body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #07091f;
+  color: var(--text);
+  font-family: 'Kanit', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* Locks resolution matrix coordinates safely to a fixed 16:9 widescreen canvas output layout */
+#main {
+  position: absolute;
+  width: 100vw;
+  height: 56.25vw; 
+  max-height: 100vh;
+  max-width: 177.78vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+}
   display:flex;align-items:center;justify-content:center;}
 
 #main{
@@ -102,24 +125,53 @@ body::before{content:'';position:fixed;inset:0;
    the empty placeholder zones already composed into the artwork. */
 .lobby-overlay{position:absolute;inset:0;z-index:1;}
 /* Container adjusted to make sure everything sits right under the shield tips */
-.lobby-teams-v2{position:absolute;left:4.5%;right:4.5%;top:75.5%;height:13%;
-  display:grid;grid-template-columns:repeat(6,1fr);gap:1.5vw;}
-
-/* Transforms each team card into a beautifully centered square container box */
-.lobby-team-shield{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;padding:8px;
-  border:1px solid rgba(34,211,238,0.25); /* Cyan blueprint border tint */
-  background:rgba(7,9,31,0.65);          /* Translucent space background */
-  border-radius:4px;
-  box-shadow:0 0 12px rgba(34,211,238,0.08);
-  aspect-ratio:1;                       /* Locks the container into a perfect square */
+/* Moves the container layout slightly higher up into the center of the UI square graphic box */
+.lobby-teams-v2 {
+  position: absolute;
+  left: 4.5%;
+  right: 4.5%;
+  top: 73.2%; 
+  height: 12%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
 }
-.lobby-team-shield .lts-name{font-family:'Inter',sans-serif;
-  font-size:clamp(.65rem,1vw,.95rem);font-weight:700;letter-spacing:.5px;line-height:1.2;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;}
-.lobby-team-shield .lts-count{font-family:'Share Tech Mono',monospace; /* Monospace for numbers */
-  font-size:clamp(.7rem,1.1vw,1rem);font-weight:700;color:#22d3ee;text-shadow:0 0 8px rgba(34,211,238,0.4);}
-.lobby-total-row{position:absolute;left:33%;right:33%;top:91.5%;height:5.5%;
+
+/* Centers the stacked team name and number perfectly without an unwanted box background */
+.lobby-team-shield {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  background: none !important; /* Forces transparency */
+  border: none !important;     /* Removes borders */
+  box-shadow: none !important; /* Removes any shadow glow */
+}
+
+/* Stylizes team names beautifully so they pop on screen */
+.lobby-team-shield .lts-name {
+  font-family: 'Orbitron', sans-serif; /* Matches a clean futuristic gaming aesthetic */
+  font-size: clamp(0.7rem, 1.1vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* Stylizes text counts to align with your color themes */
+.lobby-team-shield .lts-count {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(0.7rem, 1vw, 0.95rem);
+  font-weight: 500;
+  color: #60a5fa; /* Uses the clean light blue tint variable from your root settings */
+  letter-spacing: 0.5px;
+}.lobby-total-row{position:absolute;left:33%;right:33%;top:91.5%;height:5.5%;
   display:flex;align-items:center;justify-content:center;}
 .lobby-total-value{font-family:'Inter',sans-serif;
   font-size:clamp(1.1rem,2vw,1.8rem);font-weight:400;letter-spacing:2px;
