@@ -86,7 +86,7 @@ body::before{content:'';position:fixed;inset:0;
 
 /* Overlay layer sits on top of .arena-background, positioned to align with
    the empty placeholder zones already composed into the artwork. */
-.lobby-overlay{position:absolute;z-index:1;width:100%;height:100%;
+.lobby-overlay{position:relative;z-index:1;width:100%;height:100%;
   display:flex;flex-direction:column;justify-content:flex-end;padding:0 3vw 3.2vh;}
 .lobby-teams-v2{display:grid;grid-template-columns:repeat(6,1fr);gap:1.4vw;
   margin-bottom:1.6vh;}
@@ -152,7 +152,7 @@ body::before{content:'';position:fixed;inset:0;
 
 /* Center — live leaderboard as premium broadcast graphic (F1 timing / Dynamic
    Island language): glass rows, energy-conduit bars, restrained glow. */
-.rank-list{position:absolute;z-index:1;display:flex;flex-direction:column;
+.rank-list{position:relative;z-index:1;display:flex;flex-direction:column;
   gap:.42rem;flex:1;min-height:0;justify-content:center;
   padding:0 4vw 8vh;margin-top:auto;}
 .rank-row{
@@ -162,7 +162,7 @@ body::before{content:'';position:fixed;inset:0;
   border-radius:clamp(10px,1.2vw,16px);
   padding:clamp(.4rem,.7vw,.65rem) clamp(.8rem,1.5vw,1.5rem);
   border:1px solid rgba(255,255,255,0.09);
-  position:absolute;overflow:hidden;
+  position:relative;overflow:hidden;
   transition:all .7s cubic-bezier(.34,1.56,.64,1);flex:1;
 }
 .rank-row.frozen{
@@ -177,10 +177,10 @@ body::before{content:'';position:fixed;inset:0;
 .rank-name{font-size:clamp(1rem,1.7vw,1.6rem);font-weight:500;flex:1;line-height:1.1;
   letter-spacing:.3px;}
 .rank-bar-wrap{flex:2;height:clamp(10px,1.5vw,18px);
-  background:rgba(0,0,0,0.35);border-radius:20px;overflow:hidden;position:absolute;
+  background:rgba(0,0,0,0.35);border-radius:20px;overflow:hidden;position:relative;
   border:1px solid rgba(255,255,255,.06);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.4);}
-.rank-bar{height:100%;border-radius:20px;position:absolute;
+.rank-bar{height:100%;border-radius:20px;position:relative;
   transition:width 1.1s cubic-bezier(.34,1.56,.64,1);
   box-shadow:0 0 12px 1px currentColor inset;}
 .rank-bar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:10px;
