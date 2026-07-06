@@ -6,7 +6,7 @@
 <title>CI Compass — Big Screen</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;0,900;1,900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;0,900;1,900&family=Share+Tech+Mono&family=Orbitron:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg1:#07091f;--bg2:#0d1b4b;--bg3:#0a0e27;
@@ -23,8 +23,22 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100vw;height:100vh;overflow:hidden;
+  background:#07091f;
+  color:var(--text);font-family:'Kanit',sans-serif;
+  display:flex;align-items:center;justify-content:center;}
+
+#main{
+  position:absolute;
+  width:100vw;
+  height:56.25vw; /* Math ratio constraint (9/16 = 0.5625) locks background to 16:9 standard */
+  max-height:100vh;
+  max-width:177.78vh;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  overflow:hidden;
   background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
-  color:var(--text);font-family:'Kanit',sans-serif;}
+}
 body::before{content:'';position:fixed;inset:0;
   background:
     radial-gradient(ellipse at 20% 10%,rgba(59,130,246,0.07) 0%,transparent 50%),
@@ -69,7 +83,7 @@ body::before{content:'';position:fixed;inset:0;
 /* ============================================================
    ARENA — LOBBY (RPC-004A: artwork is the stage, HTML is live data only)
    ============================================================ */
-#v-lobby{align-items:stretch;justify-content:flex-start;gap:0;padding:0;position:absolute;}
+#v-lobby{align-items:stretch;justify-content:flex-start;gap:0;padding:0;position:absolute;inset:0;}
 .arena-background{position:absolute;inset:0;background-size:cover;background-position:center;
   background-repeat:no-repeat;z-index:0;}
 /* CSS-generated branding retired in favor of the supplied artwork — elements
@@ -86,17 +100,29 @@ body::before{content:'';position:fixed;inset:0;
 
 /* Overlay layer sits on top of .arena-background, positioned to align with
    the empty placeholder zones already composed into the artwork. */
-.lobby-overlay{position:relative;z-index:1;width:100%;height:100%;
-  display:flex;flex-direction:column;justify-content:flex-end;padding:0 3vw 3.2vh;}
-.lobby-teams-v2{display:grid;grid-template-columns:repeat(6,1fr);gap:1.4vw;
-  margin-bottom:1.6vh;}
-.lobby-team-shield{display:flex;flex-direction:column;align-items:center;gap:.15vh;
-  padding:.6vh .3vw 0;}
-.lobby-team-shield .lts-name{font-size:clamp(.62rem,1.05vw,.95rem);font-weight:600;
-  letter-spacing:.5px;}
-.lobby-team-shield .lts-count{font-size:clamp(.6rem,1vw,.85rem);font-weight:300;color:rgba(255,255,255,.75);}
-.lobby-total-row{display:flex;justify-content:center;}
-.lobby-total-value{font-size:clamp(1.1rem,2.2vw,2rem);font-weight:300;letter-spacing:2px;
+.lobby-overlay{position:absolute;inset:0;z-index:1;}
+/* Container adjusted to make sure everything sits right under the shield tips */
+.lobby-teams-v2{position:absolute;left:4.5%;right:4.5%;top:75.5%;height:13%;
+  display:grid;grid-template-columns:repeat(6,1fr);gap:1.5vw;}
+
+/* Transforms each team card into a beautifully centered square container box */
+.lobby-team-shield{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:8px;
+  border:1px solid rgba(34,211,238,0.25); /* Cyan blueprint border tint */
+  background:rgba(7,9,31,0.65);          /* Translucent space background */
+  border-radius:4px;
+  box-shadow:0 0 12px rgba(34,211,238,0.08);
+  aspect-ratio:1;                       /* Locks the container into a perfect square */
+}
+.lobby-team-shield .lts-name{font-family:'Inter',sans-serif;
+  font-size:clamp(.65rem,1vw,.95rem);font-weight:700;letter-spacing:.5px;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;}
+.lobby-team-shield .lts-count{font-family:'Share Tech Mono',monospace; /* Monospace for numbers */
+  font-size:clamp(.7rem,1.1vw,1rem);font-weight:700;color:#22d3ee;text-shadow:0 0 8px rgba(34,211,238,0.4);}
+.lobby-total-row{position:absolute;left:33%;right:33%;top:91.5%;height:5.5%;
+  display:flex;align-items:center;justify-content:center;}
+.lobby-total-value{font-family:'Inter',sans-serif;
+  font-size:clamp(1.1rem,2vw,1.8rem);font-weight:400;letter-spacing:2px;
   color:#fff;text-shadow:0 0 20px rgba(147,197,253,.5);}
 
 /* ── DEMO ── */
@@ -133,28 +159,31 @@ body::before{content:'';position:fixed;inset:0;
 .dm-cell{aspect-ratio:1;border-radius:1px;}
 
 /* ── PHASE 1 RANKED LIST ── */
-#v-phase1{padding:0;gap:0;justify-content:center;position:relative;}
+#v-phase1{padding:0;gap:0;justify-content:center;position:absolute;inset:0;}
 .arena-background{position:absolute;inset:0;background-size:cover;background-position:center;
   background-repeat:no-repeat;z-index:0;}
 /* Left side (Mission 1 / Frostbite / Knowledge Is Power) is baked into the
    artwork — the old CSS-drawn label is retired but kept in DOM for JS. */
 .p1-header{display:none;}
-/* Right-side status zone: the artwork leaves this area empty by design. */
-.p1-status-zone{position:absolute;top:5vh;right:3.5vw;z-index:2;
-  display:flex;flex-direction:column;align-items:flex-end;gap:.4vh;}
-.p1-timer{font-family:'Share Tech Mono',monospace;
+/* Right-side content zone: clears the artwork's left-side Mission title/
+   tagline/Compass HUD (reserved 0–30% of width) and stacks the status
+   zone above the leaderboard so neither overlaps the other. */
+.p1-content-zone{position:absolute;top:9vh;left:31vw;right:3.2vw;bottom:7vh;
+  display:flex;flex-direction:column;gap:1vh;z-index:2;}
+.p1-status-zone{flex-shrink:0;
+  display:flex;flex-direction:column;align-items:flex-end;gap:.3vh;}
+.p1-timer{font-family:'Inter',sans-serif;
   font-size:clamp(1.6rem,3vw,2.6rem);font-weight:300;
   color:#fff;text-shadow:0 0 20px rgba(96,165,250,0.5);letter-spacing:1px;}
 .p1-timer.urgent{color:var(--red);animation:urgPulse .5s infinite;}
 @keyframes urgPulse{0%,100%{opacity:1}50%{opacity:.3}}
-.p1-pool-lbl{font-size:clamp(.6rem,.95vw,.78rem);font-weight:300;letter-spacing:1.5px;
-  color:rgba(255,255,255,.6);text-align:right;}
+.p1-pool-lbl{font-family:'Inter',sans-serif;font-size:clamp(.6rem,.95vw,.78rem);
+  font-weight:400;letter-spacing:1.5px;color:rgba(255,255,255,.6);text-align:right;}
 
 /* Center — live leaderboard as premium broadcast graphic (F1 timing / Dynamic
    Island language): glass rows, energy-conduit bars, restrained glow. */
-.rank-list{position:relative;z-index:1;display:flex;flex-direction:column;
-  gap:.42rem;flex:1;min-height:0;justify-content:center;
-  padding:0 4vw 8vh;margin-top:auto;}
+.rank-list{position:static;z-index:1;display:flex;flex-direction:column;
+  gap:.42rem;flex:1;min-height:0;justify-content:center;padding:0;margin:0;}
 .rank-row{
   display:flex;align-items:center;gap:1rem;
   background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
@@ -173,8 +202,8 @@ body::before{content:'';position:fixed;inset:0;
 @keyframes rShake{0%{transform:translateX(0)}33%{transform:translateX(-2px)}66%{transform:translateX(2px)}100%{transform:translateX(0)}}
 .rank-num{font-size:clamp(1.5rem,2.8vw,3rem);font-weight:300;font-style:normal;
   min-width:clamp(2.2rem,3.6vw,4rem);text-align:center;line-height:1;opacity:.85;
-  font-family:'Share Tech Mono',monospace;}
-.rank-name{font-size:clamp(1rem,1.7vw,1.6rem);font-weight:500;flex:1;line-height:1.1;
+  font-family:'Inter',sans-serif;}
+.rank-name{font-family:'Inter',sans-serif;font-size:clamp(1rem,1.7vw,1.6rem);font-weight:500;flex:1;line-height:1.1;
   letter-spacing:.3px;}
 .rank-bar-wrap{flex:2;height:clamp(10px,1.5vw,18px);
   background:rgba(0,0,0,0.35);border-radius:20px;overflow:hidden;position:relative;
@@ -185,8 +214,8 @@ body::before{content:'';position:fixed;inset:0;
   box-shadow:0 0 12px 1px currentColor inset;}
 .rank-bar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:10px;
   background:rgba(255,255,255,.9);filter:blur(2.5px);border-radius:20px;}
-.rank-score{font-size:clamp(.85rem,1.5vw,1.4rem);font-weight:600;
-  font-family:'Share Tech Mono',monospace;letter-spacing:.5px;
+.rank-score{font-family:'Inter',sans-serif;font-size:clamp(.85rem,1.5vw,1.4rem);font-weight:600;
+  letter-spacing:.5px;
   min-width:clamp(5.5rem,8vw,9rem);text-align:right;line-height:1;}
 .rank-status{min-width:clamp(4rem,6vw,7rem);text-align:center;}
 .frozen-tag{font-size:clamp(.55rem,.9vw,.78rem);color:#93c5fd;font-weight:600;
@@ -633,11 +662,13 @@ body::before{content:'';position:fixed;inset:0;
     <div class="p1-header">
       <div class="p1-label">⚡ PHASE 1: SOLO SPRINT</div>
     </div>
-    <div class="p1-status-zone">
-      <div class="p1-timer" id="p1-timer">04:00</div>
-      <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
+    <div class="p1-content-zone">
+      <div class="p1-status-zone">
+        <div class="p1-timer" id="p1-timer">04:00</div>
+        <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
+      </div>
+      <div class="rank-list" id="rank-list"></div>
     </div>
-    <div class="rank-list" id="rank-list"></div>
   </div>
 
   <!-- FREEZE EVENT (Game 1 hero takeover — Compass HUD 'freeze' state) -->
@@ -821,8 +852,8 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <script>
-const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 const LOGO_URL = ''; // paste logo URL when ready
 
 const PHASE_DUR={1:240,2:90};
