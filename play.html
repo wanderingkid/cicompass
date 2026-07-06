@@ -556,7 +556,7 @@ body::before{content:'';position:fixed;inset:0;
 @keyframes glow-red{0%,100%{box-shadow:0 0 10px rgba(244,63,94,0.4)}
   50%{box-shadow:0 0 25px rgba(244,63,94,0.8)}}
 .fire-btn:active{transform:scale(.97);}
-.tgt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;display:none;}
+.tgt-grid{display:none;grid-template-columns:repeat(3,1fr);gap:.35rem;}
 .tgt-btn{padding:.55rem .3rem;background:var(--surf);
   border:1.5px solid var(--border);border-radius:var(--r3);
   color:var(--text);font-family:'Kanit',sans-serif;
@@ -1547,10 +1547,12 @@ const DEMO_AUTO_SECS = 4;
    Reads optional overrides from game_state so Mission Control can tune these
    without a code change or schema migration; falls back to documented defaults
    when the field isn't present. */
-const GAME1_DEFAULTS = { durationSec:240, chargePerPlayer:5, streakStart:3 };
+const GAME1_DEFAULTS = { durationSec:240, chargePerPlayer:5, streakStart:3, minChargePlayers:3 };
 function g1Duration(){ return (gameState&&gameState.phase1_duration)||GAME1_DEFAULTS.durationSec; }
 function g1ChargePerPlayer(){ return (gameState&&gameState.charge_per_player)||GAME1_DEFAULTS.chargePerPlayer; }
 function g1StreakStart(){ return (gameState&&gameState.streak_start)||GAME1_DEFAULTS.streakStart; }
+function g1MinChargePlayers(){ return (gameState&&gameState.min_charge_players)||GAME1_DEFAULTS.minChargePlayers; }
+function g1MaxCharges(){ return (gameState&&gameState.max_charges)||null; } // null = unlimited (default)
 let game1TimerInt=null, game1TimeUp=false;
 const TC = {1:'var(--tc1)',2:'var(--tc2)',3:'var(--tc3)',4:'var(--tc4)',5:'var(--tc5)',6:'var(--tc6)'};
 const MEDALS = ['🥇','🥈','🥉','4th','5th','6th'];
@@ -2172,15 +2174,18 @@ function renderLeaderP1Dashboard(){
   const myName=my.leader_name||my.name||`ทีม ${player.team_id}`;
   document.getElementById('lcmd1-team').textContent=myName;
   document.getElementById('lcmd1-score').textContent=`${(my.total_score||0).toLocaleString()} pts`;
-  // Freeze Charge Threshold = chargePerPlayer × activeTeamSize (Game Economy, configurable)
-  const active=Math.max(my.active_player_count||0,0);
+  // Freeze Charge Threshold = max(activeAnsweringPlayers, g1MinChargePlayers()) × g1ChargePerPlayer()
+  // active_player_count tracks players only (Captain excluded) — see summary.
+  const active=Math.max(my.active_player_count||0,g1MinChargePlayers());
   const target=active*g1ChargePerPlayer(),pool=my.correct_pool||0,rem=pool%target;
   const pct=Math.min(100,(rem/target)*100);
+  const maxCharges=g1MaxCharges();
   const charges=my.weapon_charges||0;
+  const atMax=maxCharges!==null&&charges>=maxCharges;
   document.getElementById('lc-fill').style.width=pct+'%';
   document.getElementById('lc-fill').textContent=pct>20?Math.round(pct)+'%':'';
-  document.getElementById('lc-pool').textContent=`${rem} / ${target} correct`;
-  document.getElementById('lc-charges').textContent=`${charges} charges`;
+  document.getElementById('lc-pool').textContent=atMax?'MAX CHARGES':`${rem} / ${target} correct`;
+  document.getElementById('lc-charges').textContent=`${charges}${maxCharges!==null?'/'+maxCharges:''} charges`;
 
   // Captain cannot deploy another Freeze while one of their own Freeze effects
   // is still active on some target team.
@@ -2245,7 +2250,12 @@ function openTargets(){
   tg.style.display=willShow?'grid':'none';
   if(willShow){
     // Captain cannot target a team that is already Frozen (Game Economy).
-    tg.innerHTML=teams.filter(t=>t.id!==player.team_id).map(t=>{
+    const opponents=teams.filter(t=>t.id!==player.team_id);
+    if(!opponents.length){
+      tg.innerHTML=`<div style="grid-column:1/-1;color:var(--text3);font-size:.7rem;text-align:center;">⚠️ ไม่พบทีมเป้าหมาย — ลองรีเฟรช / No opposing teams found — try refreshing</div>`;
+      return;
+    }
+    tg.innerHTML=opponents.map(t=>{
       const frozenAlready=t.frozen_until&&new Date(t.frozen_until)>new Date();
       if(frozenAlready){
         return `<div class="tgt-btn frz" style="opacity:.35;pointer-events:none;">❄️ ${t.leader_name||t.name}<br><span style="font-size:.6rem;">already frozen</span></div>`;
