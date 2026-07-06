@@ -87,60 +87,15 @@ body::before{content:'';position:fixed;inset:0;
 /* Overlay layer sits on top of .arena-background, positioned to align with
    the empty placeholder zones already composed into the artwork. */
 .lobby-overlay{position:absolute;inset:0;z-index:1;}
-/* Sets the layout grid row exactly over your graphic frames */
-.lobby-teams-v2 {
-  position: absolute;
-  left: 4.5%;
-  right: 4.5%;
-  top: 73.0%; 
-  height: 12%;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-}
-
-/* Force each block to act as a proper layout container without an ugly background box */
-.lobby-team-shield {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 100% !important;
-  width: 100% !important;
-  gap: 4px !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Brings the Team Name back in crisp, bright white */
-.lobby-team-shield .lts-name {
-  display: block !important;
-  visibility: visible !important;
-  font-family: 'Orbitron', sans-serif; 
-  font-size: clamp(0.7rem, 1.1vw, 1.05rem) !important;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #ffffff !important;
-  text-transform: uppercase;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 90%;
-  line-height: 1.2;
-}
-
-/* Brings the Count back in neon light blue */
-.lobby-team-shield .lts-count {
-  display: block !important;
-  visibility: visible !important;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(0.7rem, 1vw, 0.95rem) !important;
-  font-weight: 500;
-  color: #60a5fa !important; 
-  letter-spacing: 0.5px;
-  line-height: 1.1;
-}
+.lobby-teams-v2{position:absolute;left:4.5%;right:4.5%;top:76.5%;height:11%;
+  display:grid;grid-template-columns:repeat(6,1fr);}
+.lobby-team-shield{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  gap:.3vh;padding:0 .4vw;}
+.lobby-team-shield .lts-name{font-family:'Inter',sans-serif;
+  font-size:clamp(.6rem,1vw,.9rem);font-weight:500;letter-spacing:.2px;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.lobby-team-shield .lts-count{font-family:'Inter',sans-serif;
+  font-size:clamp(.6rem,.95vw,.82rem);font-weight:300;color:rgba(255,255,255,.75);}
 .lobby-total-row{position:absolute;left:33%;right:33%;top:91.5%;height:5.5%;
   display:flex;align-items:center;justify-content:center;}
 .lobby-total-value{font-family:'Inter',sans-serif;
@@ -1669,4 +1624,3 @@ init();
 </script>
 </body>
 </html>
- 
