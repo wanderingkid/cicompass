@@ -22,46 +22,9 @@
   --glow-gold:0 0 30px rgba(245,158,11,0.3);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: #07091f;
-  color: var(--text);
-  font-family: 'Kanit', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-/* Locks resolution matrix coordinates safely to a fixed 16:9 widescreen canvas output layout */
-#main {
-  position: absolute;
-  width: 100vw;
-  height: 56.25vw; 
-  max-height: 100vh;
-  max-width: 177.78vh;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-}
-  display:flex;align-items:center;justify-content:center;}
-
-#main{
-  position:absolute;
-  width:100vw;
-  height:56.25vw; /* Math ratio constraint (9/16 = 0.5625) locks background to 16:9 standard */
-  max-height:100vh;
-  max-width:177.78vh;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  overflow:hidden;
+html,body{width:100vw;height:100vh;overflow:hidden;
   background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
-}
+  color:var(--text);font-family:'Kanit',sans-serif;}
 body::before{content:'';position:fixed;inset:0;
   background:
     radial-gradient(ellipse at 20% 10%,rgba(59,130,246,0.07) 0%,transparent 50%),
@@ -106,7 +69,7 @@ body::before{content:'';position:fixed;inset:0;
 /* ============================================================
    ARENA — LOBBY (RPC-004A: artwork is the stage, HTML is live data only)
    ============================================================ */
-#v-lobby{align-items:stretch;justify-content:flex-start;gap:0;padding:0;position:relative;inset:0;}
+#v-lobby{align-items:stretch;justify-content:flex-start;gap:0;padding:0;position:absolute;inset:0;}
 .arena-background{position:absolute;inset:0;background-size:cover;background-position:center;
   background-repeat:no-repeat;z-index:0;}
 /* CSS-generated branding retired in favor of the supplied artwork — elements
@@ -124,54 +87,56 @@ body::before{content:'';position:fixed;inset:0;
 /* Overlay layer sits on top of .arena-background, positioned to align with
    the empty placeholder zones already composed into the artwork. */
 .lobby-overlay{position:absolute;inset:0;z-index:1;}
-/* Container adjusted to make sure everything sits right under the shield tips */
-/* Moves the container layout slightly higher up into the center of the UI square graphic box */
+/* Anchors the row slightly higher up to align precisely with the graphic container squares */
 .lobby-teams-v2 {
   position: absolute;
   left: 4.5%;
   right: 4.5%;
-  top: 73.2%; 
+  top: 73.5%; 
   height: 12%;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
 }
 
-/* Centers the stacked team name and number perfectly without an unwanted box background */
+/* Uses flex alignment configurations to lock the information stacks right in the center */
 .lobby-team-shield {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   padding: 0;
-  background: none !important; /* Forces transparency */
-  border: none !important;     /* Removes borders */
-  box-shadow: none !important; /* Removes any shadow glow */
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-/* Stylizes team names beautifully so they pop on screen */
+/* Adjusts typography weights and shadows to look premium over your UI blueprint */
 .lobby-team-shield .lts-name {
-  font-family: 'Orbitron', sans-serif; /* Matches a clean futuristic gaming aesthetic */
-  font-size: clamp(0.7rem, 1.1vw, 1.05rem);
+  font-family: 'Orbitron', sans-serif; 
+  font-size: clamp(0.65rem, 1.05vw, 0.95rem);
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: #ffffff;
   text-transform: uppercase;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 90%;
+  line-height: 1.2;
 }
 
-/* Stylizes text counts to align with your color themes */
+/* Enhances numeric readability */
 .lobby-team-shield .lts-count {
   font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(0.7rem, 1vw, 0.95rem);
+  font-size: clamp(0.65rem, 0.95vw, 0.85rem);
   font-weight: 500;
-  color: #60a5fa; /* Uses the clean light blue tint variable from your root settings */
+  color: #60a5fa; 
   letter-spacing: 0.5px;
-}.lobby-total-row{position:absolute;left:33%;right:33%;top:91.5%;height:5.5%;
+  line-height: 1.1;
+}
+.lobby-total-row{position:absolute;left:33%;right:33%;top:91.5%;height:5.5%;
   display:flex;align-items:center;justify-content:center;}
 .lobby-total-value{font-family:'Inter',sans-serif;
   font-size:clamp(1.1rem,2vw,1.8rem);font-weight:400;letter-spacing:2px;
