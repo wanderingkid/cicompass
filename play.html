@@ -2143,7 +2143,6 @@ function applyState(){
   phase=gameState.phase;
   const sub=gameState.sub_state||'lobby';
   const isLeader=player.role==='leader';
-  updateLp3();
   if(phase===0){showScreen('s-wait');return;}
   if(sub==='demo'){showDemoScreen();return;}
   const my=teams.find(t=>t.id===player.team_id);
@@ -2180,11 +2179,6 @@ function applyState(){
   if(phase!==3&&mission3TimerInt){clearInterval(mission3TimerInt);mission3TimerInt=null;}
   if(phase!==3&&p3VotesChannel){sb.removeChannel(p3VotesChannel);p3VotesChannel=null;}
 }
-function updateLp3(){
-  const isLeader=player?.role==='leader';
-  document.getElementById('lp3').classList.toggle('vis',isLeader&&phase===3&&gameState?.submissions_open);
-}
-
 // DEMO
 let demoAutoInt=null,demoProgInt=null,demoProgVal=0;
 function showDemoScreen(){
