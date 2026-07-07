@@ -462,44 +462,74 @@ body::before{content:'';position:fixed;inset:0;
   font-size:.72rem;color:var(--blue3);line-height:1.6;}
 
 /* TAPPING */
-#s-tapping{padding:.9rem;gap:.5rem;}
-.tier-choice{display:flex;gap:.4rem;}
-.tier-tab{flex:1;padding:.6rem .2rem;border-radius:var(--r3);
-  background:var(--surf);border:1.5px solid var(--border);
-  color:var(--text3);font-family:'Kanit',sans-serif;
-  font-size:.78rem;font-weight:700;cursor:pointer;
-  text-align:center;transition:all .2s;}
-.tier-tab.A.sel{border-color:var(--gold);background:rgba(251,191,36,0.1);color:var(--gold);}
-.tier-tab.B.sel{border-color:var(--blue2);background:rgba(96,165,250,0.1);color:var(--blue2);}
-.tier-tab.C.sel{border-color:var(--green);background:rgba(52,211,153,0.1);color:var(--green);}
+#s-tapping{padding:.7rem .8rem;gap:.5rem;}
+#s-tapping .hud{gap:.5rem;}
+/* Mission 2 HUD row: compass icon + team score + countdown */
+.m2-hud-icon{width:26px;height:26px;flex-shrink:0;}
+.m2-timer{font-family:'Kanit',sans-serif;font-size:1.05rem;font-weight:700;
+  color:var(--blue2);letter-spacing:.5px;}
+.m2-timer.urgent{color:var(--red);animation:tUrgentPulse .6s infinite;}
+
+/* TAP ZONE — ~70% of screen, no visible button, tap anywhere */
 .tap-zone{flex:1;border-radius:var(--r);
-  background:var(--surf);border:2px solid var(--border);
+  background:var(--surf);border:1.5px solid var(--border2);
   display:flex;flex-direction:column;align-items:center;
   justify-content:center;cursor:pointer;
-  position:relative;overflow:hidden;min-height:200px;
-  transition:border-color .2s;}
-.tap-zone.A{border-color:rgba(251,191,36,0.5);}
-.tap-zone.B{border-color:rgba(96,165,250,0.5);}
-.tap-zone.C{border-color:rgba(52,211,153,0.5);}
-.tap-count{font-size:3rem;font-weight:900;pointer-events:none;
+  position:relative;overflow:hidden;min-height:0;
+  transition:border-color .25s,box-shadow .25s;}
+.tap-zone.A{border-color:rgba(251,191,36,0.45);box-shadow:0 0 24px rgba(251,191,36,0.08) inset;}
+.tap-zone.B{border-color:rgba(96,165,250,0.45);box-shadow:0 0 24px rgba(96,165,250,0.08) inset;}
+.tap-zone.C{border-color:rgba(52,211,153,0.45);box-shadow:0 0 24px rgba(52,211,153,0.08) inset;}
+.tap-zone:active{transform:scale(.99);}
+.tap-count{font-size:clamp(2.2rem,9vh,3.4rem);font-weight:700;pointer-events:none;
   background:linear-gradient(135deg,var(--blue2),var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.tap-lbl{font-size:.7rem;color:var(--text3);pointer-events:none;margin-top:.2rem;}
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.tap-lbl{font-size:.72rem;color:var(--text3);pointer-events:none;margin-top:.3rem;
+  font-weight:400;letter-spacing:.5px;}
 .tap-rip{position:absolute;border-radius:50%;
   background:rgba(255,255,255,0.12);transform:scale(0);
   animation:rip .6s ease-out forwards;pointer-events:none;}
 @keyframes rip{to{transform:scale(4);opacity:0}}
-.tier-prog-row{display:flex;gap:.3rem;
-  background:var(--surf);border-radius:var(--r3);
-  padding:.5rem;border:1px solid var(--border);}
-.tp-item{flex:1;text-align:center;}
-.tp-lbl{font-size:.58rem;color:var(--text3);}
-.tp-bar{background:var(--surf2);border-radius:3px;height:6px;margin:.15rem 0;}
-.tp-fill{height:6px;border-radius:3px;transition:width .4s;}
-.tp-fill.A{background:linear-gradient(90deg,var(--gold),var(--gold2));}
-.tp-fill.B{background:linear-gradient(90deg,var(--blue),var(--blue2));}
-.tp-fill.C{background:linear-gradient(90deg,#059669,var(--green));}
-.tp-pct{font-size:.58rem;color:var(--text2);font-weight:700;}
+
+/* PRODUCT CARDS (bottom) — name-dominant, supporting info intentionally small */
+.product-row{display:flex;gap:.4rem;flex-shrink:0;}
+.product-card{flex:1;padding:.55rem .4rem;border-radius:var(--r2);
+  background:var(--surf);border:1.5px solid var(--border);
+  cursor:pointer;text-align:center;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:.15rem;position:relative;}
+.product-card:active{transform:scale(.97);}
+.product-name{font-family:'Kanit',sans-serif;font-size:.92rem;font-weight:700;
+  line-height:1.15;color:var(--text);}
+.product-meta{display:flex;justify-content:center;gap:.5rem;font-size:.6rem;
+  color:var(--text3);font-weight:400;}
+.product-stars{color:var(--gold);letter-spacing:1px;}
+.product-bar-wrap{width:100%;height:5px;background:var(--surf2);border-radius:3px;overflow:hidden;}
+.product-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
+.product-card.A .product-bar-fill{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.product-card.B .product-bar-fill{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+.product-card.C .product-bar-fill{background:linear-gradient(90deg,#059669,var(--green));}
+/* Selection indicator — never relies on color alone (explicit badge + border) */
+.product-card.A.sel{border-color:var(--gold);background:rgba(251,191,36,0.08);}
+.product-card.B.sel{border-color:var(--blue2);background:rgba(96,165,250,0.08);}
+.product-card.C.sel{border-color:var(--green);background:rgba(52,211,153,0.08);}
+.product-sel-badge{display:none;position:absolute;top:.3rem;right:.4rem;
+  font-size:.6rem;color:var(--text);background:rgba(255,255,255,.12);
+  border-radius:8px;padding:.05rem .35rem;font-weight:700;}
+.product-card.sel .product-sel-badge{display:block;}
+
+/* LEADER — product deploy bars */
+.m2-product-list{display:flex;flex-direction:column;gap:.5rem;}
+.m2-product-item{background:var(--surf);border:1.5px solid var(--border);
+  border-radius:var(--r2);padding:.6rem .75rem;}
+.m2-product-item.ready{border-color:var(--gold);background:rgba(251,191,36,.06);}
+.m2-product-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;}
+.m2-product-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:.95rem;}
+.m2-product-pts{font-size:.65rem;color:var(--text3);font-weight:400;}
+.m2-deploy-btn{display:none;width:100%;margin-top:.5rem;padding:.55rem;
+  border:none;border-radius:var(--r3);background:linear-gradient(135deg,var(--gold),#d97706);
+  color:#000;font-family:'Kanit',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
+.m2-product-item.ready .m2-deploy-btn{display:block;}
+.m2-launch-count{font-size:.6rem;color:var(--text3);text-align:right;margin-top:.2rem;}
 
 /* FACT (Phase 3 player) */
 #s-fact{padding:.9rem;gap:.6rem;}
@@ -567,17 +597,7 @@ body::before{content:'';position:fixed;inset:0;
 
 /* LEADER P2 DASHBOARD */
 #s-leader-p2{padding:.9rem;gap:.6rem;}
-.launch-row{display:flex;gap:.4rem;}
-.launch-btn{flex:1;padding:.75rem .2rem;border-radius:var(--r2);
-  border:none;font-family:'Kanit',sans-serif;
-  font-size:.78rem;font-weight:900;cursor:pointer;
-  transition:all .2s;opacity:.45;}
-.launch-btn.ready{opacity:1;box-shadow:0 0 16px currentColor;}
-.launch-btn:active{transform:scale(.96);}
-.launch-btn.A{background:linear-gradient(135deg,#d97706,var(--gold));color:#000;}
-.launch-btn.B{background:linear-gradient(135deg,#1d4ed8,var(--blue2));color:#fff;}
-.launch-btn.C{background:linear-gradient(135deg,#059669,var(--green));color:#fff;}
-.launch-lbl{font-size:.58rem;opacity:.8;display:block;margin-top:.1rem;}
+#s-leader-p2 .hud{gap:.5rem;}
 
 /* LEADER P3 */
 #lp3{position:fixed;bottom:0;left:0;right:0;z-index:50;
@@ -1364,23 +1384,37 @@ body::before{content:'';position:fixed;inset:0;
 <!-- TAPPING -->
 <div id="s-tapping" class="screen">
   <div class="hud">
+    <div class="m2-hud-icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="chud-m2-hud" class="chud-svg" data-component="compass-hud" data-tier="icon" data-state="charging">
+  <defs>
+    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
+  </defs>
+  <g id="compass-hud" transform="translate(100,100)">
+    <g id="chud-inner-ring" class="chud-layer">
+      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
+      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
+    </g>
+    <g id="chud-needle" class="chud-layer">
+      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
+      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
+    </g>
+    <g id="chud-core" class="chud-layer">
+      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
+    </g>
+    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark chud-polaris-mark--icon" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
+  </g>
+</svg>
+    </div>
     <div class="hud-team" id="tap-team"></div>
+    <div class="m2-timer" id="m2-timer">01:30</div>
     <div class="hud-pts" id="tap-taps">0 taps</div>
   </div>
-  <div style="padding:.7rem .9rem 0;">
-    <div class="tier-choice" id="tier-choice">
-      <div class="tier-tab A" onclick="selTier('A')">🟡<br><span id="pn-A">Tier A</span><br><span style="font-size:.6rem;color:var(--text3)">+500</span></div>
-      <div class="tier-tab B" onclick="selTier('B')">🔵<br><span id="pn-B">Tier B</span><br><span style="font-size:.6rem;color:var(--text3)">+2,000</span></div>
-      <div class="tier-tab C" onclick="selTier('C')">🟢<br><span id="pn-C">Tier C</span><br><span style="font-size:.6rem;color:var(--text3)">+6,000</span></div>
-    </div>
-  </div>
-  <div class="tap-zone" id="tap-zone" style="margin:.5rem .9rem;flex:1;"
+  <div class="tap-zone" id="tap-zone" style="margin-top:.5rem;"
     ontouchstart="doTap(event)" onclick="doTapClick(event)">
-    <div style="font-size:2.5rem;pointer-events:none;">👆</div>
     <div class="tap-count" id="tap-count">0</div>
-    <div class="tap-lbl" id="tap-pipe-lbl">เลือก Tier ก่อน</div>
+    <div class="tap-lbl" id="tap-pipe-lbl">แตะที่ใดก็ได้เพื่อชาร์จ</div>
   </div>
-  <div class="tier-prog-row" id="tier-prog" style="margin:0 .9rem .9rem;"></div>
+  <div class="product-row" id="product-row"></div>
 </div>
 
 <!-- FACT (Player) -->
@@ -1489,23 +1523,15 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-leader-p2" class="screen">
   <div class="hud">
     <div class="hud-team" id="lcmd2-team"></div>
+    <div class="m2-timer" id="lcmd2-timer">01:30</div>
     <div class="hud-pts" id="lcmd2-score">0 pts</div>
   </div>
   <div style="padding:.9rem;display:flex;flex-direction:column;gap:.6rem;flex:1;min-height:0;">
     <div class="cmd-title">👑 COORDINATION DASHBOARD</div>
-    <div class="cmd-sub">ดูแถบชาร์จ สั่งทีม แล้วกด Launch!</div>
-    <div class="charge-card">
-      <div class="charge-title">🎯 Tier Charge Status</div>
-      <div class="tier-prog-row" id="lcmd2-tier-prog"></div>
-    </div>
-    <div class="launch-row">
-      <button class="launch-btn A" id="launch-btn-A" onclick="leaderLaunch('A')">🚀 Launch A<span class="launch-lbl">+500 pts</span></button>
-      <button class="launch-btn B" id="launch-btn-B" onclick="leaderLaunch('B')">🚀 Launch B<span class="launch-lbl">+2,000 pts</span></button>
-      <button class="launch-btn C" id="launch-btn-C" onclick="leaderLaunch('C')">🚀 Launch C<span class="launch-lbl">+6,000 pts</span></button>
-    </div>
-    <div style="font-size:.62rem;color:var(--text3);text-align:center;" id="lcmd2-launches"></div>
+    <div class="cmd-sub">ผู้เล่นเลือกชาร์จ — คุณตัดสินใจว่าจะ Deploy เมื่อไหร่</div>
+    <div class="m2-product-list" id="m2-product-list"></div>
     <div class="standings-card" style="flex:1;min-height:0;overflow-y:auto;">
-      <div class="standings-title">🗺️ Territory Standings</div>
+      <div class="standings-title">🗺️ Product Standings</div>
       <div id="lcmd2-standings"></div>
     </div>
   </div>
@@ -1536,9 +1562,55 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const LOGO_URL = ''; // paste your logo URL here when ready
 
 const STREAK_BONUS = [0,0,0,15,25,35,45,50];
-const PIPE_MULT = {A:4,B:12,C:40};
-const TIER_PTS = {A:500,B:2000,C:6000};
-const TIER_CELLS = {A:8,B:30,C:100};
+/* ============================================================
+   MISSION 2 CONFIGURATION — single source of truth for all
+   Mission 2 balancing values (RPC-005B). Hardcoded by design;
+   no SQL configuration layer for this pass.
+   ============================================================ */
+const MISSION2_CONFIG = {
+  durationSec: 90,
+  // Fixed p_effective_count passed to the existing process_phase2_launch RPC.
+  // That RPC computes required taps as p_effective_count × (4|12|40) for
+  // A/B/C. Using a constant here (instead of the old active-player-scaled
+  // value) makes the threshold a fixed, predictable number per product,
+  // matching this spec's "Taps Required Per Product" — with ZERO SQL
+  // changes, since 50×4=200, 50×12=600, 50×40=2000 below.
+  effectiveCount: 50,
+  products: {
+    A: { name:'CI Care', chargeSpeedLabel:'Fastest', stars:1, points:500,  tapsRequired:200  },
+    B: { name:'CI Plus', chargeSpeedLabel:'Medium',  stars:2, points:2000, tapsRequired:600  },
+    C: { name:'MPCI+',   chargeSpeedLabel:'Slowest', stars:3, points:6000, tapsRequired:2000 },
+  },
+};
+function m2Product(key){
+  const pn=gameState?.product_names||{};
+  const cfg=MISSION2_CONFIG.products[key];
+  return { ...cfg, name: pn[key]||cfg.name };
+}
+function m2Taps(my,key){ return my?.[`tier_${key.toLowerCase()}_taps`]||0; }
+function m2Launches(my,key){ return my?.[`tier_${key.toLowerCase()}_launches`]||0; }
+function m2Progress(my,key){ return Math.min(100,(m2Taps(my,key)/MISSION2_CONFIG.products[key].tapsRequired)*100); }
+function m2Ready(my,key){ return m2Taps(my,key)>=MISSION2_CONFIG.products[key].tapsRequired; }
+function m2Stars(n){ return '★'.repeat(n)+'☆'.repeat(3-n); }
+let mission2TimerInt=null;
+function startMission2Timer(){
+  if(mission2TimerInt)clearInterval(mission2TimerInt);
+  const dur=MISSION2_CONFIG.durationSec;
+  const tick=()=>{
+    if(!gameState?.phase_start_at)return;
+    const elapsed=(Date.now()-new Date(gameState.phase_start_at).getTime())/1000;
+    const rem=Math.max(0,dur-elapsed);
+    const m=Math.floor(rem/60),s=Math.floor(rem%60);
+    const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    ['m2-timer','lcmd2-timer'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent=txt;el.classList.toggle('urgent',rem<=15&&rem>0);}
+    });
+    if(rem<=0){clearInterval(mission2TimerInt);mission2TimerInt=null;}
+  };
+  tick();
+  mission2TimerInt=setInterval(tick,500);
+}
 const FREEZE_SECS = 12;
 const STRATEGY_SECS = 60;
 const DEMO_AUTO_SECS = 4;
@@ -1929,13 +2001,14 @@ function applyState(){
       else if(!isFrozen&&!isPenalty){showScreen('s-trivia');renderTrivia();}
       break;
     case 2:
+      startMission2Timer();
       if(sub==='strategy')showStrategyScreen();
       else if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();}
       else{
         const alreadyTapping=document.getElementById('s-tapping').classList.contains('active');
         showScreen('s-tapping');
         if(!alreadyTapping)renderTapping(); // full reset only on first entry into blitz
-        else updateTierProg();              // otherwise just refresh progress bars
+        else renderProductRow();            // otherwise just refresh progress bars
         startTapFlushLoop();
       }
       break;
@@ -1943,6 +2016,7 @@ function applyState(){
     case 4:showScreen('s-results');renderResults();break;
   }
   if(phase!==2&&tapFlushInterval){clearInterval(tapFlushInterval);tapFlushInterval=null;}
+  if(phase!==2&&mission2TimerInt){clearInterval(mission2TimerInt);mission2TimerInt=null;}
   if(phase!==1&&game1TimerInt){clearInterval(game1TimerInt);game1TimerInt=null;}
   if(phase===3&&isLeader)renderLeaderP3();
 }
@@ -2007,15 +2081,15 @@ function showStrategyScreen(){
 
 function selTier(t){
   selTierVal=t;
-  document.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('sel'));
-  document.querySelector(`.tier-tab.${t}`)?.classList.add('sel');
+  document.querySelectorAll('.product-card').forEach(b=>b.classList.remove('sel'));
+  document.querySelector(`.product-card.${t}`)?.classList.add('sel');
   const tz=document.getElementById('tap-zone');
   if(tz)tz.className=`tap-zone ${t}`;
-  const pn=gameState?.product_names||{};
   const lbl=document.getElementById('tap-pipe-lbl');
-  if(lbl)lbl.textContent=pn[t]||`Tier ${t}`;
+  if(lbl)lbl.textContent=`กำลังชาร์จ ${m2Product(t).name} — แตะที่ใดก็ได้`;
   document.querySelectorAll('.tier-sel-card').forEach(c=>c.classList.remove('sel'));
   document.getElementById(`strat-card-${t}`)?.classList.add('sel');
+  const pn=gameState?.product_names||{};
   const msg=document.getElementById('strat-sel-msg');
   if(msg){
     const colors={A:'var(--gold)',B:'var(--blue2)',C:'var(--green)'};
@@ -2267,7 +2341,9 @@ function openTargets(){
 async function fireFreeze(targetId){
   const my=teams.find(t=>t.id===player.team_id);
   if(!my||(my.weapon_charges||0)<=0){toast('ยังไม่มี Charge!');return;}
-  // Defensive re-checks (Game Economy) in case of stale UI/race conditions:
+  // Fast-fail UI guards only (immediate feedback on stale/obviously-invalid
+  // taps) — execute_freeze() below is the sole source of truth and re-checks
+  // charge availability, shield immunity, and frozen state atomically server-side.
   const myOutgoingFreeze=teams.find(t=>t.frozen_by_team===player.team_id&&t.frozen_until&&new Date(t.frozen_until)>new Date());
   if(myOutgoingFreeze){toast('Freeze ของคุณยังทำงานอยู่ — รอให้หมดเวลาก่อน');document.getElementById('tgt-grid').style.display='none';return;}
   const targetTeam=teams.find(t=>t.id===targetId);
@@ -2275,13 +2351,11 @@ async function fireFreeze(targetId){
     toast('ทีมนี้ถูก Freeze อยู่แล้ว!');document.getElementById('tgt-grid').style.display='none';return;
   }
   document.getElementById('tgt-grid').style.display='none';
-  const{error:e1}=await sb.from('teams').update({weapon_charges:(my.weapon_charges||1)-1}).eq('id',player.team_id);
-  const{error:e2}=await sb.from('teams').update({
-    frozen_until:new Date(Date.now()+FREEZE_SECS*1000).toISOString(),
-    frozen_by_team:player.team_id
-  }).eq('id',targetId);
-  await sb.from('attack_log').insert({attacker_team_id:player.team_id,target_team_id:targetId,action_type:'freeze',phase:1});
-  if(e1||e2){toast('Error firing freeze');console.error(e1,e2);return;}
+  const{data,error}=await sb.rpc('execute_freeze',{
+    p_attacker_team_id:player.team_id,
+    p_target_team_id:targetId
+  });
+  if(error){toast('❌ '+error.message);console.error(error);return;}
   toast(`❄️ Freeze ยิงแล้ว!`);
   await loadTeams();renderLeaderP1Dashboard();
 }
@@ -2290,11 +2364,27 @@ async function fireFreeze(targetId){
 function renderTapping(){
   const my=teams.find(t=>t.id===player?.team_id)||{};
   document.getElementById('tap-team').textContent=my.leader_name||my.name||`ทีม ${player?.team_id}`;
-  updateProductNames();
   localTaps=0;tapBuffer=0;
   document.getElementById('tap-count').textContent='0';
   if(selTierVal)selTier(selTierVal);
-  updateTierProg();
+  renderProductRow();
+}
+function renderProductRow(){
+  const my=teams.find(t=>t.id===player?.team_id);
+  if(!my)return;
+  const el=document.getElementById('product-row');
+  if(!el)return;
+  el.innerHTML=['A','B','C'].map(key=>{
+    const p=m2Product(key);
+    const pct=m2Progress(my,key);
+    const sel=selTierVal===key;
+    return `<div class="product-card ${key}${sel?' sel':''}" onclick="selTier('${key}')">
+      <div class="product-sel-badge">✓ เลือกแล้ว</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-meta"><span>${p.chargeSpeedLabel}</span><span class="product-stars">${m2Stars(p.stars)}</span></div>
+      <div class="product-bar-wrap"><div class="product-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
 }
 function startTapFlushLoop(){
   if(tapFlushInterval)return;
@@ -2314,7 +2404,7 @@ function spawnRipple(x,y){
   setTimeout(()=>rip.remove(),650);
 }
 function registerTap(x,y){
-  if(!selTierVal){toast('เลือก Tier ก่อน!');return;}
+  if(!selTierVal){toast('เลือกสินค้าก่อน!');return;}
   if(phase!==2)return; // don't gate on sub_state — the transient 'launch:...'
                         // signal used for screen.html's animation shouldn't block tapping
   localTaps++;tapBuffer++;
@@ -2345,55 +2435,29 @@ async function flushTaps(){
     await sb.from('teams').update({[col]:current+n}).eq('id',player.team_id);
   }
 }
-function tierThreshold(tier,my){
-  const ac=Math.max(my?.active_player_count||0,15);
-  return ac*(PIPE_MULT[tier]||1);
-}
-function updateTierProg(){
-  const my=teams.find(t=>t.id===player?.team_id);
-  if(!my)return;
-  const el=document.getElementById('tier-prog');
-  if(!el)return;
-  el.innerHTML=['A','B','C'].map(tier=>{
-    const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
-    const threshold=tierThreshold(tier,my);
-    const pct=Math.min(100,(taps/threshold)*100);
-    return `<div class="tp-item">
-      <div class="tp-lbl">Tier ${tier}</div>
-      <div class="tp-bar"><div class="tp-fill ${tier}" style="width:${pct}%"></div></div>
-      <div class="tp-pct">${Math.round(pct)}%</div>
-    </div>`;
-  }).join('');
-}
-
 // LEADER P2
 function renderLeaderP2Dashboard(){
   if(!player||player.role!=='leader'||phase!==2)return;
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   document.getElementById('lcmd2-team').textContent=my.leader_name||my.name||`ทีม ${player.team_id}`;
   document.getElementById('lcmd2-score').textContent=`${(my.total_score||0).toLocaleString()} pts`;
-  const el=document.getElementById('lcmd2-tier-prog');
-  ['A','B','C'].forEach(tier=>{
-    const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
-    const threshold=tierThreshold(tier,my);
-    const ready=taps>=threshold;
-    const btn=document.getElementById(`launch-btn-${tier}`);
-    if(btn)btn.classList.toggle('ready',ready);
-  });
+  const el=document.getElementById('m2-product-list');
   if(el){
-    el.innerHTML=['A','B','C'].map(tier=>{
-      const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
-      const threshold=tierThreshold(tier,my);
-      const pct=Math.min(100,(taps/threshold)*100);
-      return `<div class="tp-item">
-        <div class="tp-lbl">Tier ${tier}${pct>=100?' ✅':''}</div>
-        <div class="tp-bar"><div class="tp-fill ${tier}" style="width:${pct}%"></div></div>
-        <div class="tp-pct">${Math.round(pct)}%</div>
+    el.innerHTML=['A','B','C'].map(key=>{
+      const p=m2Product(key);
+      const pct=m2Progress(my,key);
+      const ready=m2Ready(my,key);
+      return `<div class="m2-product-item${ready?' ready':''}">
+        <div class="m2-product-head">
+          <div class="m2-product-title">${p.name}</div>
+          <div class="m2-product-pts">+${p.points.toLocaleString()} pts</div>
+        </div>
+        <div class="product-bar-wrap"><div class="product-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${TC[player.team_id]}88,${TC[player.team_id]});"></div></div>
+        <button class="m2-deploy-btn" onclick="leaderLaunch('${key}')">🚀 Deploy ${p.name}</button>
+        <div class="m2-launch-count">Deployed ×${m2Launches(my,key)}</div>
       </div>`;
     }).join('');
   }
-  document.getElementById('lcmd2-launches').textContent=
-    `Launches: A×${my.tier_a_launches||0} B×${my.tier_b_launches||0} C×${my.tier_c_launches||0}`;
   const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
   document.getElementById('lcmd2-standings').innerHTML=sorted.map((t,i)=>{
     const nm=t.leader_name||t.name;const isMe=t.id===player.team_id;
@@ -2407,21 +2471,15 @@ function renderLeaderP2Dashboard(){
 }
 async function leaderLaunch(tier){
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
-  const taps=my[`tier_${tier.toLowerCase()}_taps`]||0;
-  const threshold=tierThreshold(tier,my);
-  if(taps<threshold){toast(`Tier ${tier} ยังไม่ชาร์จเต็ม!`);return;}
-  const col=`tier_${tier.toLowerCase()}_taps`;
-  const launchCol=`tier_${tier.toLowerCase()}_launches`;
-  const pts=TIER_PTS[tier]||0;
-  const{error}=await sb.from('teams').update({
-    [col]:taps-threshold,
-    [launchCol]:(my[launchCol]||0)+1,
-    pipeline_score:(my.pipeline_score||0)+pts,
-    total_score:(my.total_score||0)+pts
-  }).eq('id',player.team_id);
-  if(error){toast('Error: '+error.message);console.error(error);return;}
+  if(!m2Ready(my,tier)){toast(`${m2Product(tier).name} ยังไม่ชาร์จเต็ม!`);return;}
+  const{data,error}=await sb.rpc('process_phase2_launch',{
+    p_team_id:player.team_id,
+    p_tier:tier,
+    p_effective_count:MISSION2_CONFIG.effectiveCount
+  });
+  if(error){toast('❌ '+error.message);console.error(error);return;}
   await sb.from('game_state').update({sub_state:`launch:${player.team_id}:${tier}`}).eq('id',1);
-  toast(`🚀 Launch Tier ${tier}! +${pts.toLocaleString()} pts`);
+  toast(`🚀 Deploy ${m2Product(tier).name}! +${(data?.pts||m2Product(tier).points).toLocaleString()} pts`);
   await loadTeams();renderLeaderP2Dashboard();
 }
 
