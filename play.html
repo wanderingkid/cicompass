@@ -546,6 +546,24 @@ body::before{content:'';position:fixed;inset:0;
 .fact-status{background:var(--surf);border-radius:var(--r3);
   padding:.6rem;border:1px solid var(--border);
   font-size:.8rem;text-align:center;color:var(--text3);}
+.fact-meta-row{display:flex;gap:.5rem;}
+.fact-meta-card{flex:1;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r3);padding:.5rem;text-align:center;}
+.fact-meta-lbl{font-size:.58rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.fact-meta-val{font-size:1rem;font-weight:700;color:var(--gold);}
+.vote-row{display:flex;gap:.6rem;flex:1;}
+.vote-btn{flex:1;border-radius:var(--r);border:2px solid var(--border);
+  background:var(--surf);font-family:'Kanit',sans-serif;
+  font-size:1.3rem;font-weight:700;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;
+  transition:all .2s;color:var(--text2);}
+.vote-btn:active{transform:scale(.97);}
+.vote-btn.fact-v{border-color:rgba(16,185,129,0.4);color:var(--green);}
+.vote-btn.fiction-v{border-color:rgba(244,63,94,0.4);color:var(--red);}
+.vote-btn.sel{transform:scale(1.03);box-shadow:0 0 20px currentColor;
+  background:rgba(255,255,255,0.06);}
+.vote-btn.locked{opacity:.4;pointer-events:none;}
+.vote-locked-tag{text-align:center;font-size:.85rem;font-weight:700;color:var(--green);}
 
 /* LEADER P1 DASHBOARD */
 #s-leader-p1{padding:.9rem;gap:.6rem;}
@@ -613,53 +631,74 @@ body::before{content:'';position:fixed;inset:0;
 #s-leader-p2{padding:.9rem;gap:.6rem;}
 #s-leader-p2 .hud{gap:.5rem;}
 
-/* LEADER P3 */
-#lp3{position:fixed;bottom:0;left:0;right:0;z-index:50;
-  background:linear-gradient(0deg,rgba(10,14,39,.98),rgba(13,27,75,.95));
-  border-top:1px solid var(--border2);padding:.75rem;
-  display:none;flex-direction:column;gap:.5rem;
-  max-height:78vh;overflow-y:auto;}
-#lp3.vis{display:flex;}
-.lp3-title{font-size:.65rem;font-weight:700;color:var(--gold);
-  letter-spacing:2px;text-transform:uppercase;}
-.wager-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.3rem;}
-.wager-btn{padding:.6rem .2rem;border-radius:var(--r3);
+/* LEADER P3 DASHBOARD — own screen (not merged with Player), matching the
+   M1/M2 architecture. Priority order per spec: Question > Consensus >
+   Wager > Weapon > Target > Submit. */
+#s-leader-p3{padding:.7rem .8rem;gap:.4rem;}
+#s-leader-p3 .hud{gap:.5rem;}
+.p3-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:.45rem;}
+.p3-q-card{background:var(--surf);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:.6rem .7rem;font-size:.85rem;font-weight:600;
+  line-height:1.35;}
+.p3-section-lbl{font-size:.6rem;font-weight:700;color:var(--text3);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.15rem;}
+.consensus-wrap{display:flex;flex-direction:column;gap:.35rem;
+  background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);
+  padding:.5rem .6rem;}
+.consensus-row{display:flex;align-items:center;gap:.4rem;}
+.consensus-lbl{font-size:.72rem;font-weight:700;min-width:3.6rem;}
+.consensus-lbl.fact-l{color:var(--green);}
+.consensus-lbl.fiction-l{color:var(--red);}
+.consensus-bar-wrap{flex:1;height:10px;background:var(--surf2);border-radius:6px;overflow:hidden;}
+.consensus-bar-fill{height:100%;border-radius:6px;transition:width .4s;}
+.consensus-bar-fill.fact-f{background:linear-gradient(90deg,#059669,var(--green));}
+.consensus-bar-fill.fiction-f{background:linear-gradient(90deg,#7f1d1d,var(--red));}
+.consensus-pct{font-size:.68rem;font-weight:700;min-width:2.4rem;text-align:right;}
+.consensus-note{font-size:.58rem;color:var(--text3);text-align:center;}
+.p3-ans-row{display:flex;gap:.4rem;}
+.p3-ans-btn{flex:1;padding:.55rem .2rem;border-radius:var(--r2);
+  border:2px solid var(--border);background:var(--surf);
+  font-family:'Kanit',sans-serif;font-size:.82rem;font-weight:700;
+  cursor:pointer;text-align:center;transition:all .2s;color:var(--text2);}
+.p3-ans-btn:active{transform:scale(.96);}
+.p3-ans-btn.fact-a{border-color:rgba(16,185,129,0.4);color:var(--green);}
+.p3-ans-btn.fiction-a{border-color:rgba(244,63,94,0.4);color:var(--red);}
+.p3-ans-btn.sel{transform:scale(1.03);box-shadow:0 0 14px currentColor;
+  background:rgba(255,255,255,0.06);}
+.p3-wager-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.3rem;}
+.p3-wager-btn{padding:.5rem .15rem;border-radius:var(--r3);
   border:1.5px solid var(--border);background:var(--surf);
   color:var(--text2);font-family:'Kanit',sans-serif;
-  font-size:.7rem;font-weight:700;cursor:pointer;text-align:center;}
-.wager-btn.sel{border-color:var(--gold);background:rgba(245,158,11,0.12);
-  color:var(--gold);}
-.wager-disp{font-size:.65rem;color:var(--text3);
-  display:flex;justify-content:space-between;}
-.ans-row{display:flex;gap:.35rem;}
-.fact-ans{flex:1;padding:.65rem .2rem;border-radius:var(--r2);
-  border:2px solid var(--border);background:var(--surf);
-  font-family:'Kanit',sans-serif;font-size:.8rem;font-weight:900;
-  cursor:pointer;text-align:center;transition:all .2s;}
-.fact-ans:active{transform:scale(.96);}
-.fact-ans.true-a{border-color:rgba(16,185,129,0.4);color:var(--green);}
-.fact-ans.false-a{border-color:rgba(244,63,94,0.4);color:var(--red);}
-.fact-ans.ns-a{border-color:rgba(245,158,11,0.4);color:var(--gold);}
-.fact-ans.sel{transform:scale(1.04);box-shadow:0 0 14px currentColor;}
-.wpn-row{display:flex;gap:.35rem;}
-.wpn-btn{flex:1;padding:.6rem .3rem;border-radius:var(--r2);
+  font-size:.68rem;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
+.p3-wager-btn.sel{border-color:var(--gold);background:rgba(245,158,11,0.12);color:var(--gold);}
+.p3-wager-btn:disabled{opacity:.25;pointer-events:none;}
+.p3-bank-preview{display:flex;gap:.4rem;}
+.p3-bank-card{flex:1;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r3);padding:.4rem;text-align:center;}
+.p3-bank-lbl{font-size:.56rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.p3-bank-val{font-size:.9rem;font-weight:700;}
+.p3-bank-val.cur{color:var(--text);}
+.p3-bank-val.win{color:var(--green);}
+.p3-bank-val.lose{color:var(--red);}
+.p3-wpn-row{display:flex;gap:.35rem;}
+.p3-wpn-btn{flex:1;padding:.5rem .2rem;border-radius:var(--r2);
   border:1.5px solid var(--border);background:var(--surf);
-  font-family:'Kanit',sans-serif;font-size:.7rem;font-weight:700;
+  font-family:'Kanit',sans-serif;font-size:.66rem;font-weight:700;
   cursor:pointer;text-align:center;color:var(--text2);transition:all .2s;}
-.wpn-btn.shield-w{border-color:rgba(139,92,246,0.4);color:var(--purple);}
-.wpn-btn.takeover-w{border-color:rgba(244,63,94,0.4);color:var(--red);}
-.wpn-btn.on{box-shadow:0 0 16px currentColor;transform:scale(1.04);}
-.wpn-btn.dis{opacity:.3;pointer-events:none;}
-.tgt-drop{width:100%;padding:.5rem .6rem;background:var(--surf);
-  border:1px solid var(--border);border-radius:var(--r3);
-  color:var(--text);font-family:'Kanit',sans-serif;font-size:.82rem;}
-.submit-btn{padding:.85rem;border-radius:var(--r2);border:none;
+.p3-wpn-btn.sel{box-shadow:0 0 14px currentColor;transform:scale(1.03);}
+.p3-wpn-btn.none-w.sel{border-color:var(--text2);color:var(--text);}
+.p3-wpn-btn.x2-w.sel{border-color:var(--purple);color:var(--purple);}
+.p3-wpn-btn.steal-w.sel{border-color:var(--red);color:var(--red);}
+.p3-wpn-btn.shield-w.sel{border-color:var(--blue2);color:var(--blue2);}
+.p3-wpn-btn:disabled{opacity:.25;pointer-events:none;}
+.p3-weapons-locked-note{font-size:.6rem;color:var(--text3);text-align:center;padding:.3rem;}
+.p3-submit-btn{padding:.75rem;border-radius:var(--r2);border:none;
   background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;
-  font-family:'Kanit',sans-serif;font-size:.95rem;font-weight:900;
-  cursor:pointer;box-shadow:var(--glow-blue);}
-.submit-btn:active{transform:scale(.97);}
-.submit-btn:disabled{opacity:.3;pointer-events:none;}
-.submitted-tag{text-align:center;font-size:.9rem;font-weight:900;color:var(--green);}
+  font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:900;
+  cursor:pointer;box-shadow:var(--glow-blue);flex-shrink:0;}
+.p3-submit-btn:active{transform:scale(.97);}
+.p3-submit-btn:disabled{opacity:.3;pointer-events:none;box-shadow:none;}
+.p3-submitted-tag{text-align:center;font-size:.85rem;font-weight:900;color:var(--green);flex-shrink:0;}
 
 /* RESULTS */
 #s-results{align-items:center;justify-content:center;
@@ -1435,47 +1474,33 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-fact" class="screen">
   <div class="hud">
     <div class="hud-team" id="f-team"></div>
+    <div class="t-timer" id="p3-timer">01:00</div>
     <div class="hud-pts" id="f-pts">0 pts</div>
   </div>
-  <div style="padding:.9rem;display:flex;flex-direction:column;gap:.6rem;flex:1;">
+  <div style="padding:.7rem .9rem 0;flex:1;display:flex;flex-direction:column;gap:.6rem;min-height:0;">
     <div class="fact-card" id="fact-q">รอคำถาม...</div>
+    <div class="vote-row">
+      <button class="vote-btn fact-v" id="vote-fact" onclick="submitVoteP3('true')">
+        <span>✅</span><span>FACT</span>
+      </button>
+      <button class="vote-btn fiction-v" id="vote-fiction" onclick="submitVoteP3('false')">
+        <span>❌</span><span>FICTION</span>
+      </button>
+    </div>
+    <div class="vote-locked-tag" id="vote-locked-tag" style="display:none;">✅ บันทึกคะแนนเสียงแล้ว — รอ Leader ส่งคำตอบทีม</div>
+    <div class="fact-meta-row">
+      <div class="fact-meta-card">
+        <div class="fact-meta-lbl">Team Bank</div>
+        <div class="fact-meta-val" id="f-bank">0</div>
+      </div>
+      <div class="fact-meta-card">
+        <div class="fact-meta-lbl">Rank</div>
+        <div class="fact-meta-val" id="f-rank">-</div>
+      </div>
+    </div>
     <div class="fact-status" id="fact-status">
-      👁️ อ่านคำถามและหารือกับทีม — Leader เป็นผู้ส่งคำตอบ
+      👁️ ลงคะแนนของคุณ — Leader เป็นผู้ตัดสินใจคำตอบทีมสุดท้าย
     </div>
-  </div>
-  <div style="height:5rem;flex-shrink:0;"></div>
-  <!-- LEADER P3 PANEL -->
-  <div id="lp3">
-    <div class="lp3-title">👑 Leader — ส่งคำตอบทีม</div>
-    <div class="wager-disp">
-      <span>Wager:</span>
-      <span id="lp3-wager-disp" style="color:var(--gold);font-weight:700;">-</span>
-    </div>
-    <div class="lbl">เลือก Wager:</div>
-    <div class="wager-grid" id="wager-grid">
-      <div class="wager-btn" onclick="selWager(2000)">2,000</div>
-      <div class="wager-btn" onclick="selWager(4000)">4,000</div>
-      <div class="wager-btn" onclick="selWager(6000)">6,000</div>
-      <div class="wager-btn" onclick="selWager(8000)">8,000</div>
-      <div class="wager-btn" onclick="selWager(10000)">10,000</div>
-    </div>
-    <div class="lbl">คำตอบ:</div>
-    <div class="ans-row">
-      <button class="fact-ans true-a" onclick="selFactAns('true')">✅ จริง</button>
-      <button class="fact-ans false-a" onclick="selFactAns('false')">❌ เท็จ</button>
-      <button class="fact-ans ns-a" onclick="selFactAns('notsure')">🤔 ไม่แน่ใจ</button>
-    </div>
-    <div class="lbl">อาวุธ (ไม่บังคับ):</div>
-    <div class="wpn-row">
-      <button class="wpn-btn shield-w" id="wpn-shield" onclick="toggleShield()">🛡️ Shield ×2<br><span id="shield-lbl" style="font-size:.6rem;">1 ครั้ง</span></button>
-      <button class="wpn-btn takeover-w" id="wpn-takeover" onclick="toggleTakeover()">💣 Takeover<br><span id="takeover-lbl" style="font-size:.6rem;">Q2/Q3 only</span></button>
-    </div>
-    <div id="tgt-row" style="display:none;">
-      <div class="lbl">เป้าหมาย:</div>
-      <select class="tgt-drop" id="tgt-select"></select>
-    </div>
-    <button class="submit-btn" id="p3-submit" onclick="submitP3()" disabled>ส่งคำตอบ 🎯</button>
-    <div class="submitted-tag" id="p3-submitted" style="display:none;">✅ ส่งแล้ว! รอ Emcee เฉลย</div>
   </div>
 </div>
 
@@ -1549,6 +1574,69 @@ body::before{content:'';position:fixed;inset:0;
       <div id="lcmd2-standings"></div>
     </div>
   </div>
+</div>
+
+<!-- LEADER P3 DASHBOARD (Mission 3 — Gambit) -->
+<div id="s-leader-p3" class="screen">
+  <div class="hud">
+    <div class="hud-team" id="lcmd3-team"></div>
+    <div class="t-timer" id="lcmd3-timer">01:00</div>
+    <div class="hud-pts" id="lcmd3-bank">0 pts</div>
+  </div>
+  <div class="p3-scroll">
+    <div>
+      <div class="p3-section-lbl">❓ Question</div>
+      <div class="p3-q-card" id="lp3-q">รอคำถาม...</div>
+    </div>
+    <div>
+      <div class="p3-section-lbl">📊 Live Team Consensus</div>
+      <div class="consensus-wrap">
+        <div class="consensus-row">
+          <div class="consensus-lbl fact-l">FACT</div>
+          <div class="consensus-bar-wrap"><div class="consensus-bar-fill fact-f" id="cons-fact-bar" style="width:0%"></div></div>
+          <div class="consensus-pct" id="cons-fact-pct">0%</div>
+        </div>
+        <div class="consensus-row">
+          <div class="consensus-lbl fiction-l">FICTION</div>
+          <div class="consensus-bar-wrap"><div class="consensus-bar-fill fiction-f" id="cons-fiction-bar" style="width:0%"></div></div>
+          <div class="consensus-pct" id="cons-fiction-pct">0%</div>
+        </div>
+        <div class="consensus-note" id="cons-note">0 คนโหวตแล้ว — สำหรับอ้างอิงเท่านั้น</div>
+      </div>
+    </div>
+    <div>
+      <div class="p3-section-lbl">🎯 Official Answer</div>
+      <div class="p3-ans-row">
+        <button class="p3-ans-btn fact-a" id="p3-ans-fact" onclick="selAnswerP3('true')">✅ FACT</button>
+        <button class="p3-ans-btn fiction-a" id="p3-ans-fiction" onclick="selAnswerP3('false')">❌ FICTION</button>
+      </div>
+    </div>
+    <div>
+      <div class="p3-section-lbl">💰 Wager</div>
+      <div class="p3-wager-grid" id="p3-wager-grid"></div>
+      <div class="p3-bank-preview">
+        <div class="p3-bank-card"><div class="p3-bank-lbl">Bank</div><div class="p3-bank-val cur" id="p3-bank-cur">0</div></div>
+        <div class="p3-bank-card"><div class="p3-bank-lbl">If Correct</div><div class="p3-bank-val win" id="p3-bank-win">0</div></div>
+        <div class="p3-bank-card"><div class="p3-bank-lbl">If Wrong</div><div class="p3-bank-val lose" id="p3-bank-lose">0</div></div>
+      </div>
+    </div>
+    <div id="p3-weapon-section">
+      <div class="p3-section-lbl">⚔️ Weapon</div>
+      <div class="p3-wpn-row" id="p3-wpn-row">
+        <button class="p3-wpn-btn none-w sel" id="p3-wpn-none" onclick="selWeaponP3('none')">ไม่ใช้</button>
+        <button class="p3-wpn-btn x2-w" id="p3-wpn-x2" onclick="selWeaponP3('x2')">x2</button>
+        <button class="p3-wpn-btn steal-w" id="p3-wpn-steal" onclick="selWeaponP3('steal')">💣 Steal</button>
+        <button class="p3-wpn-btn shield-w" id="p3-wpn-shield" onclick="selWeaponP3('shield')">🛡️ Shield</button>
+      </div>
+      <div class="p3-weapons-locked-note" id="p3-weapons-locked-note" style="display:none;">🔒 อาวุธจะปลดล็อคตั้งแต่ข้อ 2 เป็นต้นไป</div>
+    </div>
+    <div id="p3-target-section" style="display:none;">
+      <div class="p3-section-lbl">🎯 Target</div>
+      <div class="tgt-grid" id="p3-tgt-grid"></div>
+    </div>
+  </div>
+  <button class="p3-submit-btn" id="p3-submit" onclick="submitLeaderP3()" disabled>ส่งคำตอบทีม 🎯</button>
+  <div class="p3-submitted-tag" id="p3-submitted" style="display:none;">✅ ส่งแล้ว! ล็อคคำตอบทีมแล้ว — รอ Emcee เฉลย</div>
 </div>
 
 <!-- RESULTS -->
@@ -1628,6 +1716,43 @@ function startMission2Timer(){
   tick();
   mission2TimerInt=setInterval(tick,500);
 }
+
+/* ============================================================
+   MISSION 3 CONFIGURATION — single source of truth (RPC-006A).
+   Hardcoded per spec; no SQL configuration layer.
+   ============================================================ */
+const MISSION3_CONFIG = {
+  durationSec: 60,
+  questionCount: 4,
+  wagerTiers: [2000,4000,6000,8000,10000],
+  weaponsUnlockFromQuestion: 1, // 0-indexed — Question 2 onward
+  stealPct: 0.5, // 50% of TARGET's own wager (Mission_3_Gambit.md)
+};
+function m3WeaponsUnlocked(qi){ return qi>=MISSION3_CONFIG.weaponsUnlockFromQuestion; }
+function m3Rank(teamId){
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  return sorted.findIndex(t=>t.id===teamId)+1;
+}
+let mission3TimerInt=null;
+function startMission3Timer(){
+  if(mission3TimerInt)clearInterval(mission3TimerInt);
+  const dur=MISSION3_CONFIG.durationSec;
+  const tick=()=>{
+    if(!gameState?.phase_start_at)return;
+    const elapsed=(Date.now()-new Date(gameState.phase_start_at).getTime())/1000;
+    const rem=Math.max(0,dur-elapsed);
+    const m=Math.floor(rem/60),s=Math.floor(rem%60);
+    const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    ['p3-timer','lcmd3-timer'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent=txt;el.classList.toggle('urgent',rem<=15&&rem>0);}
+    });
+    if(rem<=0){clearInterval(mission3TimerInt);mission3TimerInt=null;}
+  };
+  tick();
+  mission3TimerInt=setInterval(tick,500);
+}
+
 const FREEZE_SECS = 12;
 const STRATEGY_SECS = 60;
 const DEMO_AUTO_SECS = 4;
@@ -1780,7 +1905,8 @@ let localTaps=0,selTierVal=null,tapBuffer=0,tapTimer=null,tapFlushInterval=null;
 let frozenTimer=null,penaltyTimer=null,stratTimer=null,demoTimer=null;
 let isFrozen=false,isPenalty=false,lastTouchTime=0;
 let shuffledQs=[];
-let p3Wager=0,p3Answer='',p3UseShield=false,p3UseTakeover=false,p3Submitted=false,p3LastQIndex=-1;
+let p3Wager=0,p3Answer='',p3Weapon='none',p3Target=null,p3Submitted=false,p3LastQIndex=-1;
+let p3VoteLocked=false,p3VotesChannel=null;
 let lastMomentumFetch=0;
 
 // LOGO
@@ -1927,7 +2053,8 @@ function onTeamsUpdate(){
     renderProductRow();
   }
   if(phase===3){
-    updateFactHud();
+    if(isLeader){renderLeaderP3();return;}
+    renderFact();
   }
 }
 
@@ -2029,13 +2156,18 @@ function applyState(){
         startTapFlushLoop();
       }
       break;
-    case 3:showScreen('s-fact');renderFact();break;
+    case 3:
+      startMission3Timer();
+      if(isLeader){showScreen('s-leader-p3');renderLeaderP3();}
+      else{showScreen('s-fact');renderFact();}
+      break;
     case 4:showScreen('s-results');renderResults();break;
   }
   if(phase!==2&&tapFlushInterval){clearInterval(tapFlushInterval);tapFlushInterval=null;}
   if(phase!==2&&mission2TimerInt){clearInterval(mission2TimerInt);mission2TimerInt=null;}
   if(phase!==1&&game1TimerInt){clearInterval(game1TimerInt);game1TimerInt=null;}
-  if(phase===3&&isLeader)renderLeaderP3();
+  if(phase!==3&&mission3TimerInt){clearInterval(mission3TimerInt);mission3TimerInt=null;}
+  if(phase!==3&&p3VotesChannel){sb.removeChannel(p3VotesChannel);p3VotesChannel=null;}
 }
 function updateLp3(){
   const isLeader=player?.role==='leader';
@@ -2520,122 +2652,194 @@ async function leaderLaunch(tier){
 }
 
 // PHASE 3 — FACT/FICTION
-function updateFactHud(){
-  const my=teams.find(t=>t.id===player?.team_id)||{};
-  const teamEl=document.getElementById('f-team');
-  if(teamEl)teamEl.textContent=my.leader_name||my.name||`ทีม ${player?.team_id}`;
-  const ptsEl=document.getElementById('f-pts');
-  if(ptsEl)ptsEl.textContent=`${(my.total_score||0).toLocaleString()} pts`;
-}
+// MISSION 3 — PLAYER (vote only)
 function renderFact(){
   if(!player||!gameState)return;
   const qi=gameState.active_question||0;
   const q=factQs[qi];
-  updateFactHud();
+  const my=teams.find(t=>t.id===player.team_id)||{};
+  document.getElementById('f-team').textContent=my.leader_name||my.name||`ทีม ${player.team_id}`;
+  document.getElementById('f-pts').textContent=`${(my.total_score||0).toLocaleString()} pts`;
+  document.getElementById('f-bank').textContent=(my.total_score||0).toLocaleString();
+  document.getElementById('f-rank').textContent=`#${m3Rank(player.team_id)}`;
   document.getElementById('fact-q').textContent=q?((lang==='th'?q.statement_th:q.statement_en)||q.statement_th):'รอคำถาม...';
-  const status=document.getElementById('fact-status');
-  if(status){
-    status.textContent=player.role==='leader'
-      ?'👑 คุณเป็น Leader — เลือก Wager และคำตอบด้านล่าง'
-      :'👁️ อ่านคำถามและหารือกับทีม — Leader เป็นผู้ส่งคำตอบ';
+  if(qi!==p3LastQIndex){
+    p3LastQIndex=qi;p3VoteLocked=false;
+    ['vote-fact','vote-fiction'].forEach(id=>document.getElementById(id)?.classList.remove('sel','locked'));
+    document.getElementById('vote-locked-tag').style.display='none';
+    checkExistingVoteP3(qi);
+  }
+}
+async function checkExistingVoteP3(qi){
+  const{data}=await sb.from('phase3_votes').select('vote').eq('player_id',player.id).eq('question_index',qi).maybeSingle();
+  if(data)lockVoteUIP3(data.vote);
+}
+function lockVoteUIP3(vote){
+  p3VoteLocked=true;
+  document.getElementById('vote-fact').classList.toggle('sel',vote==='true');
+  document.getElementById('vote-fiction').classList.toggle('sel',vote==='false');
+  document.getElementById('vote-fact').classList.add('locked');
+  document.getElementById('vote-fiction').classList.add('locked');
+  document.getElementById('vote-locked-tag').style.display='block';
+}
+async function submitVoteP3(vote){
+  if(p3VoteLocked)return;
+  const qi=gameState.active_question||0;
+  lockVoteUIP3(vote); // optimistic — immediate lock feedback per spec
+  const{error}=await sb.from('phase3_votes').insert({player_id:player.id,team_id:player.team_id,question_index:qi,vote});
+  if(error&&!(''+error.message).toLowerCase().includes('duplicate')){
+    toast('Error: '+error.message);console.error(error);
   }
 }
 
+// MISSION 3 — LEADER
 async function renderLeaderP3(){
+  if(!player||player.role!=='leader'||phase!==3)return;
   const qi=gameState.active_question||0;
   const my=teams.find(t=>t.id===player.team_id);
   const q=factQs[qi];
+  document.getElementById('lcmd3-team').textContent=my?.leader_name||my?.name||`ทีม ${player.team_id}`;
+  document.getElementById('lcmd3-bank').textContent=`${(my?.total_score||0).toLocaleString()} pts`;
+  document.getElementById('lp3-q').textContent=q?((lang==='th'?q.statement_th:q.statement_en)||q.statement_th):'รอคำถาม...';
+
   if(qi!==p3LastQIndex){
-    p3LastQIndex=qi;
-    p3Wager=0;p3Answer='';p3UseShield=false;p3UseTakeover=false;p3Submitted=false;
-    document.querySelectorAll('.wager-btn').forEach(b=>b.classList.remove('sel'));
-    document.querySelectorAll('.fact-ans').forEach(b=>b.classList.remove('sel'));
-    document.getElementById('wpn-shield')?.classList.remove('on');
-    document.getElementById('wpn-takeover')?.classList.remove('on');
-    document.getElementById('tgt-row').style.display='none';
-    document.getElementById('lp3-wager-disp').textContent='-';
-    // reset form visibility
-    ['wager-grid','tgt-row'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='';});
-    document.querySelector('.ans-row').style.display='';
-    document.querySelector('.wpn-row').style.display='';
+    p3LastQIndex=qi;p3Wager=0;p3Answer='';p3Weapon='none';p3Target=null;p3Submitted=false;
+    document.querySelectorAll('.p3-wager-btn,.p3-ans-btn,.p3-wpn-btn').forEach(b=>b.classList.remove('sel'));
+    document.getElementById('p3-wpn-none').classList.add('sel');
+    document.getElementById('p3-target-section').style.display='none';
     document.getElementById('p3-submit').style.display='';
     document.getElementById('p3-submitted').style.display='none';
-    // check if already submitted for this question (e.g. reload mid-game)
-    const{data}=await sb.from('phase3_submissions').select('*').eq('question_index',qi).eq('team_id',player.team_id).maybeSingle?.()||{data:null};
+    subscribeP3Votes(qi);
+    // Reload check: if already submitted for this question, reflect the lock.
+    const{data}=await sb.from('phase3_submissions').select('*').eq('question_index',qi).eq('team_id',player.team_id).maybeSingle();
+    if(data){
+      p3Submitted=true;p3Wager=data.wager;p3Answer=data.answer;
+      p3Weapon=data.use_multiplier?'x2':data.use_takeover?'steal':data.use_shield?'shield':'none';
+      p3Target=data.takeover_target;
+      lockLeaderP3UI();
+    }
   }
-  // weapon availability
-  const shieldBtn=document.getElementById('wpn-shield');
-  const takeoverBtn=document.getElementById('wpn-takeover');
-  if(shieldBtn)shieldBtn.classList.toggle('dis',!!my?.multiplier_used);
-  if(takeoverBtn)takeoverBtn.classList.toggle('dis',!!my?.takeover_used||!(q&&q.takeover_allowed));
-  document.getElementById('takeover-lbl').textContent=(q&&q.takeover_allowed)?'1 ครั้ง':'ใช้ไม่ได้ข้อนี้';
-  // target dropdown
-  const sel=document.getElementById('tgt-select');
-  if(sel&&!sel.dataset.filled){
-    sel.innerHTML=teams.filter(t=>t.id!==player.team_id).map(t=>`<option value="${t.id}">${t.leader_name||t.name}</option>`).join('');
-    sel.dataset.filled='1';
-  }
+
+  renderP3WagerGrid();
+  renderP3WeaponRow(qi);
+  renderP3Consensus(qi);
+  updateP3BankPreview();
   updateP3SubmitState();
 }
-
-function selWager(n){
+function renderP3WagerGrid(){
+  const el=document.getElementById('p3-wager-grid');
+  const my=teams.find(t=>t.id===player.team_id);
+  const bank=my?.total_score||0;
+  el.innerHTML=MISSION3_CONFIG.wagerTiers.map(n=>
+    `<button class="p3-wager-btn${p3Wager===n?' sel':''}" ${n>bank?'disabled':''} onclick="selWagerP3(${n})">${n.toLocaleString()}</button>`
+  ).join('');
+}
+function renderP3WeaponRow(qi){
+  const my=teams.find(t=>t.id===player.team_id);
+  const unlocked=m3WeaponsUnlocked(qi);
+  document.getElementById('p3-weapons-locked-note').style.display=unlocked?'none':'block';
+  document.getElementById('p3-wpn-row').style.opacity=unlocked?'1':'.4';
+  document.getElementById('p3-wpn-x2').disabled=!unlocked||!!my?.multiplier_used;
+  document.getElementById('p3-wpn-steal').disabled=!unlocked||!!my?.takeover_used;
+  document.getElementById('p3-wpn-shield').disabled=!unlocked||!!my?.shield_used;
+}
+async function renderP3Consensus(qi){
+  const{data}=await sb.from('phase3_votes').select('vote').eq('team_id',player.team_id).eq('question_index',qi);
+  const votes=data||[];
+  const total=votes.length;
+  const factN=votes.filter(v=>v.vote==='true').length;
+  const fictionN=total-factN;
+  const factPct=total?Math.round((factN/total)*100):0;
+  const fictionPct=total?100-factPct:0;
+  document.getElementById('cons-fact-bar').style.width=factPct+'%';
+  document.getElementById('cons-fiction-bar').style.width=fictionPct+'%';
+  document.getElementById('cons-fact-pct').textContent=factPct+'%';
+  document.getElementById('cons-fiction-pct').textContent=fictionPct+'%';
+  document.getElementById('cons-note').textContent=`${total} คนโหวตแล้ว — สำหรับอ้างอิงเท่านั้น`;
+}
+function subscribeP3Votes(qi){
+  if(p3VotesChannel)sb.removeChannel(p3VotesChannel);
+  p3VotesChannel=sb.channel(`p3-votes-${qi}`).on('postgres_changes',
+    {event:'INSERT',schema:'public',table:'phase3_votes',filter:`team_id=eq.${player.team_id}`},
+    ()=>renderP3Consensus(qi)
+  ).subscribe();
+}
+function selWagerP3(n){
   if(p3Submitted)return;
   p3Wager=n;
-  document.querySelectorAll('.wager-btn').forEach(b=>b.classList.toggle('sel',parseInt(b.textContent.replace(/,/g,''))===n));
-  document.getElementById('lp3-wager-disp').textContent=n.toLocaleString();
-  updateP3SubmitState();
+  document.querySelectorAll('.p3-wager-btn').forEach(b=>b.classList.toggle('sel',parseInt((b.textContent||'').replace(/,/g,''))===n));
+  updateP3BankPreview();updateP3SubmitState();
 }
-function selFactAns(a){
+function selAnswerP3(a){
   if(p3Submitted)return;
   p3Answer=a;
-  const map={true:'.true-a',false:'.false-a',notsure:'.ns-a'};
-  document.querySelectorAll('.fact-ans').forEach(b=>b.classList.remove('sel'));
-  document.querySelector(map[a])?.classList.add('sel');
+  document.getElementById('p3-ans-fact').classList.toggle('sel',a==='true');
+  document.getElementById('p3-ans-fiction').classList.toggle('sel',a==='false');
   updateP3SubmitState();
 }
-function toggleShield(){
-  if(p3Submitted)return;
-  const my=teams.find(t=>t.id===player.team_id);
-  if(my?.multiplier_used){toast('ใช้ Shield ไปแล้ว!');return;}
-  p3UseShield=!p3UseShield;
-  document.getElementById('wpn-shield').classList.toggle('on',p3UseShield);
-  updateP3SubmitState();
-}
-function toggleTakeover(){
+function selWeaponP3(w){
   if(p3Submitted)return;
   const qi=gameState.active_question||0;
-  const q=factQs[qi];
-  const my=teams.find(t=>t.id===player.team_id);
-  if(!q||!q.takeover_allowed){toast('ใช้ไม่ได้ในข้อนี้');return;}
-  if(my?.takeover_used){toast('ใช้ Takeover ไปแล้ว!');return;}
-  p3UseTakeover=!p3UseTakeover;
-  document.getElementById('wpn-takeover').classList.toggle('on',p3UseTakeover);
-  document.getElementById('tgt-row').style.display=p3UseTakeover?'block':'none';
+  if(w!=='none'&&!m3WeaponsUnlocked(qi)){toast('อาวุธจะปลดล็อคตั้งแต่ข้อ 2');return;}
+  p3Weapon=w;
+  document.querySelectorAll('.p3-wpn-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById(`p3-wpn-${w}`).classList.add('sel');
+  const showTarget=w==='steal';
+  document.getElementById('p3-target-section').style.display=showTarget?'block':'none';
+  if(showTarget)renderP3TargetGrid();else p3Target=null;
+  updateP3BankPreview();updateP3SubmitState();
+}
+function renderP3TargetGrid(){
+  const el=document.getElementById('p3-tgt-grid');
+  const opponents=teams.filter(t=>t.id!==player.team_id);
+  el.innerHTML=opponents.map(t=>
+    `<div class="tgt-btn${p3Target===t.id?' selected':''}" data-target-id="${t.id}" onclick="selTargetP3(${t.id})">🎯 ${t.leader_name||t.name}</div>`
+  ).join('');
+}
+function selTargetP3(id){
+  if(p3Submitted)return;
+  p3Target=p3Target===id?null:id;
+  document.querySelectorAll('#p3-tgt-grid .tgt-btn').forEach(b=>b.classList.remove('selected'));
+  if(p3Target!=null)document.querySelector(`#p3-tgt-grid .tgt-btn[data-target-id="${p3Target}"]`)?.classList.add('selected');
   updateP3SubmitState();
+}
+function updateP3BankPreview(){
+  const my=teams.find(t=>t.id===player.team_id);
+  const bank=my?.total_score||0;
+  const qi=gameState?.active_question||0;
+  const mult=(p3Weapon==='x2'&&m3WeaponsUnlocked(qi))?2:1;
+  const delta=p3Wager*mult;
+  document.getElementById('p3-bank-cur').textContent=bank.toLocaleString();
+  document.getElementById('p3-bank-win').textContent=`+${delta.toLocaleString()}`;
+  document.getElementById('p3-bank-lose').textContent=`-${delta.toLocaleString()}`;
 }
 function updateP3SubmitState(){
   const btn=document.getElementById('p3-submit');
   if(!btn)return;
-  btn.disabled=!(p3Wager>0&&p3Answer&&!p3Submitted);
+  let ok=p3Wager>0&&!!p3Answer&&!p3Submitted;
+  if(p3Weapon==='steal')ok=ok&&p3Target!=null;
+  btn.disabled=!ok;
 }
-async function submitP3(){
+function lockLeaderP3UI(){
+  document.getElementById('p3-submit').style.display='none';
+  document.getElementById('p3-submitted').style.display='block';
+  document.querySelectorAll('.p3-wager-btn,.p3-ans-btn,.p3-wpn-btn,#p3-tgt-grid .tgt-btn')
+    .forEach(b=>b.style.pointerEvents='none');
+}
+async function submitLeaderP3(){
   if(p3Submitted||!p3Wager||!p3Answer)return;
+  if(p3Weapon==='steal'&&p3Target==null)return;
   const qi=gameState.active_question||0;
   const payload={
     question_index:qi,team_id:player.team_id,answer:p3Answer,wager:p3Wager,
-    use_multiplier:p3UseShield,use_takeover:p3UseTakeover,
-    takeover_target:p3UseTakeover?parseInt(document.getElementById('tgt-select').value):null
+    use_multiplier:p3Weapon==='x2',use_takeover:p3Weapon==='steal',use_shield:p3Weapon==='shield',
+    takeover_target:p3Weapon==='steal'?p3Target:null
   };
   const{error}=await sb.from('phase3_submissions').insert(payload);
   if(error){toast('Error: '+error.message);console.error(error);return;}
   p3Submitted=true;
-  document.getElementById('wager-grid').style.display='none';
-  document.querySelector('.ans-row').style.display='none';
-  document.querySelector('.wpn-row').style.display='none';
-  document.getElementById('tgt-row').style.display='none';
-  document.getElementById('p3-submit').style.display='none';
-  document.getElementById('p3-submitted').style.display='block';
-  toast('✅ ส่งคำตอบแล้ว!');
+  lockLeaderP3UI();
+  toast('✅ ส่งคำตอบทีมแล้ว!');
 }
 
 // RESULTS
