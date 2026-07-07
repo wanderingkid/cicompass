@@ -1697,13 +1697,21 @@ function m2Stars(n){ return '★'.repeat(n)+'☆'.repeat(3-n); }
 function m2BarHTML(key,pct){
   return `<div class="product-bar-wrap"><div class="product-bar-fill ${key}" style="width:${pct}%"></div></div>`;
 }
+function m2Duration(){ return (gameState&&gameState.phase2_duration)||MISSION2_CONFIG.durationSec; }
+// Pause-aware elapsed time (RPC-007A) — Mission Control's Pause shifts
+// phase_start_at forward by the paused duration on Resume, so the only
+// client-side change needed is to freeze the reference clock at paused_at
+// while is_paused is true, instead of always using Date.now().
+function pausedAwareNow(){
+  return (gameState?.is_paused&&gameState?.paused_at)?new Date(gameState.paused_at).getTime():Date.now();
+}
 let mission2TimerInt=null;
 function startMission2Timer(){
   if(mission2TimerInt)clearInterval(mission2TimerInt);
-  const dur=MISSION2_CONFIG.durationSec;
+  const dur=m2Duration();
   const tick=()=>{
     if(!gameState?.phase_start_at)return;
-    const elapsed=(Date.now()-new Date(gameState.phase_start_at).getTime())/1000;
+    const elapsed=(pausedAwareNow()-new Date(gameState.phase_start_at).getTime())/1000;
     const rem=Math.max(0,dur-elapsed);
     const m=Math.floor(rem/60),s=Math.floor(rem%60);
     const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -1719,7 +1727,8 @@ function startMission2Timer(){
 
 /* ============================================================
    MISSION 3 CONFIGURATION — single source of truth (RPC-006A).
-   Hardcoded per spec; no SQL configuration layer.
+   Hardcoded defaults; game_state overrides added in RPC-007A so
+   Mission Control can actually adjust wager values / duration.
    ============================================================ */
 const MISSION3_CONFIG = {
   durationSec: 60,
@@ -1728,6 +1737,8 @@ const MISSION3_CONFIG = {
   weaponsUnlockFromQuestion: 1, // 0-indexed — Question 2 onward
   stealPct: 0.5, // 50% of TARGET's own wager (Mission_3_Gambit.md)
 };
+function m3Duration(){ return (gameState&&gameState.phase3_duration)||MISSION3_CONFIG.durationSec; }
+function m3WagerTiers(){ return (gameState&&gameState.wager_tiers&&gameState.wager_tiers.length)?gameState.wager_tiers:MISSION3_CONFIG.wagerTiers; }
 function m3WeaponsUnlocked(qi){ return qi>=MISSION3_CONFIG.weaponsUnlockFromQuestion; }
 function m3Rank(teamId){
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
@@ -1736,10 +1747,10 @@ function m3Rank(teamId){
 let mission3TimerInt=null;
 function startMission3Timer(){
   if(mission3TimerInt)clearInterval(mission3TimerInt);
-  const dur=MISSION3_CONFIG.durationSec;
+  const dur=m3Duration();
   const tick=()=>{
     if(!gameState?.phase_start_at)return;
-    const elapsed=(Date.now()-new Date(gameState.phase_start_at).getTime())/1000;
+    const elapsed=(pausedAwareNow()-new Date(gameState.phase_start_at).getTime())/1000;
     const rem=Math.max(0,dur-elapsed);
     const m=Math.floor(rem/60),s=Math.floor(rem%60);
     const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -2264,7 +2275,7 @@ function startGame1Timer(){
   const dur=g1Duration();
   const tick=()=>{
     if(!gameState?.phase_start_at)return;
-    const elapsed=(Date.now()-new Date(gameState.phase_start_at).getTime())/1000;
+    const elapsed=(pausedAwareNow()-new Date(gameState.phase_start_at).getTime())/1000;
     const rem=Math.max(0,dur-elapsed);
     const m=Math.floor(rem/60),s=Math.floor(rem%60);
     const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -2730,7 +2741,7 @@ function renderP3WagerGrid(){
   const el=document.getElementById('p3-wager-grid');
   const my=teams.find(t=>t.id===player.team_id);
   const bank=my?.total_score||0;
-  el.innerHTML=MISSION3_CONFIG.wagerTiers.map(n=>
+  el.innerHTML=m3WagerTiers().map(n=>
     `<button class="p3-wager-btn${p3Wager===n?' sel':''}" ${n>bank?'disabled':''} onclick="selWagerP3(${n})">${n.toLocaleString()}</button>`
   ).join('');
 }
