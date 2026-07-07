@@ -508,6 +508,11 @@ body::before{content:'';position:fixed;inset:0;
 .product-card.A .product-bar-fill{background:linear-gradient(90deg,var(--gold),var(--gold2));}
 .product-card.B .product-bar-fill{background:linear-gradient(90deg,var(--blue),var(--blue2));}
 .product-card.C .product-bar-fill{background:linear-gradient(90deg,#059669,var(--green));}
+/* Standalone versions — usable outside a .product-card parent (Leader dashboard),
+   same color source as above so Player/Leader never visually diverge. */
+.product-bar-fill.A{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.product-bar-fill.B{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+.product-bar-fill.C{background:linear-gradient(90deg,#059669,var(--green));}
 /* Selection indicator — never relies on color alone (explicit badge + border) */
 .product-card.A.sel{border-color:var(--gold);background:rgba(251,191,36,0.08);}
 .product-card.B.sel{border-color:var(--blue2);background:rgba(96,165,250,0.08);}
@@ -581,19 +586,28 @@ body::before{content:'';position:fixed;inset:0;
 .fire-btn{width:100%;padding:.8rem;border-radius:var(--r2);border:none;
   background:linear-gradient(135deg,#7f1d1d,var(--red));color:#fff;
   font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:900;
-  cursor:pointer;display:none;
+  cursor:pointer;transition:opacity .2s,box-shadow .2s;
   animation:glow-red 2s infinite;}
 @keyframes glow-red{0%,100%{box-shadow:0 0 10px rgba(244,63,94,0.4)}
   50%{box-shadow:0 0 25px rgba(244,63,94,0.8)}}
 .fire-btn:active{transform:scale(.97);}
-.tgt-grid{display:none;grid-template-columns:repeat(3,1fr);gap:.35rem;}
+.fire-btn:disabled{opacity:.35;cursor:not-allowed;animation:none;box-shadow:none;}
+.tgt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;}
 .tgt-btn{padding:.55rem .3rem;background:var(--surf);
   border:1.5px solid var(--border);border-radius:var(--r3);
   color:var(--text);font-family:'Kanit',sans-serif;
-  font-size:.7rem;font-weight:700;cursor:pointer;text-align:center;}
+  font-size:.7rem;font-weight:700;cursor:pointer;text-align:center;
+  transition:all .2s;}
 .tgt-btn:active{transform:scale(.95);}
 .tgt-btn.frz{border-color:var(--blue2);color:var(--blue2);}
 .tgt-btn.shld{border-color:var(--gold);color:var(--gold);}
+/* Before any charge exists: visible, clearly inert, reduced emphasis */
+.tgt-btn.locked{opacity:.4;filter:grayscale(.6);cursor:not-allowed;pointer-events:none;}
+/* Already-frozen target: visible, still inert, distinct from "locked" */
+.tgt-btn.tgt-frozen{opacity:.4;pointer-events:none;}
+/* Selected target: single, obvious highlight */
+.tgt-btn.selected{border-width:2px;border-color:var(--red);
+  background:rgba(244,63,94,0.14);box-shadow:0 0 14px rgba(244,63,94,.35);}
 
 /* LEADER P2 DASHBOARD */
 #s-leader-p2{padding:.9rem;gap:.6rem;}
@@ -1514,8 +1528,8 @@ body::before{content:'';position:fixed;inset:0;
       <div class="standings-title">🏁 Live Standings</div>
       <div id="lcmd1-standings"></div>
     </div>
-    <button class="fire-btn" id="fire-btn" onclick="openTargets()">💣 FREEZE ทีมฝ่ายตรงข้าม!</button>
     <div class="tgt-grid" id="tgt-grid"></div>
+    <button class="fire-btn" id="fire-btn" onclick="fireFreeze()" disabled>❄️ DEPLOY FREEZE</button>
   </div>
 </div>
 
@@ -1592,6 +1606,9 @@ function m2Launches(my,key){ return my?.[`tier_${key.toLowerCase()}_launches`]||
 function m2Progress(my,key){ return Math.min(100,(m2Taps(my,key)/MISSION2_CONFIG.products[key].tapsRequired)*100); }
 function m2Ready(my,key){ return m2Taps(my,key)>=MISSION2_CONFIG.products[key].tapsRequired; }
 function m2Stars(n){ return '★'.repeat(n)+'☆'.repeat(3-n); }
+function m2BarHTML(key,pct){
+  return `<div class="product-bar-wrap"><div class="product-bar-fill ${key}" style="width:${pct}%"></div></div>`;
+}
 let mission2TimerInt=null;
 function startMission2Timer(){
   if(mission2TimerInt)clearInterval(mission2TimerInt);
@@ -1907,7 +1924,7 @@ function onTeamsUpdate(){
   }
   if(phase===2){
     if(isLeader){renderLeaderP2Dashboard();return;}
-    updateTierProg();
+    renderProductRow();
   }
   if(phase===3){
     updateFactHud();
@@ -2265,7 +2282,8 @@ function renderLeaderP1Dashboard(){
   // is still active on some target team.
   const myOutgoingFreeze=teams.find(t=>t.frozen_by_team===player.team_id&&t.frozen_until&&new Date(t.frozen_until)>new Date());
   const canFire=charges>0&&!myOutgoingFreeze;
-  document.getElementById('fire-btn').style.display=canFire?'block':'none';
+  renderFreezeTargets(canFire);
+  document.getElementById('fire-btn').disabled=!(canFire&&selFreezeTarget!=null);
   const ogEl=document.getElementById('lcmd1-outgoing-freeze');
   if(myOutgoingFreeze&&charges>0){
     const rem3=Math.max(0,Math.ceil((new Date(myOutgoingFreeze.frozen_until).getTime()-Date.now())/1000));
@@ -2318,44 +2336,62 @@ async function loadMomentum(){
 }
 
 // FREEZE TARGETING (leader)
-function openTargets(){
+let selFreezeTarget=null;
+function renderFreezeTargets(canFire){
   const tg=document.getElementById('tgt-grid');
-  const willShow=tg.style.display!=='grid';
-  tg.style.display=willShow?'grid':'none';
-  if(willShow){
-    // Captain cannot target a team that is already Frozen (Game Economy).
-    const opponents=teams.filter(t=>t.id!==player.team_id);
-    if(!opponents.length){
-      tg.innerHTML=`<div style="grid-column:1/-1;color:var(--text3);font-size:.7rem;text-align:center;">⚠️ ไม่พบทีมเป้าหมาย — ลองรีเฟรช / No opposing teams found — try refreshing</div>`;
-      return;
-    }
-    tg.innerHTML=opponents.map(t=>{
-      const frozenAlready=t.frozen_until&&new Date(t.frozen_until)>new Date();
-      if(frozenAlready){
-        return `<div class="tgt-btn frz" style="opacity:.35;pointer-events:none;">❄️ ${t.leader_name||t.name}<br><span style="font-size:.6rem;">already frozen</span></div>`;
-      }
-      return `<div class="tgt-btn frz" onclick="fireFreeze(${t.id})">🎯 ${t.leader_name||t.name}</div>`;
-    }).join('');
+  if(!tg)return;
+  const opponents=teams.filter(t=>t.id!==player.team_id);
+  if(!opponents.length){
+    tg.innerHTML=`<div style="grid-column:1/-1;color:var(--text3);font-size:.7rem;text-align:center;">⚠️ ไม่พบทีมเป้าหมาย — ลองรีเฟรช / No opposing teams found — try refreshing</div>`;
+    return;
   }
+  // If the previously-selected target is no longer valid (got frozen by
+  // someone else, or charges dropped to 0), clear the stale selection.
+  const stillValid=opponents.some(t=>t.id===selFreezeTarget&&!(t.frozen_until&&new Date(t.frozen_until)>new Date()));
+  if(!canFire||!stillValid)selFreezeTarget=null;
+  tg.innerHTML=opponents.map(t=>{
+    const frozenAlready=t.frozen_until&&new Date(t.frozen_until)>new Date();
+    const isSelected=t.id===selFreezeTarget;
+    if(!canFire){
+      return `<div class="tgt-btn frz locked">🎯 ${t.leader_name||t.name}</div>`;
+    }
+    if(frozenAlready){
+      return `<div class="tgt-btn frz tgt-frozen">❄️ ${t.leader_name||t.name}<br><span style="font-size:.6rem;">already frozen</span></div>`;
+    }
+    return `<div class="tgt-btn frz${isSelected?' selected':''}" data-target-id="${t.id}" onclick="selectFreezeTarget(${t.id})">🎯 ${t.leader_name||t.name}</div>`;
+  }).join('');
 }
-async function fireFreeze(targetId){
+function selectFreezeTarget(targetId){
+  selFreezeTarget=selFreezeTarget===targetId?null:targetId; // tap again to deselect
+  document.querySelectorAll('.tgt-btn').forEach(b=>b.classList.remove('selected'));
+  if(selFreezeTarget!=null){
+    document.querySelector(`.tgt-btn[data-target-id="${selFreezeTarget}"]`)?.classList.add('selected');
+  }
+  const my=teams.find(t=>t.id===player.team_id);
+  const charges=my?.weapon_charges||0;
+  document.getElementById('fire-btn').disabled=!(charges>0&&selFreezeTarget!=null);
+}
+async function fireFreeze(){
+  const targetId=selFreezeTarget;
+  if(targetId==null){toast('กรุณาเลือกทีมเป้าหมายก่อน');return;}
   const my=teams.find(t=>t.id===player.team_id);
   if(!my||(my.weapon_charges||0)<=0){toast('ยังไม่มี Charge!');return;}
   // Fast-fail UI guards only (immediate feedback on stale/obviously-invalid
   // taps) — execute_freeze() below is the sole source of truth and re-checks
   // charge availability, shield immunity, and frozen state atomically server-side.
   const myOutgoingFreeze=teams.find(t=>t.frozen_by_team===player.team_id&&t.frozen_until&&new Date(t.frozen_until)>new Date());
-  if(myOutgoingFreeze){toast('Freeze ของคุณยังทำงานอยู่ — รอให้หมดเวลาก่อน');document.getElementById('tgt-grid').style.display='none';return;}
+  if(myOutgoingFreeze){toast('Freeze ของคุณยังทำงานอยู่ — รอให้หมดเวลาก่อน');return;}
   const targetTeam=teams.find(t=>t.id===targetId);
   if(targetTeam&&targetTeam.frozen_until&&new Date(targetTeam.frozen_until)>new Date()){
-    toast('ทีมนี้ถูก Freeze อยู่แล้ว!');document.getElementById('tgt-grid').style.display='none';return;
+    toast('ทีมนี้ถูก Freeze อยู่แล้ว!');return;
   }
-  document.getElementById('tgt-grid').style.display='none';
+  document.getElementById('fire-btn').disabled=true;
   const{data,error}=await sb.rpc('execute_freeze',{
     p_attacker_team_id:player.team_id,
     p_target_team_id:targetId
   });
-  if(error){toast('❌ '+error.message);console.error(error);return;}
+  if(error){toast('❌ '+error.message);console.error(error);document.getElementById('fire-btn').disabled=false;return;}
+  selFreezeTarget=null;
   toast(`❄️ Freeze ยิงแล้ว!`);
   await loadTeams();renderLeaderP1Dashboard();
 }
@@ -2382,7 +2418,7 @@ function renderProductRow(){
       <div class="product-sel-badge">✓ เลือกแล้ว</div>
       <div class="product-name">${p.name}</div>
       <div class="product-meta"><span>${p.chargeSpeedLabel}</span><span class="product-stars">${m2Stars(p.stars)}</span></div>
-      <div class="product-bar-wrap"><div class="product-bar-fill" style="width:${pct}%"></div></div>
+      ${m2BarHTML(key,pct)}
     </div>`;
   }).join('');
 }
@@ -2452,7 +2488,7 @@ function renderLeaderP2Dashboard(){
           <div class="m2-product-title">${p.name}</div>
           <div class="m2-product-pts">+${p.points.toLocaleString()} pts</div>
         </div>
-        <div class="product-bar-wrap"><div class="product-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${TC[player.team_id]}88,${TC[player.team_id]});"></div></div>
+        ${m2BarHTML(key,pct)}
         <button class="m2-deploy-btn" onclick="leaderLaunch('${key}')">🚀 Deploy ${p.name}</button>
         <div class="m2-launch-count">Deployed ×${m2Launches(my,key)}</div>
       </div>`;
