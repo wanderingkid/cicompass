@@ -579,21 +579,101 @@ body::before{content:'';position:fixed;inset:0;
 /* ============================================================
    ARENA — FREEZE EVENT (dedicated hero view)
    ============================================================ */
-#v-freeze-event{align-items:center;justify-content:center;gap:1rem;position:relative;overflow:hidden;}
-.fe-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;pointer-events:none;z-index:0;}
-.fe-blob.target{width:46vw;height:46vw;top:-10%;left:-12%;}
-.fe-blob.attacker{width:38vw;height:38vw;bottom:-14%;right:-10%;}
-.fe-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.6rem;}
-.fe-title{font-size:clamp(1.4rem,3.2vw,3rem);font-weight:900;font-style:italic;
-  letter-spacing:2px;text-align:center;color:var(--blue3);text-shadow:0 0 30px rgba(147,197,253,.5);}
-.fe-subtitle{font-size:clamp(.85rem,1.6vw,1.3rem);color:var(--text2);text-align:center;}
-.fe-subtitle b{font-weight:900;}
-.fe-hud-wrap{width:clamp(90px,11vh,150px);height:clamp(90px,11vh,150px);}
-.fe-countdown{font-family:'Share Tech Mono',monospace;font-weight:900;
-  font-size:clamp(5rem,16vw,12rem);line-height:1;color:var(--blue2);
-  text-shadow:0 0 60px rgba(96,165,250,.6);}
-.fe-countdown.urgent{color:var(--red);text-shadow:0 0 60px rgba(244,63,94,.6);animation:urgPulse .5s infinite;}
-.fe-caption{font-size:clamp(.7rem,1.3vw,1rem);letter-spacing:4px;color:var(--text3);}
+#v-freeze-event{position:relative;overflow:hidden;padding:0;}
+.fe-team-name{position:absolute;font-size:clamp(.85rem,1.6vw,1.4rem);font-weight:700;
+  text-align:center;width:14%;}
+.fe-team-name.attacker{left:13%;top:73.5%;color:#fb7185;}
+.fe-team-name.target{left:66%;top:73.5%;color:#67e8f9;}
+.fe-countdown{position:absolute;left:49.8%;top:55.8%;transform:translate(-50%,-50%);
+  font-family:'Share Tech Mono',monospace;font-weight:900;
+  font-size:clamp(3.5rem,11vw,8rem);line-height:1;color:#fff;
+  text-shadow:0 0 40px rgba(147,197,253,.7);}
+.fe-countdown.urgent{color:var(--red);text-shadow:0 0 40px rgba(244,63,94,.7);animation:urgPulse .5s infinite;}
+/* ============================================================
+   RPC-007B — ARENA BROADCAST ADDITIONS
+   ============================================================ */
+
+/* Shared artwork background layer (already used by lobby/phase1) */
+.arena-background{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0;}
+
+/* MISSION INTRO */
+#v-intro{position:relative;overflow:hidden;padding:0;}
+.intro-card-wrap{position:absolute;left:31vw;right:4vw;top:10vh;bottom:8vh;
+  display:flex;flex-direction:column;justify-content:center;z-index:1;}
+.intro-card{opacity:0;transition:opacity .5s ease;position:absolute;left:0;right:0;}
+.intro-card.active{opacity:1;position:relative;}
+.intro-card-eyebrow{font-size:clamp(.65rem,1.1vw,.9rem);letter-spacing:3px;color:var(--gold2);
+  text-transform:uppercase;margin-bottom:.4rem;}
+.intro-card-body{font-size:clamp(1.1rem,2.1vw,2rem);font-weight:300;line-height:1.4;color:#fff;
+  text-shadow:0 2px 20px rgba(0,0,0,.6);max-width:60vw;}
+.intro-dots{position:absolute;bottom:3vh;left:31vw;display:flex;gap:.5rem;z-index:1;}
+.intro-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .3s;}
+.intro-dot.on{background:var(--gold2);width:22px;border-radius:5px;}
+
+/* STRATEGY MINUTE */
+#v-strategy{position:relative;overflow:hidden;padding:0;align-items:center;justify-content:center;}
+.strat-big-title{position:relative;z-index:1;font-size:clamp(2rem,5vw,5rem);font-weight:900;
+  letter-spacing:6px;color:#fff;text-shadow:0 0 40px rgba(96,165,250,.6);text-align:center;}
+.strat-big-count{position:relative;z-index:1;font-family:'Share Tech Mono',monospace;
+  font-size:clamp(4rem,14vw,10rem);font-weight:900;color:var(--gold2);
+  text-shadow:0 0 50px rgba(245,158,11,.6);line-height:1;margin-top:1vh;}
+
+/* Generic right-side panel language, reused for Blitz + Gambit */
+.arena-panel-zone{position:absolute;right:3vw;top:5vh;bottom:5vh;width:26vw;
+  display:flex;flex-direction:column;gap:1.4vh;z-index:1;}
+.arena-panel{background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:.8vh 1vw;}
+.arena-panel-lbl{font-size:.62rem;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:.3rem;}
+.arena-timer-big{font-family:'Share Tech Mono',monospace;font-weight:300;
+  font-size:clamp(1.4rem,2.4vw,2.2rem);color:#fff;text-align:right;}
+.arena-timer-big.urgent{color:var(--red);}
+.feed-row{font-size:.72rem;color:#e2e8f0;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.06);
+  animation:feedIn .4s ease;}
+@keyframes feedIn{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:translateX(0);}}
+.terr-row{display:flex;align-items:center;gap:.4rem;font-size:.68rem;margin:.25rem 0;}
+.terr-name{flex:0 0 25%;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.terr-bar-wrap{flex:1;height:8px;background:rgba(0,0,0,.35);border-radius:5px;overflow:hidden;}
+.terr-bar-fill{height:100%;border-radius:5px;transition:width .6s;}
+.arena-lb-row{display:flex;align-items:center;gap:.5rem;font-size:.72rem;padding:.2rem 0;}
+.arena-lb-rank{font-weight:900;min-width:1.3rem;}
+.arena-lb-name{flex:1;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.arena-lb-score{font-weight:700;}
+.arena-lb-move{font-size:.62rem;width:1.2rem;text-align:center;}
+.arena-lb-move.up{color:var(--green);}
+.arena-lb-move.down{color:var(--red);}
+.event-banner{font-size:.75rem;font-weight:700;text-align:center;color:var(--gold2);}
+
+/* GAMBIT-specific */
+.gambit-qnum{font-size:.65rem;letter-spacing:2px;color:var(--gold2);margin-bottom:.2rem;}
+.gambit-q-text{font-size:.85rem;color:#fff;line-height:1.4;}
+.reveal-stage-row{display:flex;align-items:center;gap:.4rem;font-size:.72rem;
+  padding:.15rem 0;opacity:.35;transition:opacity .3s;}
+.reveal-stage-row.done{opacity:1;color:var(--green);}
+.reveal-stage-row.current{opacity:1;color:var(--gold2);font-weight:700;}
+
+/* MISSION COMPLETE banner (layered on scoreboard view) */
+.mc-complete-banner{position:absolute;top:3vh;left:50%;transform:translateX(-50%);
+  z-index:2;text-align:center;}
+.mc-complete-title{font-size:clamp(1.3rem,2.6vw,2.4rem);font-weight:900;letter-spacing:3px;color:var(--gold2);
+  text-shadow:0 0 30px rgba(245,158,11,.5);}
+.mc-complete-winner{font-size:clamp(.85rem,1.5vw,1.3rem);color:#fff;margin-top:.2rem;}
+
+/* CHAMPION */
+#v-champion{position:relative;overflow:hidden;align-items:center;justify-content:center;flex-direction:column;gap:1.5vh;}
+.champ-label{font-size:clamp(.9rem,1.6vw,1.4rem);letter-spacing:4px;color:var(--gold2);text-transform:uppercase;}
+.champ-team-name{font-size:clamp(2.2rem,5.5vw,5.5rem);font-weight:900;color:#fff;
+  text-shadow:0 0 60px rgba(245,158,11,.7);}
+.champ-score{font-family:'Share Tech Mono',monospace;font-size:clamp(1.5rem,3vw,3rem);color:var(--gold2);}
+.champ-mvp{font-size:clamp(.7rem,1.2vw,1rem);color:var(--text3);margin-top:1vh;}
+.champ-hud-wrap{width:clamp(120px,14vh,200px);height:clamp(120px,14vh,200px);}
+
+/* PAUSE OVERLAY — layered on top of whatever view is active */
+#pause-overlay{position:fixed;inset:0;z-index:500;background:rgba(5,7,15,.72);
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#pause-overlay.show{display:flex;}
+.pause-badge{font-size:clamp(1.4rem,3vw,3rem);font-weight:900;letter-spacing:4px;
+  color:#fff;border:2px solid rgba(255,255,255,.3);border-radius:16px;padding:1rem 2.5rem;}
 </style>
 </head>
 <body>
@@ -619,6 +699,31 @@ body::before{content:'';position:fixed;inset:0;
     <div class="lobby-sub">TEAMS ARE ASSEMBLING</div>
   </div>
 
+
+  <!-- MISSION INTRO (RPC-007B) -->
+  <div id="v-intro" class="view">
+    <div class="arena-background" id="intro-bg" style="background-image:url('CompassOS_Lobby_Game1Hero.png');"></div>
+    <div class="intro-card-wrap" id="intro-card-wrap"></div>
+    <div class="intro-dots" id="intro-dots"></div>
+  </div>
+
+  <!-- STRATEGY MINUTE (RPC-007B, Mission 2 only) -->
+  <div id="v-strategy" class="view">
+    <div class="arena-background" id="strategy-bg" style="background-image:url('Blitz_Background.png');"></div>
+    <div class="strat-big-title">STRATEGY MINUTE</div>
+    <div class="strat-big-count" id="strat-count">60</div>
+  </div>
+
+  <!-- CHAMPION (RPC-007B) -->
+  <div id="v-champion" class="view">
+    <div class="arena-background" id="champion-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1vh;">
+      <div class="champ-label">👑 CHAMPION</div>
+      <div class="champ-team-name" id="champ-team-name">—</div>
+      <div class="champ-score" id="champ-score">0</div>
+      <div class="champ-mvp" id="champ-mvp"></div>
+    </div>
+  </div>
 
   <!-- DEMO -->
   <div id="v-demo" class="view">
@@ -650,137 +755,69 @@ body::before{content:'';position:fixed;inset:0;
 
   <!-- FREEZE EVENT (Game 1 hero takeover — Compass HUD 'freeze' state) -->
   <div id="v-freeze-event" class="view">
-    <div class="fe-blob target" id="fe-blob-target" aria-hidden="true"></div>
-    <div class="fe-blob attacker" id="fe-blob-attacker" aria-hidden="true"></div>
-    <div class="fe-content">
-      <div class="fe-title" id="fe-title">TEAM FROZEN</div>
-      <div class="fe-subtitle">Frozen by <b id="fe-attacker-name">—</b></div>
-      <div class="fe-hud-wrap">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="chud-fe-hud" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="freeze">
-  <defs>
-    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
-    <line id="chud-tick-major-def" x1="0" y1="-78" x2="0" y2="-66"/>
-    <line id="chud-tick-minor-def" x1="0" y1="-78" x2="0" y2="-74.5"/>
-  </defs>
-  <g id="compass-hud" transform="translate(100,100)">
-    <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
-      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
-      <g id="chud-sweep" class="chud-sweep">
-        <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.75" d="M -16.79 -86.38 A 88 88 0 0 0 -22.78 -85"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.68" d="M -24.99 -84.38 A 88 88 0 0 0 -30.82 -82.43"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.60" d="M -32.97 -81.59 A 88 88 0 0 0 -38.58 -79.09"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.53" d="M -40.63 -78.06 A 88 88 0 0 0 -45.98 -75.03"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.45" d="M -47.93 -73.8 A 88 88 0 0 0 -52.96 -70.28"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.38" d="M -54.78 -68.87 A 88 88 0 0 0 -59.45 -64.88"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.30" d="M -61.13 -63.3 A 88 88 0 0 0 -65.4 -58.88"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.23" d="M -66.92 -57.15 A 88 88 0 0 0 -70.74 -52.34"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.15" d="M -72.09 -50.47 A 88 88 0 0 0 -75.43 -45.32"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.08" d="M -76.59 -43.33 A 88 88 0 0 0 -79.43 -37.88"/>
-      </g>
-    </g>
-    <line id="chud-service-mark" class="chud-layer chud-static-mark" x1="-78.75" y1="39.27" x2="-80.7" y2="35.09"/>
-    <g id="chud-ticks" class="chud-layer chud-ticks">
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(0)" style="--tick-index:0"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(30)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(60)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(90)" style="--tick-index:1"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(120)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(150)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(180)" style="--tick-index:2"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(210)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(240)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(270)" style="--tick-index:3"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(300)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(330)"/>
-    </g>
-    <g id="chud-calibration-notch" class="chud-layer chud-static-mark">
-      <line x1="70.16" y1="26.51" x2="65.48" y2="24.74"/>
-      <line x1="68.88" y1="29.67" x2="64.29" y2="27.69"/>
-    </g>
-    <g id="chud-inner-ring" class="chud-layer">
-      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
-      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
-    </g>
-    <g id="chud-needle" class="chud-layer">
-      <g id="chud-needle-reticle" class="chud-needle-reticle" aria-hidden="true">
-        <line x1="0" y1="0" x2="24.75" y2="-24.75"/>
-        <line x1="0" y1="0" x2="24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="-24.75"/>
-      </g>
-      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
-      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
-    </g>
-    <g id="chud-core" class="chud-layer">
-      <circle id="chud-core-iris" class="chud-core-iris" cx="0" cy="0" r="7.5"/>
-      <circle id="chud-core-halo" class="chud-core-halo" cx="0" cy="0" r="5"/>
-      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
-    </g>
-    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
-    <g id="chud-fx" class="chud-fx" aria-hidden="true">
-      <g id="chud-freeze-fx" class="chud-freeze-fx">
-        <path class="chud-freeze-crystal" d="M23.81 -88.87 L36.55 -95.23 M23.81 -88.87 L15.64 -98.77"/>
-        <path class="chud-freeze-crystal" d="M75.36 -52.77 L89.21 -49.45 M75.36 -52.77 L75.47 -65.61"/>
-        <path class="chud-freeze-crystal" d="M91.65 8.02 L100.13 19.46 M91.65 8.02 L99.98 -1.75"/>
-        <path class="chud-freeze-crystal" d="M-38.88 83.38 L-52.53 87.43 M-38.88 83.38 L-32.56 94.55"/>
-        <path class="chud-freeze-crystal" d="M-86.45 31.47 L-98.97 24.68 M-86.45 31.47 L-89.88 43.84"/>
-        <path class="chud-freeze-crystal" d="M-79.67 -46 L-82.52 -59.95 M-79.67 -46 L-91.35 -40.67"/>
-        <circle id="chud-freeze-countdown" class="chud-freeze-countdown" cx="0" cy="0" r="60"/>
-      </g>
-      <g id="chud-deploy-fx" class="chud-deploy-fx">
-        <circle class="chud-deploy-ring chud-deploy-ring-1" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-2" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-3" cx="0" cy="0" r="20"/>
-      </g>
-      <circle id="chud-ready-pulse" class="chud-ready-pulse" cx="0" cy="0" r="60"/>
-      <g id="chud-champion-fx" class="chud-champion-fx">
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="-16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="-11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="-11.31"/>
-        <circle id="chud-champion-bloom" class="chud-champion-bloom" cx="0" cy="0" r="130"/>
-      </g>
-    </g>
-  </g>
-</svg>
-      </div>
-      <div class="fe-countdown" id="fe-countdown">12</div>
-      <div class="fe-caption">SECONDS LEFT</div>
-    </div>
+    <div class="arena-background" id="freeze-bg" style="background-image:url('Frostbite_Freeze.png');"></div>
+    <div class="fe-team-name attacker" id="fe-attacker-name">—</div>
+    <div class="fe-team-name target" id="fe-target-name">—</div>
+    <div class="fe-countdown" id="fe-countdown">12</div>
   </div>
+
 
   <!-- PHASE 2 -->
   <div id="v-phase2" class="view">
-    <div class="p2-header">
-      <div class="p2-label">🗺️ TERRITORY CONQUEST</div>
-      <div class="p2-scores" id="p2-scores"></div>
-      <div class="p2-timer" id="p2-timer">01:30</div>
+    <div class="arena-background" id="phase2-bg" style="background-image:url('Blitz_Background.png');"></div>
+    <div class="arena-panel-zone">
+      <div class="arena-panel">
+        <div class="arena-panel-lbl">Mission Timer</div>
+        <div class="arena-timer-big" id="p2-timer">01:30</div>
+      </div>
+      <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
+        <div class="arena-panel-lbl">📡 Deployment Feed</div>
+        <div id="p2-feed"></div>
+      </div>
+      <div class="arena-panel">
+        <div class="arena-panel-lbl">⚡ Territory Progress</div>
+        <div id="p2-terr"></div>
+      </div>
+      <div class="arena-panel">
+        <div class="arena-panel-lbl">🏆 Leaderboard</div>
+        <div id="p2-lb"></div>
+      </div>
     </div>
-    <canvas id="territory-canvas"></canvas>
-    <div class="p2-legend" id="p2-legend"></div>
   </div>
 
-  <!-- PHASE 3 -->
+  <!-- PHASE 3 (Gambit) -->
   <div id="v-phase3" class="view">
-    <div class="p3-qnum" id="p3-qnum">QUESTION 1 / 4</div>
-    <div class="p3-stmt" id="p3-stmt">Loading...</div>
-    <div class="p3-choices">
-      <div class="p3-choice tc" id="p3-true">✅ จริง / True</div>
-      <div class="p3-choice fc" id="p3-false">❌ เท็จ / False</div>
-      <div class="p3-choice nc" id="p3-notsure">🤔 ไม่แน่ใจ</div>
+    <div class="arena-background" id="phase3-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
+    <div class="arena-panel-zone">
+      <div class="arena-panel">
+        <div class="gambit-qnum" id="p3-qnum">QUESTION 1 / 4</div>
+        <div class="gambit-q-text" id="p3-stmt">Loading...</div>
+      </div>
+      <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
+        <div class="arena-panel-lbl">🏆 Live Leaderboard</div>
+        <div id="p3-lb"></div>
+      </div>
+      <div class="arena-panel">
+        <div class="arena-panel-lbl">🎲 Reveal Panel</div>
+        <div id="p3-reveal-panel">
+          <div class="reveal-stage-row" id="p3-rs-answer">1️⃣ Correct Answer</div>
+          <div class="reveal-stage-row" id="p3-rs-teamanswers">2️⃣ Team Answers</div>
+          <div class="reveal-stage-row" id="p3-rs-wagers">3️⃣ Wagers</div>
+          <div class="reveal-stage-row" id="p3-rs-x2">4️⃣ x2</div>
+          <div class="reveal-stage-row" id="p3-rs-shield">5️⃣ Shield</div>
+          <div class="reveal-stage-row" id="p3-rs-steals">6️⃣ Steals</div>
+          <div class="reveal-stage-row" id="p3-rs-done">7️⃣ Updated Score</div>
+        </div>
+      </div>
     </div>
-    <div class="p3-subs" id="p3-subs"></div>
-    <div class="p3-panels" id="p3-panels"></div>
   </div>
 
   <!-- SCOREBOARD -->
   <div id="v-scoreboard" class="view">
+    <div class="mc-complete-banner" id="mc-complete-banner" style="display:none;">
+      <div class="mc-complete-title">🏁 MISSION COMPLETE</div>
+      <div class="mc-complete-winner" id="mc-complete-winner"></div>
+    </div>
     <div class="sb-title" id="sb-title">📊 PHASE 1 RESULTS</div>
     <div class="sb-top3" id="sb-top3"></div>
     <div class="sb-bottom3" id="sb-bottom3"></div>
@@ -815,6 +852,7 @@ body::before{content:'';position:fixed;inset:0;
 <canvas id="laser-canvas"></canvas>
 <div id="atk-feed"></div>
 <div id="frz-overlay"><div class="frz-big" id="frz-txt">❄️ FROZEN!</div></div>
+<div id="pause-overlay"><div class="pause-badge">⏸ PAUSED</div></div>
 <div id="tko-overlay"><div class="tko-big" id="tko-txt">💣 HOSTILE TAKEOVER!</div></div>
 
 <!-- PRESENTER -->
@@ -829,8 +867,8 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <script>
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
 const LOGO_URL = ''; // paste logo URL when ready
 
 const PHASE_DUR={1:240,2:90};
@@ -1030,9 +1068,14 @@ function sfxReveal(){[400,600,800,1000,1200].forEach((f,i)=>tone(f,.18,'sine',.1
 // INIT
 async function init(){
   initLogo();
+  preloadBackgrounds();
   await Promise.all([loadGS(),loadTeams(),loadQs()]);
   subscribeRT();pollPlayers();
   initTerritoryCanvas();setupKeyboard();applyState();
+}
+function preloadBackgrounds(){
+  ['CompassOS_Lobby_Background.png','CompassOS_Lobby_Game1Hero.png','Frostbite_Freeze.png','Blitz_Background.png','Mission3_Gambit_Background.png']
+    .forEach(src=>{const img=new Image();img.src=src;});
 }
 async function loadGS(){const{data}=await sb.from('game_state').select('*').eq('id',1).single();if(data)gs=data;}
 async function loadTeams(){const{data}=await sb.from('teams').select('*').order('id');if(data)teams=data;}
@@ -1104,12 +1147,19 @@ async function presenterAct(action){
 function applyState(){
   if(!gs)return;
   const p=gs.phase,sub=gs.sub_state||'lobby';
-  const showHero=p>0;
+  const showHero=p>0&&sub!=='intro'&&sub!=='champion';
   document.getElementById('hero-strip').style.display=showHero?'flex':'none';
   document.getElementById('main').style.top=showHero?'76px':'0';
   if(showHero)updateHeroStrip();
 
+  // Pause overlay — layered above whichever view is active (RPC-007A/007B).
+  document.getElementById('pause-overlay').classList.toggle('show',!!gs.is_paused);
+
   // Handle special sub_states first
+  if(sub==='intro'){showView('v-intro');renderIntroCard();return;}
+  if(sub==='strategy'){showView('v-strategy');startStrategyTimer();return;}
+  if(sub==='strategy_end'){showView('v-strategy');return;}
+  if(sub==='champion'){showView('v-champion');renderChampion();return;}
   if(sub==='demo'){showView('v-demo');renderDemo();return;}
   if(sub==='scoreboard'){showView('v-scoreboard');renderScoreboard();return;}
   if(sub==='debrief1'){showView('v-debrief1');renderDebrief1();return;}
@@ -1119,6 +1169,11 @@ function applyState(){
     triggerLaunchAnim(parseInt(parts[1]),parts[2]);
     setTimeout(()=>sb.from('game_state').update({sub_state:'blitz'}).eq('id',1),200);
     return;
+  }
+  if(sub&&sub.startsWith('p3reveal:')){
+    // Mission Control's manual Gambit reveal sequence (RPC-007A) — Arena only
+    // visualizes the current stage, no calculations happen here.
+    showView('v-phase3');renderP3Question();renderGambitReveal(sub.split(':')[2]);return;
   }
   if(sub==='q4_reveal_prep'){prepQ4Reveal();return;}
   if(sub==='q4_reveal_next'){p3AutoReveal=false;revealNextTeam();sb.from('game_state').update({sub_state:'active'}).eq('id',1);return;}
@@ -1133,10 +1188,9 @@ function applyState(){
       if(!freezeEventInt)showView('v-phase1');
       break;
     case 2:
-      if(sub==='strategy'){showView('v-demo');renderDemo();}
-      else{showView('v-phase2');startTimer('p2-timer',2);updateTerritoryScores();}
+      showView('v-phase2');startTimer('p2-timer',2);renderBlitzOverlay();
       break;
-    case 3:showView('v-phase3');renderP3Question();renderP3Panels();break;
+    case 3:showView('v-phase3');renderP3Question();renderGambitReveal(null);break;
     case 4:showView('v-results');renderResults();confetti({particleCount:120,spread:110,origin:{y:.35}});break;
   }
   const labels={1:'PHASE 1: SOLO SPRINT',2:'PHASE 2: TERRITORY',3:'PHASE 3: FINALE',4:'RESULTS'};
@@ -1287,39 +1341,166 @@ function checkFreezeEvents(prev){
 // on the dedicated #v-freeze-event view with a real giant countdown for the
 // actual freeze duration, auto-reverting to Game 1 Live (#v-phase1) after.
 let freezeEventInt=null;
-function showFreezeOverlay(attackerId,targetId){
-  const txt=document.getElementById('frz-txt');
-  const ov=document.getElementById('frz-overlay');
-  if(txt)txt.textContent=`❄️ ${tName(targetId)} FROZEN!`;
-  if(ov){ov.classList.remove('show');void ov.offsetWidth;ov.classList.add('show');}
-  const targetTeam=teams.find(t=>t.id===targetId);
-  const durMs=targetTeam?.frozen_until?(new Date(targetTeam.frozen_until).getTime()-Date.now()):FREEZE_SECS*1000;
-  setTimeout(()=>enterFreezeEventView(attackerId,targetId),500);
+
+/* ============================================================
+   RPC-007B — NEW RENDER FUNCTIONS
+   ============================================================ */
+
+// MISSION INTRO — mirrors admin.html's INTRO_CARDS content exactly, so
+// what the emcee sees stepping through cards matches what Arena shows.
+const INTRO_CARDS = {
+  1:[{eyebrow:'Overview',body:'Answer trivia questions correctly to score points and build your team\'s Freeze Charge.'},
+     {eyebrow:'Player',body:'Answer as fast and accurately as you can. Streaks earn bonus points.'},
+     {eyebrow:'Leader',body:'Correct answers build your Freeze Charge. Deploy it on an opposing team when ready.'},
+     {eyebrow:'Freeze',body:'A frozen team cannot answer for 12 seconds. Use it strategically.'},
+     {eyebrow:'Mission Goal',body:'Highest score when the timer ends wins Mission 1: Frostbite.'}],
+  2:[{eyebrow:'Overview',body:'Tap continuously to charge one of three products, then have your Leader deploy it.'},
+     {eyebrow:'Player',body:'Tap anywhere on your screen. Switch products anytime — no cooldowns.'},
+     {eyebrow:'Products',body:'CI Care — fast charge, lower value. MPCI+ — slow charge, highest value.'},
+     {eyebrow:'Leader',body:'Deploy a product once it\'s fully charged. Choose your moment.'},
+     {eyebrow:'Strategy Minute',body:'A short discussion window before tapping begins.'},
+     {eyebrow:'Mission Goal',body:'Highest score when the timer ends wins Mission 2: Blitz.'}],
+  3:[{eyebrow:'Overview',body:'Vote FACT or FICTION on each statement. Your Leader submits the team\'s official answer.'},
+     {eyebrow:'Player',body:'Cast your vote. It feeds your Leader\'s live consensus view, not the final answer.'},
+     {eyebrow:'Leader',body:'Review consensus, choose the official answer, set your wager.'},
+     {eyebrow:'Weapons',body:'x2 doubles the outcome. Steal takes from a target. Shield blocks incoming Steals. One per question, unlocked from Question 2.'},
+     {eyebrow:'Mission Goal',body:'Highest final Bank wins Mission 3: Gambit.'}],
+};
+function renderIntroCard(){
+  const m=gs.intro_mission,c=gs.intro_card||0;
+  const cards=INTRO_CARDS[m]||[];
+  const wrap=document.getElementById('intro-card-wrap');
+  const bg=document.getElementById('intro-bg');
+  const bgMap={1:'CompassOS_Lobby_Game1Hero.png',2:'Blitz_Background.png',3:'Mission3_Gambit_Background.png'};
+  if(bg)bg.style.backgroundImage=`url('${bgMap[m]||bgMap[1]}')`;
+  if(wrap){
+    wrap.innerHTML=cards.map((card,i)=>`<div class="intro-card${i===c?' active':''}">
+      <div class="intro-card-eyebrow">${card.eyebrow}</div>
+      <div class="intro-card-body">${card.body}</div>
+    </div>`).join('');
+  }
+  const dots=document.getElementById('intro-dots');
+  if(dots)dots.innerHTML=cards.map((_,i)=>`<div class="intro-dot${i===c?' on':''}"></div>`).join('');
 }
-function enterFreezeEventView(attackerId,targetId){
-  if(gs?.phase!==1)return; // Freeze only occurs in Phase 1
-  const attClr=TC[attackerId]||'#fff', tgtClr=TC[targetId]||'#93c5fd';
-  document.getElementById('fe-title').textContent=`${tName(targetId).toUpperCase()} FROZEN`;
-  document.getElementById('fe-title').style.color=tgtClr;
-  document.getElementById('fe-attacker-name').textContent=tName(attackerId);
-  document.getElementById('fe-attacker-name').style.color=attClr;
-  document.getElementById('fe-blob-target').style.background=tgtClr;
-  document.getElementById('fe-blob-attacker').style.background=attClr;
-  showView('v-freeze-event');
-  if(freezeEventInt)clearInterval(freezeEventInt);
+
+// STRATEGY MINUTE
+let strategyTimerInt=null;
+function startStrategyTimer(){
+  if(strategyTimerInt)clearInterval(strategyTimerInt);
+  const dur=STRATEGY_SECS||60;
   const tick=()=>{
-    const t=teams.find(x=>x.id===targetId);
-    const remMs=t?.frozen_until?(new Date(t.frozen_until).getTime()-Date.now()):0;
-    const rem=Math.max(0,Math.ceil(remMs/1000));
-    const el=document.getElementById('fe-countdown');
-    if(el){el.textContent=rem;el.classList.toggle('urgent',rem<=3&&rem>0);}
-    if(remMs<=0){
-      clearInterval(freezeEventInt);freezeEventInt=null;
-      if(gs?.phase===1)showView('v-phase1');
-    }
+    if(!gs?.phase_start_at)return;
+    const rem=Math.max(0,dur-(Date.now()-new Date(gs.phase_start_at).getTime())/1000);
+    const el=document.getElementById('strat-count');
+    if(el)el.textContent=Math.ceil(rem);
+    if(rem<=0){clearInterval(strategyTimerInt);strategyTimerInt=null;}
   };
   tick();
-  freezeEventInt=setInterval(tick,250);
+  strategyTimerInt=setInterval(tick,250);
+}
+
+// CHAMPION
+function renderChampion(){
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const champ=sorted[0];
+  if(!champ)return;
+  document.getElementById('champ-team-name').textContent=champ.leader_name||champ.name;
+  document.getElementById('champ-team-name').style.color=TC[champ.id]||'#fff';
+  document.getElementById('champ-score').textContent=(champ.total_score||0).toLocaleString();
+  document.getElementById('champ-mvp').textContent=''; // MVP not tracked in current schema
+  confetti({particleCount:150,spread:120,origin:{y:.4}});
+}
+
+// BLITZ overlay — lightweight bars/feed/leaderboard, no animated map (per spec)
+let p2FeedItems=[];
+function renderBlitzOverlay(){
+  const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
+  const lb=document.getElementById('p2-lb');
+  if(lb){
+    lb.innerHTML=sorted.map((t,i)=>`<div class="arena-lb-row">
+      <div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="arena-lb-name">${t.leader_name||t.name}</div>
+      <div class="arena-lb-score">${(t.pipeline_score||0).toLocaleString()}</div>
+    </div>`).join('');
+  }
+  const terr=document.getElementById('p2-terr');
+  if(terr){
+    const maxTaps=Math.max(1,...teams.flatMap(t=>[t.tier_a_taps||0,t.tier_b_taps||0,t.tier_c_taps||0]));
+    terr.innerHTML=teams.map(t=>{
+      const total=(t.tier_a_taps||0)+(t.tier_b_taps||0)+(t.tier_c_taps||0);
+      const pct=Math.min(100,(total/(maxTaps*3))*100);
+      return `<div class="terr-row">
+        <div class="terr-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name||t.name}</div>
+        <div class="terr-bar-wrap"><div class="terr-bar-fill" style="width:${pct}%;background:${TC[t.id]||'#fff'};"></div></div>
+      </div>`;
+    }).join('');
+  }
+}
+function addBlitzFeed(msg){
+  const el=document.getElementById('p2-feed');
+  if(!el)return;
+  p2FeedItems.unshift(msg);
+  p2FeedItems=p2FeedItems.slice(0,6);
+  el.innerHTML=p2FeedItems.map(m=>`<div class="feed-row">${m}</div>`).join('');
+}
+
+// GAMBIT reveal stage visualization — Arena only displays the current stage;
+// Mission Control drives the sequence, no calculations happen here.
+function renderGambitReveal(stage){
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const lb=document.getElementById('p3-lb');
+  if(lb){
+    lb.innerHTML=sorted.map((t,i)=>`<div class="arena-lb-row">
+      <div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="arena-lb-name">${t.leader_name||t.name}</div>
+      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>
+    </div>`).join('');
+  }
+  const stageOrder=['answer','teamanswers','wagers','x2','shield','steals','done'];
+  const idx=stage?stageOrder.indexOf(stage):-1;
+  stageOrder.forEach((s,i)=>{
+    const row=document.getElementById(`p3-rs-${s}`);
+    if(!row)return;
+    row.classList.toggle('done',idx>=0&&i<idx);
+    row.classList.toggle('current',i===idx);
+  });
+}
+let freezeQueue=[],freezeShowing=false;
+function showFreezeOverlay(attackerId,targetId){
+  // Queue — never overlap multiple freeze announcements (RPC-007B).
+  freezeQueue.push({attackerId,targetId});
+  processFreezeQueue();
+}
+function processFreezeQueue(){
+  if(freezeShowing||!freezeQueue.length)return;
+  freezeShowing=true;
+  const{attackerId,targetId}=freezeQueue.shift();
+  enterFreezeEventView(attackerId,targetId);
+}
+function enterFreezeEventView(attackerId,targetId){
+  sfxFreeze();
+  document.getElementById('fe-attacker-name').textContent=tName(attackerId);
+  document.getElementById('fe-target-name').textContent=tName(targetId);
+  showView('v-freeze-event');
+  if(freezeEventInt)clearInterval(freezeEventInt);
+  // Announcement displays ~5s regardless of the actual (12s) freeze duration —
+  // the freeze effect itself continues independently in the background;
+  // this is just the broadcast moment. See ARENA.md §5.
+  let remaining=5;
+  const tick=()=>{
+    const el=document.getElementById('fe-countdown');
+    if(el){el.textContent=remaining;el.classList.toggle('urgent',remaining<=2&&remaining>0);}
+    if(remaining<=0){
+      clearInterval(freezeEventInt);freezeEventInt=null;
+      freezeShowing=false;
+      if(gs?.phase===1)showView('v-phase1');
+      processFreezeQueue(); // play next queued freeze, if any
+      return;
+    }
+    remaining--;
+  };
+  tick();
+  freezeEventInt=setInterval(tick,1000);
 }
 
 // TERRITORY (Phase 2)
@@ -1405,18 +1586,21 @@ function animateCells(cells,teamId){
   setTimeout(()=>{updateTerritoryScores();updateP2Legend();},cells.length*45+200);
 }
 function triggerLaunchAnim(teamId,tier){
-  const cells=expandTerr(teamId,TIER_CELLS[tier]||8);
-  animateCells(cells,teamId);
   showLaunchFlash(teamId,tier);
   ({A:sfxLaunchA,B:sfxLaunchB,C:sfxLaunchC}[tier]||sfxLaunchA)();
+  renderBlitzOverlay();
 }
 function showLaunchFlash(teamId,tier){
   const clr=TC[teamId]||'#fff';
-  const nm=tName(teamId);const pts={A:500,B:2000,C:6000}[tier]||0;
+  const pn=gs?.product_names||{};
+  const nm=tName(teamId);
+  const prodName=pn[tier]||{A:'CI Care',B:'CI Plus',C:'MPCI+'}[tier]||`Product ${tier}`;
+  const pts={A:500,B:2000,C:6000}[tier]||0;
   const el=document.createElement('div');el.className='launch-flash';
-  el.innerHTML=`<div class="launch-txt" style="color:${clr};">🚀 ${nm}<br>TIER ${tier} LAUNCHED!<br><span style="font-size:.45em;color:var(--green)">+${pts.toLocaleString()} pts</span></div>`;
+  el.innerHTML=`<div class="launch-txt" style="color:${clr};">🚀 ${nm}<br>${prodName} DEPLOYED!<br><span style="font-size:.45em;color:var(--green)">+${pts.toLocaleString()} pts</span></div>`;
   document.body.appendChild(el);
-  addFeed(`🚀 ${nm} → Tier ${tier}! +${pts.toLocaleString()} pts`);
+  addFeed(`🚀 ${nm} → ${prodName}! +${pts.toLocaleString()} pts`);
+  addBlitzFeed(`${nm} deployed ${prodName}`);
   setTimeout(()=>el.remove(),1100);
 }
 function updateTerritoryScores(){
@@ -1440,10 +1624,12 @@ function renderP3Question(){
   ['p3-true','p3-false','p3-notsure'].forEach(id=>document.getElementById(id).classList.remove('revealed'));
 }
 async function renderP3Subs(){
+  const el=document.getElementById('p3-subs');
+  if(!el)return; // #p3-subs was retired in the RPC-007B Gambit overlay rebuild
   const qi=gs?.active_question||0;
   const{data}=await sb.from('phase3_submissions').select('team_id').eq('question_index',qi);
   const submitted=new Set((data||[]).map(r=>r.team_id));
-  document.getElementById('p3-subs').innerHTML=teams.map(t=>`<div class="p3-sub ${submitted.has(t.id)?'done':''}" style="color:${submitted.has(t.id)?'var(--green)':TC[t.id]||'#fff'}">${t.leader_name||t.name} ${submitted.has(t.id)?'✅':'⏳'}</div>`).join('');
+  el.innerHTML=teams.map(t=>`<div class="p3-sub ${submitted.has(t.id)?'done':''}" style="color:${submitted.has(t.id)?'var(--green)':TC[t.id]||'#fff'}">${t.leader_name||t.name} ${submitted.has(t.id)?'✅':'⏳'}</div>`).join('');
 }
 function renderP3Panels(){
   const container=document.getElementById('p3-panels');
@@ -1543,6 +1729,13 @@ function renderScoreboard(){
   const title=document.getElementById('sb-title');
   const isEndOfGame1=gs?.phase===1;
   if(title)title.textContent=isEndOfGame1?'🏆 GAME 1 — FINAL RESULTS':`📊 PHASE ${gs?.phase||1} RESULTS`;
+  const banner=document.getElementById('mc-complete-banner');
+  const winnerEl=document.getElementById('mc-complete-winner');
+  if(banner&&winnerEl&&sorted[0]){
+    banner.style.display='block';
+    winnerEl.textContent=`${sorted[0].leader_name||sorted[0].name} leads with ${(sorted[0].total_score||0).toLocaleString()} pts`;
+    winnerEl.style.color=TC[sorted[0].id]||'#fff';
+  }
   const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
   // Top 3
   const top3=sorted.slice(0,3);
