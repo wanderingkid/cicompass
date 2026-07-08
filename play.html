@@ -1733,7 +1733,7 @@ function startMission2Timer(){
 const MISSION3_CONFIG = {
   durationSec: 60,
   questionCount: 4,
-  wagerTiers: [2000,4000,6000,8000,10000],
+  wagerTiers: [100,200,300,400,500],
   weaponsUnlockFromQuestion: 1, // 0-indexed — Question 2 onward
   stealPct: 0.5, // 50% of TARGET's own wager (Mission_3_Gambit.md)
 };
@@ -2420,7 +2420,7 @@ function renderLeaderP1Dashboard(){
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   const myName=my.leader_name||my.name||`ทีม ${player.team_id}`;
   document.getElementById('lcmd1-team').textContent=myName;
-  document.getElementById('lcmd1-score').textContent=`${(my.total_score||0).toLocaleString()} pts`;
+  document.getElementById('lcmd1-score').textContent=`${(my.trivia_score||0).toLocaleString()} pts`;
   // Freeze Charge Threshold = max(activeAnsweringPlayers, g1MinChargePlayers()) × g1ChargePerPlayer()
   // active_player_count tracks players only (Captain excluded) — see summary.
   const active=Math.max(my.active_player_count||0,g1MinChargePlayers());
@@ -2469,7 +2469,7 @@ function renderLeaderP1Dashboard(){
     if(capHud)capHud.setAttribute('data-state','freeze');
   } else fc.style.display='none';
   loadMomentum();
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const sorted=[...teams].sort((a,b)=>(b.trivia_score||0)-(a.trivia_score||0));
   document.getElementById('lcmd1-standings').innerHTML=sorted.map((t,i)=>{
     const nm=t.leader_name||t.name;const isMe=t.id===player.team_id;
     const f=t.frozen_until&&new Date(t.frozen_until)>new Date();
@@ -2477,7 +2477,7 @@ function renderLeaderP1Dashboard(){
     return `<div class="s-row ${isMe?'me':''}" style="border-left-color:${isMe?'var(--blue2)':'transparent'}">
       <div class="s-rank" style="color:${TC[t.id]};">${i+1}</div>
       <div class="s-name" style="color:${TC[t.id]};">${nm}${isMe?' 👈':''}</div>
-      <div class="s-pts">${(t.total_score||0).toLocaleString()}</div>
+      <div class="s-pts">${(t.trivia_score||0).toLocaleString()}</div>
       <div class="s-ico">${f?'❄️':sh?'🛡️':t.weapon_charges>0?'💣':''}</div>
     </div>`;
   }).join('');
@@ -2632,7 +2632,7 @@ function renderLeaderP2Dashboard(){
   if(!player||player.role!=='leader'||phase!==2)return;
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   document.getElementById('lcmd2-team').textContent=my.leader_name||my.name||`ทีม ${player.team_id}`;
-  document.getElementById('lcmd2-score').textContent=`${(my.total_score||0).toLocaleString()} pts`;
+  document.getElementById('lcmd2-score').textContent=`${(my.pipeline_score||0).toLocaleString()} pts`;
   const el=document.getElementById('m2-product-list');
   if(el){
     el.innerHTML=['A','B','C'].map(key=>{
