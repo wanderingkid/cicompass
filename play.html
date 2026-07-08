@@ -1706,8 +1706,10 @@ function pausedAwareNow(){
   return (gameState?.is_paused&&gameState?.paused_at)?new Date(gameState.paused_at).getTime():Date.now();
 }
 let mission2TimerInt=null;
+let mission2TimeUp=false;
 function startMission2Timer(){
   if(mission2TimerInt)clearInterval(mission2TimerInt);
+  mission2TimeUp=false;
   const dur=m2Duration();
   const tick=()=>{
     if(!gameState?.phase_start_at)return;
@@ -1719,7 +1721,16 @@ function startMission2Timer(){
       const el=document.getElementById(id);
       if(el){el.textContent=txt;el.classList.toggle('urgent',rem<=15&&rem>0);}
     });
-    if(rem<=0){clearInterval(mission2TimerInt);mission2TimerInt=null;}
+    if(rem<=0&&!mission2TimeUp){
+      mission2TimeUp=true;
+      clearInterval(mission2TimerInt);mission2TimerInt=null;
+      // Mission ends immediately when the timer expires — lock tapping and
+      // deployment client-side rather than waiting on a server phase change,
+      // matching the same guarantee already in place for Mission 1.
+      const tapZone=document.getElementById('tap-zone');
+      if(tapZone)tapZone.style.pointerEvents='none';
+      document.querySelectorAll('.m2-deploy-btn').forEach(b=>b.disabled=true);
+    }
   };
   tick();
   mission2TimerInt=setInterval(tick,500);
@@ -2597,7 +2608,7 @@ function spawnRipple(x,y){
 }
 function registerTap(x,y){
   if(!selTierVal){toast('เลือกสินค้าก่อน!');return;}
-  if(phase!==2)return; // don't gate on sub_state — the transient 'launch:...'
+  if(phase!==2||mission2TimeUp)return; // don't gate on sub_state — the transient 'launch:...'
                         // signal used for screen.html's animation shouldn't block tapping
   localTaps++;tapBuffer++;
   const cEl=document.getElementById('tap-count');
@@ -2662,6 +2673,7 @@ function renderLeaderP2Dashboard(){
   }).join('');
 }
 async function leaderLaunch(tier){
+  if(mission2TimeUp){toast('หมดเวลาแล้ว! ไม่สามารถ Deploy ได้');return;}
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   if(!m2Ready(my,tier)){toast(`${m2Product(tier).name} ยังไม่ชาร์จเต็ม!`);return;}
   const{data,error}=await sb.rpc('process_phase2_launch',{
