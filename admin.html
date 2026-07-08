@@ -628,6 +628,12 @@ function subscribeRT(){
   sb.channel('admin-players').on('postgres_changes',{event:'*',schema:'public',table:'players'},()=>{
     loadPlayersPanel();
   }).subscribe();
+  // RPC-007C — Mission Control's own factQs array had the same staleness
+  // bug as play.html: loaded once at initAdmin(), never refreshed.
+  sb.channel('admin-fact-qs').on('postgres_changes',
+    {event:'*',schema:'public',table:'fact_questions'},async()=>{
+      await loadFactQs();render();
+    }).subscribe();
 }
 
 function pollOnline(){
@@ -860,7 +866,8 @@ async function prevQ3(){
   toast(`⬅️ Q${n+1}`);
 }
 async function nextQ3(){
-  const n=Math.min(3,(gs?.active_question||0)+1);
+  const maxIdx=Math.max(0,(factQs?.length||4)-1);
+  const n=Math.min(maxIdx,(gs?.active_question||0)+1);
   await sb.from('game_state').update({active_question:n,submissions_open:false}).eq('id',1);
   toast(`➡️ Q${n+1}`);
 }
