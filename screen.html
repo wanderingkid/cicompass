@@ -137,30 +137,10 @@ body::before{content:'';position:fixed;inset:0;
 
 /* ── PHASE 1 RANKED LIST ── */
 #v-phase1{padding:0;gap:0;justify-content:center;position:absolute;inset:0;}
-.arena-background{position:absolute;inset:0;background-size:cover;background-position:center;
-  background-repeat:no-repeat;z-index:0;}
-/* Left side (Mission 1 / Frostbite / Knowledge Is Power) is baked into the
-   artwork — the old CSS-drawn label is retired but kept in DOM for JS. */
-.p1-header{display:none;}
-/* Right-side content zone: clears the artwork's left-side Mission title/
-   tagline/Compass HUD (reserved 0–30% of width) and stacks the status
-   zone above the leaderboard so neither overlaps the other. */
-.p1-content-zone{position:absolute;top:9vh;left:31vw;right:3.2vw;bottom:7vh;
-  display:flex;flex-direction:column;gap:1vh;z-index:2;}
-.p1-status-zone{flex-shrink:0;
-  display:flex;flex-direction:column;align-items:flex-end;gap:.3vh;}
-.p1-timer{font-family:'Inter',sans-serif;
-  font-size:clamp(1.6rem,3vw,2.6rem);font-weight:300;
-  color:#fff;text-shadow:0 0 20px rgba(96,165,250,0.5);letter-spacing:1px;}
-.p1-timer.urgent{color:var(--red);animation:urgPulse .5s infinite;}
 @keyframes urgPulse{0%,100%{opacity:1}50%{opacity:.3}}
-.p1-pool-lbl{font-family:'Inter',sans-serif;font-size:clamp(.6rem,.95vw,.78rem);
-  font-weight:400;letter-spacing:1.5px;color:rgba(255,255,255,.6);text-align:right;}
 
 /* Center — live leaderboard as premium broadcast graphic (F1 timing / Dynamic
    Island language): glass rows, energy-conduit bars, restrained glow. */
-.rank-list{position:static;z-index:1;display:flex;flex-direction:column;
-  gap:.42rem;flex:1;min-height:0;justify-content:center;padding:0;margin:0;}
 .rank-row{
   display:flex;align-items:center;gap:1rem;
   background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
@@ -169,7 +149,7 @@ body::before{content:'';position:fixed;inset:0;
   padding:clamp(.4rem,.7vw,.65rem) clamp(.8rem,1.5vw,1.5rem);
   border:1px solid rgba(255,255,255,0.09);
   position:relative;overflow:hidden;
-  transition:all .7s cubic-bezier(.34,1.56,.64,1);flex:1;
+  transition:all .7s cubic-bezier(.34,1.56,.64,1);
 }
 .rank-row.frozen{
   background:linear-gradient(135deg,rgba(96,165,250,0.22),rgba(30,58,138,0.12))!important;
@@ -177,12 +157,12 @@ body::before{content:'';position:fixed;inset:0;
   animation:rShake .25s infinite;
 }
 @keyframes rShake{0%{transform:translateX(0)}33%{transform:translateX(-2px)}66%{transform:translateX(2px)}100%{transform:translateX(0)}}
-.rank-num{font-size:clamp(1.5rem,2.8vw,3rem);font-weight:300;font-style:normal;
-  min-width:clamp(2.2rem,3.6vw,4rem);text-align:center;line-height:1;opacity:.85;
+.rank-num{font-size:clamp(1.2rem,2vw,2rem);font-weight:300;font-style:normal;
+  min-width:clamp(2rem,3vw,3.2rem);text-align:center;line-height:1;opacity:.85;
   font-family:'Inter',sans-serif;}
-.rank-name{font-family:'Inter',sans-serif;font-size:clamp(1rem,1.7vw,1.6rem);font-weight:500;flex:1;line-height:1.1;
+.rank-name{font-family:'Inter',sans-serif;font-size:clamp(.8rem,1.2vw,1.1rem);font-weight:500;flex:1;line-height:1.1;
   letter-spacing:.3px;}
-.rank-bar-wrap{flex:2;height:clamp(10px,1.5vw,18px);
+.rank-bar-wrap{flex:1.4;height:clamp(8px,1.1vw,12px);
   background:rgba(0,0,0,0.35);border-radius:20px;overflow:hidden;position:relative;
   border:1px solid rgba(255,255,255,.06);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.4);}
@@ -191,9 +171,9 @@ body::before{content:'';position:fixed;inset:0;
   box-shadow:0 0 12px 1px currentColor inset;}
 .rank-bar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:10px;
   background:rgba(255,255,255,.9);filter:blur(2.5px);border-radius:20px;}
-.rank-score{font-family:'Inter',sans-serif;font-size:clamp(.85rem,1.5vw,1.4rem);font-weight:600;
+.rank-score{font-family:'Inter',sans-serif;font-size:clamp(.7rem,1.1vw,.95rem);font-weight:600;
   letter-spacing:.5px;
-  min-width:clamp(5.5rem,8vw,9rem);text-align:right;line-height:1;}
+  min-width:clamp(4rem,6vw,6.5rem);text-align:right;line-height:1;}
 .rank-status{min-width:clamp(4rem,6vw,7rem);text-align:center;}
 .frozen-tag{font-size:clamp(.55rem,.9vw,.78rem);color:#93c5fd;font-weight:600;
   background:rgba(30,58,138,0.4);border-radius:20px;
@@ -598,15 +578,15 @@ body::before{content:'';position:fixed;inset:0;
 
 /* MISSION INTRO */
 #v-intro{position:relative;overflow:hidden;padding:0;}
-.intro-card-wrap{position:absolute;left:31vw;right:4vw;top:10vh;bottom:8vh;
+.intro-card-wrap{position:absolute;right:3vw;width:26vw;top:10vh;bottom:10vh;
   display:flex;flex-direction:column;justify-content:center;z-index:1;}
 .intro-card{opacity:0;transition:opacity .5s ease;position:absolute;left:0;right:0;}
 .intro-card.active{opacity:1;position:relative;}
-.intro-card-eyebrow{font-size:clamp(.65rem,1.1vw,.9rem);letter-spacing:3px;color:var(--gold2);
+.intro-card-eyebrow{font-size:clamp(.6rem,1vw,.8rem);letter-spacing:3px;color:var(--gold2);
   text-transform:uppercase;margin-bottom:.4rem;}
-.intro-card-body{font-size:clamp(1.1rem,2.1vw,2rem);font-weight:300;line-height:1.4;color:#fff;
-  text-shadow:0 2px 20px rgba(0,0,0,.6);max-width:60vw;}
-.intro-dots{position:absolute;bottom:3vh;left:31vw;display:flex;gap:.5rem;z-index:1;}
+.intro-card-body{font-size:clamp(.9rem,1.5vw,1.3rem);font-weight:300;line-height:1.4;color:#fff;
+  text-shadow:0 2px 20px rgba(0,0,0,.6);}
+.intro-dots{position:absolute;bottom:5vh;right:3vw;width:26vw;display:flex;justify-content:center;gap:.5rem;z-index:1;}
 .intro-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .3s;}
 .intro-dot.on{background:var(--gold2);width:22px;border-radius:5px;}
 
@@ -741,15 +721,20 @@ body::before{content:'';position:fixed;inset:0;
   <!-- PHASE 1 -->
   <div id="v-phase1" class="view">
     <div class="arena-background" id="phase1-bg" style="background-image:url('CompassOS_Lobby_Game1Hero.png');"></div>
-    <div class="p1-header">
-      <div class="p1-label">⚡ PHASE 1: SOLO SPRINT</div>
-    </div>
-    <div class="p1-content-zone">
-      <div class="p1-status-zone">
-        <div class="p1-timer" id="p1-timer">04:00</div>
+    <div class="arena-panel-zone">
+      <div class="arena-panel">
+        <div class="arena-panel-lbl">Mission Timer</div>
+        <div class="arena-timer-big" id="p1-timer">04:00</div>
         <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
       </div>
-      <div class="rank-list" id="rank-list"></div>
+      <div class="arena-panel" style="flex:0 0 auto;max-height:22vh;overflow-y:auto;">
+        <div class="arena-panel-lbl">📡 Live Event Feed</div>
+        <div id="p1-feed"></div>
+      </div>
+      <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
+        <div class="arena-panel-lbl">🏆 Tournament Standings</div>
+        <div id="p1-lb"></div>
+      </div>
     </div>
   </div>
 
@@ -1011,12 +996,21 @@ function tName(teamId){
 }
 function addFeed(msg){
   const feed=document.getElementById('atk-feed');
-  if(!feed)return;
-  const el=document.createElement('div');
-  el.className='atk-entry';el.textContent=msg;
-  feed.appendChild(el);
-  while(feed.children.length>4)feed.removeChild(feed.firstChild);
-  setTimeout(()=>el.remove(),8000);
+  if(feed){
+    const el=document.createElement('div');
+    el.className='atk-entry';el.textContent=msg;
+    feed.appendChild(el);
+    while(feed.children.length>4)feed.removeChild(feed.firstChild);
+    setTimeout(()=>el.remove(),8000);
+  }
+  // RPC-007D — standardized per-mission "Live Event Feed" panel
+  const std=document.getElementById(gs?.phase===1?'p1-feed':gs?.phase===2?'p2-feed':null);
+  if(std){
+    const row=document.createElement('div');
+    row.className='feed-row';row.textContent=msg;
+    std.insertBefore(row,std.firstChild);
+    while(std.children.length>6)std.removeChild(std.lastChild);
+  }
 }
 async function updateLobbyTeams(){
   const el=document.getElementById('lobby-teams');
@@ -1147,10 +1141,13 @@ async function presenterAct(action){
 function applyState(){
   if(!gs)return;
   const p=gs.phase,sub=gs.sub_state||'lobby';
-  const showHero=p>0&&sub!=='intro'&&sub!=='champion';
-  document.getElementById('hero-strip').style.display=showHero?'flex':'none';
-  document.getElementById('main').style.top=showHero?'76px':'0';
-  if(showHero)updateHeroStrip();
+  // RPC-007D — top score strip removed; Tournament Standings (right-hand
+  // panel, all missions) replaces it. #hero-strip kept in DOM (id preserved)
+  // but permanently hidden; updateHeroStrip() calls left in place below are
+  // now safe no-ops rather than removed outright, to avoid touching every
+  // call site for a component that's simply retired.
+  document.getElementById('hero-strip').style.display='none';
+  document.getElementById('main').style.top='0';
 
   // Pause overlay — layered above whichever view is active (RPC-007A/007B).
   document.getElementById('pause-overlay').classList.toggle('show',!!gs.is_paused);
@@ -1203,6 +1200,7 @@ function showView(id){
 
 // HERO STRIP
 function updateHeroStrip(prevTeams){
+  return; // RPC-007D — top score strip retired; Tournament Standings panel replaces it
   const strip=document.getElementById('hero-strip');
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
   // Build or update cells
@@ -1274,20 +1272,51 @@ function startTimer(elId,phase){
   },500);
 }
 
-// RANK LIST (Phase 1)
+// RPC-007D — shared FLIP-style reorder animation, used by all three
+// mission leaderboards (Tournament Standings). Reuses existing row nodes
+// (keyed by team id) rather than recreating them, then animates any
+// position change with a single transform transition (~350ms).
+function flipReorder(containerId,sortedTeams,rowContentFn){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  const firstTops={};
+  container.querySelectorAll('[data-team-id]').forEach(row=>{
+    firstTops[row.dataset.teamId]=row.getBoundingClientRect().top;
+  });
+  sortedTeams.forEach((t,i)=>{
+    let row=container.querySelector(`[data-team-id="${t.id}"]`);
+    if(!row){row=document.createElement('div');row.dataset.teamId=t.id;}
+    rowContentFn(row,t,i);
+    container.appendChild(row);
+  });
+  container.querySelectorAll('[data-team-id]').forEach(row=>{
+    const first=firstTops[row.dataset.teamId];
+    if(first==null)return;
+    const last=row.getBoundingClientRect().top;
+    const delta=first-last;
+    if(Math.abs(delta)>0.5){
+      row.style.transition='none';
+      row.style.transform=`translateY(${delta}px)`;
+      requestAnimationFrame(()=>{
+        row.style.transition='transform 350ms ease';
+        row.style.transform='';
+      });
+    }
+  });
+}
+
+// RANK LIST (Phase 1) — now the standardized "Tournament Standings" panel
 function renderRankList(){
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
   const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
-  const container=document.getElementById('rank-list');
   const poolLbl=document.getElementById('p1-pool-lbl');
   if(poolLbl)poolLbl.textContent=triviaQs.length?`${triviaQs.length} QUESTIONS IN PLAY`:'';
-  sorted.forEach((t,rank)=>{
+  flipReorder('p1-lb',sorted,(row,t,rank)=>{
+    row.id=`rr-${t.id}`;
     const clr=TC[t.id]||'#fff';
     const frozen=t.frozen_until&&new Date(t.frozen_until)>new Date();
     const nm=t.leader_name||t.name;
     const pct=Math.max(4,((t.total_score||0)/maxScore)*86);
-    let row=document.getElementById(`rr-${t.id}`);
-    if(!row){row=document.createElement('div');row.id=`rr-${t.id}`;row.className='rank-row';container.appendChild(row);}
     row.className=`rank-row${frozen?' frozen':''}`;
     row.style.background=frozen?'rgba(30,58,138,0.2)':`rgba(${hexRgb(clr)},.04)`;
     row.style.borderColor=frozen?'rgba(96,165,250,0.35)':`rgba(${hexRgb(clr)},.12)`;
@@ -1414,15 +1443,13 @@ function renderChampion(){
 // BLITZ overlay — lightweight bars/feed/leaderboard, no animated map (per spec)
 let p2FeedItems=[];
 function renderBlitzOverlay(){
-  const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
-  const lb=document.getElementById('p2-lb');
-  if(lb){
-    lb.innerHTML=sorted.map((t,i)=>`<div class="arena-lb-row">
-      <div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  flipReorder('p2-lb',sorted,(row,t,i)=>{
+    row.className='arena-lb-row';
+    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
       <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.pipeline_score||0).toLocaleString()}</div>
-    </div>`).join('');
-  }
+      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
+  });
   const terr=document.getElementById('p2-terr');
   if(terr){
     const maxTaps=Math.max(1,...teams.flatMap(t=>[t.tier_a_taps||0,t.tier_b_taps||0,t.tier_c_taps||0]));
@@ -1448,14 +1475,12 @@ function addBlitzFeed(msg){
 // Mission Control drives the sequence, no calculations happen here.
 function renderGambitReveal(stage){
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  const lb=document.getElementById('p3-lb');
-  if(lb){
-    lb.innerHTML=sorted.map((t,i)=>`<div class="arena-lb-row">
-      <div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+  flipReorder('p3-lb',sorted,(row,t,i)=>{
+    row.className='arena-lb-row';
+    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
       <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>
-    </div>`).join('');
-  }
+      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
+  });
   const stageOrder=['answer','teamanswers','wagers','x2','shield','steals','done'];
   const idx=stage?stageOrder.indexOf(stage):-1;
   stageOrder.forEach((s,i)=>{
