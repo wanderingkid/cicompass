@@ -1181,6 +1181,10 @@ async function endMission(){
   if(!confirm('End current mission now?'))return;
   await sb.from('game_state').update({sub_state:'scoreboard'}).eq('id',1);
   toast('⏹ Mission ended — showing scoreboard');
+  // Immediately surface the placement review — ending a mission should lead
+  // straight into ranking/confirmation rather than requiring the admin to
+  // separately find "Freeze & Rank Mission" further down the page.
+  if(gs.phase===1||gs.phase===2)openPlacementReview();
 }
 
 // ── MISSION COMPLETE / ARENA CONTROL ────────────────────
