@@ -2030,6 +2030,25 @@ function subscribeAll(){
     const{data}=await sb.from('teams').select('*').order('id');
     if(data){teams=data;onTeamsUpdate();}
   }).subscribe();
+  // RPC-007C — editor.html question changes (add/edit/delete) were never
+  // picked up after initial load; trivia_questions and fact_questions had
+  // no realtime subscription at all. Same shared pattern for both tables,
+  // consistent with Mission 1/2/3 using one loading architecture.
+  sb.channel('play-trivia-qs').on('postgres_changes',
+    {event:'*',schema:'public',table:'trivia_questions'},async()=>{
+      const{data}=await sb.from('trivia_questions').select('*').order('sort_order');
+      if(data){triviaQs=data;shuffledQs=[];if(phase===1&&!isFrozen&&!isPenalty)renderTrivia();}
+    }).subscribe();
+  sb.channel('play-fact-qs').on('postgres_changes',
+    {event:'*',schema:'public',table:'fact_questions'},async()=>{
+      const{data}=await sb.from('fact_questions').select('*').order('sort_order');
+      if(data){
+        factQs=data;
+        if(phase===3){
+          if(player?.role==='leader')renderLeaderP3();else renderFact();
+        }
+      }
+    }).subscribe();
   sb.channel('play-self-kick').on('postgres_changes',{event:'DELETE',schema:'public',table:'players'},p=>{
     if(player&&p.old&&p.old.id===player.id){
       localStorage.removeItem('pr_pid');
