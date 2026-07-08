@@ -1336,7 +1336,6 @@ function renderRankList(){
       </div>
       <div class="rank-score" style="color:${clr};">${(t.total_score||0).toLocaleString()}</div>`;
   });
-  sorted.forEach(t=>{const r=document.getElementById(`rr-${t.id}`);if(r)container.appendChild(r);});
   startFrozenCountdowns();
 }
 function startFrozenCountdowns(){
