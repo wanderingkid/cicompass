@@ -1120,7 +1120,6 @@ body::before{content:'';position:fixed;inset:0;
        none of which are relevant to a simple idle waiting state. -->
   <g id="compass-hud" transform="translate(100,100)">
     <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
-      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
       <g id="chud-sweep" class="chud-sweep">
         <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
         <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
@@ -1551,7 +1550,9 @@ const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
 const LOGO_URL = ''; // paste your logo URL here when ready
 
-const STREAK_BONUS = [0,0,0,15,25,35,45,50];
+// RPC-009H: synced to SQL — bonus starts only once the streak reaches 4
+// (i.e. after 3 in a row are already banked), flat 15 from there on.
+const STREAK_BONUS = [0,0,0,0,15,15,15,15];
 /* ============================================================
    MISSION 2 CONFIGURATION — single source of truth for all
    Mission 2 balancing values (RPC-005B). Hardcoded by design;
@@ -1671,7 +1672,7 @@ const DEMO_AUTO_SECS = 4;
    Reads optional overrides from game_state so Mission Control can tune these
    without a code change or schema migration; falls back to documented defaults
    when the field isn't present. */
-const GAME1_DEFAULTS = { durationSec:150, chargePerPlayer:5, streakStart:3, minChargePlayers:3 };
+const GAME1_DEFAULTS = { durationSec:150, chargePerPlayer:5, streakStart:4, minChargePlayers:3 };
 function g1Duration(){ return (gameState&&gameState.phase1_duration)||GAME1_DEFAULTS.durationSec; }
 function g1ChargePerPlayer(){ return (gameState&&gameState.charge_per_player)||GAME1_DEFAULTS.chargePerPlayer; }
 function g1StreakStart(){ return (gameState&&gameState.streak_start)||GAME1_DEFAULTS.streakStart; }
@@ -2102,7 +2103,7 @@ function updateWait(msg){
 // with a text swap — Tournament Standing in particular needs to actually
 // show the team's points/rank, not just point at the Arena screen.
 const MISSION_WAIT_MSG={
-  background:'ภารกิจกำลังจะเริ่ม...<br>ดูหน้าจอ Arena เพื่อติดตาม'
+  background:'ภารกิจกำลังจะเริ่ม...<br>ดูหน้าจอด้านหน้าห้องเพื่อติดตาม'
 };
 function showMissionWaitScreen(kind){
   showScreen('s-wait');
