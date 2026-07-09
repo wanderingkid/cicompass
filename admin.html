@@ -6,456 +6,358 @@
 <title>ADMIN — Portfolio Race</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap');
-:root{--bg:#0a0a0f;--card:#1a1a2e;--border:#2a2a3e;
-  --acc:#ff6b35;--a2:#00d4ff;--a3:#7fff00;--gold:#ffd700;--danger:#ff2d55;
-  --purple:#9b30ff;--text:#f0f0f0;--muted:#555;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0a0e1a;--bg2:#0d1220;--card:rgba(255,255,255,0.045);--card2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.16);
+  --blue:#3b82f6;--cyan:#22d3ee;
+  --m1:#60a5fa;--m2:#2563eb;--m3:#f59e0b;
+  --green:#10b981;--amber:#f59e0b;--red:#ef4444;
+  --text:#f1f5f9;--text2:#a8b3c5;--muted:#6b7688;
+  --r:16px;--r2:12px;--r3:10px;
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:'Kanit',sans-serif;min-height:100vh;}
+body{background:radial-gradient(ellipse at top,#0f1830,var(--bg));color:var(--text);
+  font-family:'Inter',sans-serif;min-height:100vh;}
 
 /* LOGIN */
 #login{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:2rem;gap:1rem;}
-#login h1{font-size:2rem;font-weight:900;color:var(--acc);}
-#login input{width:100%;max-width:260px;padding:.85rem;background:var(--card);
-  border:2px solid var(--border);border-radius:10px;color:var(--text);
-  font-family:'Kanit',sans-serif;font-size:1.1rem;text-align:center;outline:none;}
-#login button{width:100%;max-width:260px;padding:.85rem;background:var(--acc);
-  border:none;border-radius:10px;color:#fff;font-family:'Kanit',sans-serif;
-  font-size:1rem;font-weight:700;cursor:pointer;}
+  min-height:100vh;padding:2rem;gap:1.1rem;}
+#login .compass-icon{width:64px;height:64px;opacity:.9;margin-bottom:.3rem;}
+#login h1{font-size:1.5rem;font-weight:700;color:var(--text);letter-spacing:1px;}
+#login .login-sub{font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:-.6rem;}
+#login input{width:100%;max-width:280px;padding:1rem;background:var(--card);
+  border:1.5px solid var(--border);border-radius:var(--r3);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:1rem;text-align:center;outline:none;}
+#login input:focus{border-color:var(--blue);}
+#login button{width:100%;max-width:280px;padding:1rem;background:var(--blue);
+  border:none;border-radius:var(--r3);color:#fff;font-family:'Inter',sans-serif;
+  font-size:.95rem;font-weight:600;cursor:pointer;min-height:48px;}
 
-/* APP */
-#app{display:none;padding:.85rem;max-width:480px;margin:0 auto;padding-bottom:4rem;}
-.topbar{display:flex;align-items:center;justify-content:space-between;
-  padding:.5rem 0;margin-bottom:.6rem;border-bottom:1px solid var(--border);}
-.topbar h2{font-size:.9rem;font-weight:900;color:var(--acc);letter-spacing:1px;}
-.phase-badge{padding:.2rem .6rem;border-radius:12px;font-size:.65rem;font-weight:700;
-  background:var(--card);border:1px solid var(--a2);color:var(--a2);}
+/* APP SHELL */
+#app{display:none;max-width:520px;margin:0 auto;}
+#app-scroll{padding:0 .85rem 3rem;}
 
-/* STATUS BAR */
-.status-bar{display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem;flex-wrap:wrap;}
-.badge{border-radius:12px;padding:.12rem .45rem;font-size:.65rem;font-weight:700;}
-.badge-green{background:rgba(127,255,0,.15);color:var(--a3);border:1px solid var(--a3);}
-.badge-blue{background:rgba(0,212,255,.12);color:var(--a2);border:1px solid var(--a2);}
-.badge-orange{background:rgba(255,107,53,.12);color:var(--acc);border:1px solid var(--acc);}
+/* HEADER — pinned */
+#mc-header{position:sticky;top:0;z-index:50;background:rgba(10,14,26,0.92);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);padding:.7rem .85rem;
+  display:flex;flex-direction:column;gap:.45rem;max-width:520px;margin:0 auto;}
+.mc-h-top{display:flex;align-items:center;gap:.55rem;}
+.mc-h-icon{width:26px;height:26px;flex-shrink:0;opacity:.92;}
+.mc-h-mission{font-size:.98rem;font-weight:700;letter-spacing:.5px;flex:1;min-width:0;}
+.mc-h-stage{font-size:.62rem;font-weight:600;color:var(--text2);text-transform:uppercase;
+  letter-spacing:1px;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:.22rem .6rem;flex-shrink:0;}
+.mc-h-mid{display:flex;align-items:center;gap:.6rem;}
+.mc-h-countdown{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;
+  font-size:1.3rem;font-weight:700;color:var(--text);}
+.mc-h-countdown.paused{color:var(--amber);}
+.mc-h-qnum{font-size:.72rem;color:var(--text2);}
+.mc-h-tp{display:flex;gap:.35rem;margin-left:auto;}
+.mc-h-tp-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.6rem;font-weight:700;border:1.5px solid var(--border);color:var(--muted);}
+.mc-h-tp-dot.done{background:var(--green);border-color:var(--green);color:#fff;}
+.mc-h-tp-dot.active{background:var(--blue);border-color:var(--blue);color:#fff;}
 
-/* SCORES */
-.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.4rem;}
-.sc{background:var(--card);border-radius:8px;padding:.5rem .3rem;text-align:center;
-  border:1px solid var(--border);transition:all .3s;}
-.sc.frozen{border-color:#4af;background:rgba(0,60,140,.2);}
-.sc.leading{border-color:var(--gold);}
-.sc-name{font-size:.58rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sc-pts{font-size:1.05rem;font-weight:900;color:var(--a3);}
-.sc-meta{font-size:.52rem;color:var(--muted);margin-top:.1rem;}
+/* SECTION SHELL */
+.mc-sec{margin-top:1.1rem;}
+.mc-sec-head{display:flex;align-items:center;justify-content:space-between;
+  padding:.2rem 0;cursor:pointer;user-select:none;}
+.mc-sec-title{font-size:.68rem;font-weight:700;color:var(--text2);letter-spacing:1.5px;
+  text-transform:uppercase;}
+.mc-sec-chevron{color:var(--muted);transition:transform .2s;font-size:.7rem;}
+.mc-sec-chevron.open{transform:rotate(90deg);}
+.mc-sec-body{display:none;margin-top:.5rem;}
+.mc-sec-body.open{display:block;animation:mcFadeIn .2s ease;}
+@keyframes mcFadeIn{from{opacity:0}to{opacity:1}}
 
-/* SECTIONS */
-.sec{font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:2px;
-  text-transform:uppercase;margin:.85rem 0 .3rem;}
-.div{height:1px;background:var(--border);margin:.65rem 0;}
+/* GLASS CARD */
+.glass{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  padding:.9rem;}
 
-/* BUTTONS */
-.btn{width:100%;padding:.7rem;border:none;border-radius:9px;font-family:'Kanit',sans-serif;
-  font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:.3rem;}
-.btn:active{transform:scale(.97);}
-.btn-acc{background:var(--acc);color:#fff;}
-.btn-a2{background:var(--a2);color:#000;}
-.btn-a3{background:var(--a3);color:#000;}
-.btn-gold{background:var(--gold);color:#000;}
-.btn-danger{background:var(--danger);color:#fff;}
-.btn-purple{background:var(--purple);color:#fff;}
-.btn-dark{background:var(--card);color:var(--text);border:1px solid var(--border);}
-.row{display:flex;gap:.3rem;margin-bottom:.3rem;}
-.row .btn{margin:0;}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-bottom:.3rem;}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;margin-bottom:.3rem;}
+/* PRIMARY WORKFLOW */
+#primary-workflow{display:flex;flex-direction:column;gap:.5rem;}
+.mc-btn{width:100%;padding:.95rem 1rem;border-radius:var(--r3);border:none;
+  font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;
+  transition:transform .15s,opacity .15s;min-height:48px;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;}
+.mc-btn:active{transform:scale(.98);}
+.mc-btn-primary{background:linear-gradient(135deg,var(--blue),#2563eb);color:#fff;
+  font-size:.95rem;padding:1.1rem;box-shadow:0 4px 20px rgba(59,130,246,.35);}
+.mc-btn-secondary{background:transparent;border:1.5px solid var(--border2);color:var(--text);}
+.mc-btn-secondary:active{background:var(--card);}
+.mc-btn-danger{background:var(--red);color:#fff;}
+.mc-btn:disabled,.mc-btn-disabled{background:var(--card);color:var(--muted);
+  border:1.5px solid var(--border);opacity:.5;pointer-events:none;}
+.mc-btn-row{display:flex;gap:.5rem;}
+.mc-btn-row .mc-btn{flex:1;}
+.mc-empty-hint{font-size:.75rem;color:var(--muted);text-align:center;padding:1.2rem 0;}
 
-/* DEMO CONTROL */
-.demo-bar{display:flex;gap:.3rem;align-items:center;margin-bottom:.3rem;}
-.demo-bar .btn{flex:1;margin:0;padding:.55rem;font-size:.75rem;}
-.demo-step-lbl{font-size:.65rem;color:var(--muted);text-align:center;flex:1.2;}
+/* MISSION INFO — editable config */
+.mc-cfg-group{margin-bottom:.8rem;}
+.mc-cfg-label{font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:.35rem;}
+.mc-cfg-row{display:flex;gap:.4rem;margin-bottom:.4rem;flex-wrap:wrap;}
+.mc-cfg-row input{flex:1;min-width:64px;padding:.6rem .7rem;background:var(--bg2);
+  border:1px solid var(--border);border-radius:var(--r3);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:.82rem;outline:none;min-height:44px;}
+.mc-cfg-row input:focus{border-color:var(--blue);}
+.mc-save-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text);
+  border-radius:var(--r3);padding:.55rem 1rem;font-family:'Inter',sans-serif;
+  font-size:.78rem;font-weight:600;cursor:pointer;min-height:40px;}
 
-/* Q NAV */
-.q-nav{display:flex;gap:.3rem;align-items:center;margin-bottom:.3rem;}
-.q-nav .btn{flex:1;padding:.5rem;margin:0;font-size:.75rem;}
-.q-cur{background:var(--card);border-radius:8px;padding:.5rem;text-align:center;
-  font-size:.82rem;font-weight:700;min-width:60px;border:1px solid var(--border);}
+/* LIVE STATISTICS */
+#live-stats{max-height:60vh;overflow-y:auto;}
+.mc-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-bottom:.6rem;}
+.mc-stat-card{background:var(--card);border-radius:var(--r3);padding:.7rem;
+  border:1px solid var(--border);text-align:center;}
+.mc-stat-val{font-size:1.3rem;font-weight:700;color:var(--cyan);}
+.mc-stat-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:.1rem;}
+.mc-lb-row{display:flex;align-items:center;gap:.5rem;padding:.4rem .55rem;
+  background:var(--card);border-radius:var(--r3);margin-bottom:.3rem;border:1px solid var(--border);}
+.mc-lb-rank{font-weight:700;min-width:1.4rem;text-align:center;}
+.mc-lb-name{flex:1;font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mc-lb-score{font-size:.8rem;font-weight:700;color:var(--text2);}
 
-/* P3 PANEL */
-.p3-box{background:var(--card);border-radius:10px;padding:.7rem;
-  border:1px solid var(--border);margin-bottom:.3rem;}
-.p3-box-title{font-size:.65rem;font-weight:700;color:var(--gold);margin-bottom:.45rem;letter-spacing:1px;}
-.placement-row{display:flex;align-items:center;gap:.4rem;font-size:.75rem;
-  background:rgba(255,255,255,.03);border-radius:8px;padding:.4rem .5rem;margin-bottom:.25rem;}
-.placement-rank{font-weight:900;min-width:1.4rem;color:var(--gold);}
-.placement-name{flex:1;}
-.placement-pts{font-size:.65rem;color:var(--muted);min-width:4.5rem;text-align:right;}
-.placement-btn{background:var(--card);border:1px solid var(--border);color:var(--fg);
-  border-radius:6px;width:1.6rem;height:1.6rem;font-size:.7rem;cursor:pointer;flex-shrink:0;}
-.sub-row{display:flex;align-items:center;gap:.35rem;font-size:.72rem;
-  background:rgba(255,255,255,.03);border-radius:6px;padding:.28rem .45rem;margin-bottom:.2rem;}
-.sub-team{font-weight:700;min-width:75px;font-size:.68rem;}
-.sub-detail{flex:1;font-size:.62rem;color:var(--muted);}
-.sub-done{color:var(--a3);}
-.sub-weapon{font-size:.65rem;}
+/* OPERATIONS */
+.mc-op-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem;}
+.mc-op-row input,.mc-op-row select{flex:1;padding:.6rem .7rem;background:var(--bg2);
+  border:1px solid var(--border);border-radius:var(--r3);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:.8rem;outline:none;min-height:44px;}
+.mc-color-swatch{width:22px;height:22px;border-radius:50%;display:inline-block;
+  border:2px solid var(--border);vertical-align:middle;margin-right:.35rem;cursor:pointer;}
+.mc-color-swatch.sel{border-color:#fff;}
 
-/* REVEAL CONTROLS */
-.reveal-box{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);
-  border-radius:10px;padding:.7rem;margin-bottom:.3rem;}
-.reveal-title{font-size:.65rem;font-weight:700;color:var(--gold);margin-bottom:.4rem;letter-spacing:1px;}
+/* EMERGENCY */
+#emergency.mc-sec .mc-sec-head{background:rgba(239,68,68,.06);border-radius:var(--r3);
+  padding:.6rem .7rem;border:1px solid rgba(239,68,68,.25);}
+#emergency .mc-sec-title{color:var(--red);}
+.mc-danger-warn{font-size:.68rem;color:var(--red);opacity:.85;margin-bottom:.6rem;
+  text-align:center;}
 
-/* PHASE 2 LAUNCH MONITOR */
-.launch-monitor{background:var(--card);border-radius:10px;padding:.7rem;
-  border:1px solid var(--border);margin-bottom:.3rem;}
-.launch-title{font-size:.65rem;font-weight:700;color:var(--a2);margin-bottom:.4rem;letter-spacing:1px;}
-.team-launch-row{display:flex;align-items:center;gap:.3rem;margin-bottom:.25rem;}
-.tl-name{font-size:.65rem;font-weight:700;min-width:70px;}
-.tier-bars{display:flex;gap:.2rem;flex:1;}
-.tier-mini{flex:1;background:#111;border-radius:4px;height:10px;overflow:hidden;position:relative;}
-.tier-mini-fill{height:100%;border-radius:4px;transition:width .4s;}
-.tier-mini-fill.A{background:var(--acc);}
-.tier-mini-fill.B{background:var(--a2);}
-.tier-mini-fill.C{background:var(--a3);}
-
-/* LEADER NAMES */
-.leader-row{display:flex;gap:.25rem;align-items:center;margin-bottom:.25rem;}
-.leader-row input{flex:1;padding:.42rem .55rem;background:var(--card);
-  border:1px solid var(--border);border-radius:7px;color:var(--text);
-  font-family:'Kanit',sans-serif;font-size:.78rem;outline:none;}
-.leader-row .save-btn{padding:.42rem .6rem;border-radius:7px;border:none;
-  background:var(--a2);color:#000;font-family:'Kanit',sans-serif;
-  font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;}
-
-/* MANUAL ADJUST */
-.adj-grid{display:grid;grid-template-columns:1fr 1fr 52px;gap:.3rem;align-items:center;}
-select,input[type=number],input[type=text]{padding:.45rem .55rem;background:var(--card);
-  border:1px solid var(--border);border-radius:7px;color:var(--text);
-  font-family:'Kanit',sans-serif;font-size:.82rem;width:100%;outline:none;}
-
-/* DEBRIEF STATS */
-.debrief-box{background:var(--card);border-radius:10px;padding:.7rem;
-  border:1px solid var(--border);margin-bottom:.3rem;}
-.debrief-title{font-size:.65rem;font-weight:700;color:var(--acc);margin-bottom:.4rem;letter-spacing:1px;}
-.debrief-stat{font-size:.68rem;color:var(--muted);margin-bottom:.15rem;}
-.debrief-stat span{color:var(--text);font-weight:700;}
-
-/* PLAYERS PANEL */
-.player-row{display:flex;align-items:center;gap:.4rem;padding:.35rem .5rem;
-  background:var(--card);border-radius:8px;margin-bottom:.25rem;
-  border:1px solid var(--border);font-size:.72rem;}
-.player-row .pteam{min-width:52px;font-weight:700;}
+/* PLAYERS PANEL (Emergency) */
+.player-row{display:flex;align-items:center;gap:.5rem;padding:.5rem .6rem;
+  background:var(--card);border-radius:var(--r3);margin-bottom:.3rem;
+  border:1px solid var(--border);font-size:.78rem;min-height:44px;}
+.player-row .pteam{min-width:52px;font-weight:600;}
 .player-row .prole{min-width:20px;text-align:center;}
 .player-row .pname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.kick-btn{background:var(--danger);color:#fff;border:none;border-radius:6px;
-  padding:.3rem .55rem;font-size:.65rem;font-weight:700;cursor:pointer;flex-shrink:0;}
-.kick-btn:active{transform:scale(.95);}
+.kick-btn{background:var(--red);color:#fff;border:none;border-radius:8px;
+  padding:.4rem .65rem;font-size:.68rem;font-weight:600;cursor:pointer;flex-shrink:0;min-height:36px;}
 #players-list{max-height:280px;overflow-y:auto;}
-.player-count-lbl{font-size:.62rem;color:var(--muted);margin-bottom:.4rem;}
+.player-count-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.5rem;}
+
+/* NOTES */
+.mc-note-row{display:flex;align-items:center;gap:.4rem;background:var(--card);
+  border-radius:var(--r3);padding:.5rem .6rem;margin-bottom:.3rem;border:1px solid var(--border);}
+.mc-note-text{flex:1;font-size:.78rem;}
+.mc-note-del{background:var(--red);color:#fff;border:none;border-radius:8px;
+  padding:.3rem .55rem;font-size:.65rem;cursor:pointer;flex-shrink:0;}
+.mc-suggest-chip{display:inline-block;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:.3rem .65rem;font-size:.68rem;color:var(--muted);
+  cursor:pointer;margin:.15rem .2rem .15rem 0;}
+
+/* PLACEMENT REVIEW */
+.placement-row{display:flex;align-items:center;gap:.45rem;font-size:.8rem;
+  background:var(--bg2);border-radius:var(--r3);padding:.5rem .6rem;margin-bottom:.3rem;}
+.placement-rank{font-weight:700;min-width:1.5rem;color:var(--m3);}
+.placement-name{flex:1;}
+.placement-pts{font-size:.7rem;color:var(--muted);min-width:4.5rem;text-align:right;}
+.placement-btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;width:1.8rem;height:1.8rem;font-size:.75rem;cursor:pointer;flex-shrink:0;}
 
 /* TOAST */
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
-  background:var(--acc);color:#fff;padding:.45rem .9rem;border-radius:14px;
-  font-weight:700;font-size:.75rem;opacity:0;transition:opacity .3s;
-  pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center;}
+  background:var(--blue);color:#fff;padding:.55rem 1rem;border-radius:16px;
+  font-weight:600;font-size:.78rem;opacity:0;transition:opacity .3s;
+  pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);}
 #toast.show{opacity:1;}
-
-/* ============================================================
-   RPC-007A — MISSION CONTROL ADDITIONS
-   ============================================================ */
-.mc-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.4rem;}
-.mc-stat{background:var(--card);border-radius:8px;padding:.5rem .3rem;text-align:center;border:1px solid var(--border);}
-.mc-stat-val{font-size:1.1rem;font-weight:900;color:var(--a2);}
-.mc-stat-lbl{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-.mc-dash-row{display:flex;justify-content:space-between;font-size:.72rem;padding:.3rem 0;
-  border-bottom:1px solid var(--border);}
-.mc-dash-row span:first-child{color:var(--muted);}
-.mc-dash-row span:last-child{font-weight:700;}
-.mc-toggle-row{display:flex;align-items:center;justify-content:space-between;
-  background:var(--card);border-radius:8px;padding:.5rem .7rem;margin-bottom:.3rem;
-  border:1px solid var(--border);font-size:.75rem;}
-.mc-collapsible-head{display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;padding:.5rem .2rem;user-select:none;}
-.mc-collapsible-head.qa{background:rgba(255,45,85,.08);border-radius:8px;padding:.5rem .7rem;}
-.mc-collapsible-body{display:none;}
-.mc-collapsible-body.open{display:block;}
-.mc-chevron{transition:transform .2s;}
-.mc-chevron.rot{transform:rotate(90deg);}
-.mc-intro-card-lbl{font-size:.68rem;color:var(--muted);text-align:center;flex:1.4;}
-.mc-color-swatch{width:20px;height:20px;border-radius:50%;display:inline-block;
-  border:2px solid var(--border);vertical-align:middle;margin-right:.3rem;cursor:pointer;}
-.mc-color-swatch.sel{border-color:#fff;}
-.mc-note-row{display:flex;align-items:center;gap:.3rem;background:var(--card);
-  border-radius:8px;padding:.4rem .5rem;margin-bottom:.25rem;border:1px solid var(--border);}
-.mc-note-text{flex:1;font-size:.72rem;}
-.mc-note-del{background:var(--danger);color:#fff;border:none;border-radius:6px;
-  padding:.25rem .5rem;font-size:.62rem;cursor:pointer;flex-shrink:0;}
-.mc-team-mgmt-card{background:var(--card);border-radius:10px;padding:.6rem;
-  border:1px solid var(--border);margin-bottom:.35rem;}
-.mc-team-mgmt-head{display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem;}
-.mc-suggest-chip{display:inline-block;background:var(--card);border:1px solid var(--border);
-  border-radius:14px;padding:.25rem .6rem;font-size:.65rem;color:var(--muted);
-  cursor:pointer;margin:.15rem .15rem 0 0;}
 </style>
 </head>
 <body>
 
 <div id="login">
-  <h1>⚡ ADMIN</h1>
-  <p style="color:var(--muted);font-size:.8rem;">Portfolio Acceleration Race</p>
+  <svg viewBox="0 0 100 100" class="compass-icon" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/><path d="M50 12 L58 46 L50 50 L42 46 Z" fill="#3b82f6"/><path d="M50 88 L42 54 L50 50 L58 54 Z" fill="rgba(255,255,255,0.3)"/><path d="M12 50 L46 42 L50 50 L46 58 Z" fill="rgba(255,255,255,0.15)"/><path d="M88 50 L54 58 L50 50 L54 42 Z" fill="rgba(255,255,255,0.15)"/><circle cx="50" cy="50" r="4" fill="#22d3ee"/></svg>
+  <h1>MISSION CONTROL</h1>
+  <p class="login-sub">Event Director Console</p>
   <input type="password" id="pwd" placeholder="Password"/>
-  <button onclick="doLogin()">เข้าสู่ระบบ</button>
+  <button onclick="doLogin()">Enter</button>
 </div>
 
 <div id="app">
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <h2>⚡ EMCEE CONTROL</h2>
-    <span class="phase-badge" id="phase-lbl">LOBBY</span>
-  </div>
-
-  <!-- STATUS -->
-  <div class="status-bar">
-    <span class="badge badge-green" id="online-badge">0 online</span>
-    <span class="badge badge-blue" id="sub-badge">lobby</span>
-    <span class="badge badge-orange" id="q-badge">Q—</span>
-  </div>
-
-  <!-- SCORES -->
-  <div class="sec">📊 Live Scores</div>
-  <div class="score-grid" id="score-grid"></div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ LOBBY & EVENT FLOW (RPC-007A) ═══════════ -->
-  <div class="sec">🚪 Lobby & Event Flow</div>
-  <div class="mc-stat-grid">
-    <div class="mc-stat"><div class="mc-stat-val" id="mc-players">0</div><div class="mc-stat-lbl">Players</div></div>
-    <div class="mc-stat"><div class="mc-stat-val" id="mc-leaders">0</div><div class="mc-stat-lbl">Leaders</div></div>
-    <div class="mc-stat"><div class="mc-stat-val" id="mc-teams">0</div><div class="mc-stat-lbl">Teams Active</div></div>
-  </div>
-  <div class="row2">
-    <button class="btn btn-a3" onclick="setRegistration(true)">🔓 Open Registration</button>
-    <button class="btn btn-danger" onclick="setRegistration(false)">🔒 Close Registration</button>
-  </div>
-  <button class="btn btn-dark" onclick="resetLobby()">🔄 Restart Lobby</button>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ MISSION LIVE CONTROLS (RPC-007A, phase-aware) ═══════════ -->
-  <!-- ═══════════ PLAYERS (KICK / RESET) ═══════════ -->
-  <div class="sec">👥 Players — Kick / Reset Individual</div>
-  <div class="player-count-lbl" id="players-count-lbl">0 joined</div>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="loadPlayersPanel()">🔄 Refresh List</button>
-    <button class="btn btn-danger" onclick="kickAllPlayers()">🚪 Kick ALL (soft reset)</button>
-  </div>
-  <div id="players-list"></div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ MISSION 1 — FROSTBITE (RPC-007E) ═══════════ -->
-  <div class="sec">❄️ Mission 1 — Frostbite</div>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="showMissionBackground(1)">🖼️ Show Background</button>
-    <button class="btn btn-acc" onclick="showMissionDemo(1)">🎬 Show Demo</button>
-  </div>
-  <div class="row3" id="m1-demo-nav" style="display:none;">
-    <button class="btn btn-dark" onclick="demoCardNav(-1)">◀ Prev</button>
-    <div class="mc-intro-card-lbl" id="m1-demo-lbl">Card 1/5</div>
-    <button class="btn btn-dark" onclick="demoCardNav(1)">Next ▶</button>
-  </div>
-  <button class="btn btn-gold" onclick="launchMission(1)">▶ Launch Frostbite</button>
-  <div class="mc-toggle-row">
-    <span>⏱️ <span id="mc-pause-state">Running</span></span>
-    <span>
-      <button class="btn btn-dark" style="width:auto;display:inline-block;margin:0;padding:.4rem .8rem;" onclick="pauseMission()">⏸ Pause</button>
-      <button class="btn btn-a3" style="width:auto;display:inline-block;margin:0;padding:.4rem .8rem;" onclick="resumeMission()">▶ Resume</button>
-    </span>
-  </div>
-  <button class="btn btn-danger" onclick="endMission()">⏹ End Mission</button>
-  <div class="row2">
-    <button class="btn btn-a2" onclick="showMissionResultStage(1)">🏁 Show Mission Result</button>
-    <button class="btn btn-gold" onclick="showTournamentStandingsAdmin(1)">🏆 Show Tournament Standings</button>
-  </div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ MISSION 2 — BLITZ (RPC-007E) ═══════════ -->
-  <div class="sec">⚡ Mission 2 — Blitz</div>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="showMissionBackground(2)">🖼️ Show Background</button>
-    <button class="btn btn-a2" onclick="startStrategyMinute()">🧠 Strategy Minute</button>
-  <button class="btn btn-danger" onclick="endStrategyMinute()">⏹ End Strategy Minute</button>
-  </div>
-  <button class="btn btn-acc" onclick="showMissionDemo(2)">🎬 Show Demo</button>
-  <div class="row3" id="m2-demo-nav" style="display:none;">
-    <button class="btn btn-dark" onclick="demoCardNav(-1)">◀ Prev</button>
-    <div class="mc-intro-card-lbl" id="m2-demo-lbl">Card 1/5</div>
-    <button class="btn btn-dark" onclick="demoCardNav(1)">Next ▶</button>
-  </div>
-  <button class="btn btn-gold" onclick="launchMission(2)">▶ Launch Blitz</button>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="pauseMission()">⏸ Pause</button>
-    <button class="btn btn-a3" onclick="resumeMission()">▶ Resume</button>
-  </div>
-  <button class="btn btn-danger" onclick="endMission()">⏹ End Mission</button>
-  <div class="row2">
-    <button class="btn btn-a2" onclick="showMissionResultStage(2)">🏁 Show Mission Result</button>
-    <button class="btn btn-gold" onclick="showTournamentStandingsAdmin(2)">🏆 Show Tournament Standings</button>
-  </div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ MISSION 3 — GAMBIT (RPC-007E) ═══════════ -->
-  <div class="sec">🎲 Mission 3 — Gambit</div>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="showMissionBackground(3)">🖼️ Show Background</button>
-    <button class="btn btn-acc" onclick="showMissionDemo(3)">🎬 Show Demo</button>
-  </div>
-  <div class="row3" id="m3-demo-nav" style="display:none;">
-    <button class="btn btn-dark" onclick="demoCardNav(-1)">◀ Prev</button>
-    <div class="mc-intro-card-lbl" id="m3-demo-lbl">Card 1/5</div>
-    <button class="btn btn-dark" onclick="demoCardNav(1)">Next ▶</button>
-  </div>
-  <button class="btn btn-gold" onclick="launchMission(3)">▶ Launch Gambit</button>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="gambitStep('answer')">1️⃣ Reveal Correct Answer</button>
-    <button class="btn btn-dark" onclick="gambitStep('x2')">2️⃣ Reveal x2</button>
-  </div>
-  <div class="row2">
-    <button class="btn btn-dark" onclick="gambitStep('shield')">3️⃣ Reveal Steal / Shield</button>
-    <button class="btn btn-danger" onclick="gambitUpdateLeaderboard()">4️⃣ Update Leaderboard</button>
-  </div>
-  <div class="row2">
-    <button class="btn btn-a2" onclick="nextQ3()">➡️ Next Question</button>
-    <button class="btn btn-gold" onclick="showChampion()">👑 Final Champion</button>
-  </div>
-
-  <div class="div"></div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ PLACEMENT REVIEW (shared, RPC-007D/E) ═══════════ -->
-  <div class="p3-box" id="placement-box" style="display:none;">
-    <div class="p3-box-title">PLACEMENT REVIEW — <span id="placement-mission-lbl">Mission 1</span></div>
-    <div style="font-size:.62rem;color:var(--muted);margin-bottom:.4rem;">Reorder if needed, then confirm to award Tournament Points.</div>
-    <div id="placement-list"></div>
-    <button class="btn btn-danger" onclick="confirmAwardTournamentPoints()">✅ Confirm Placements &amp; Award Points</button>
-  </div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ GLOBAL CONTROLS (RPC-007E) ═══════════ -->
-  <div class="sec">🌐 Global Controls</div>
-  <div style="font-size:.62rem;color:var(--muted);margin-bottom:.3rem;">Rename Teams, Tournament Point Override, and Mission Score Override live in their existing panels further below (Leader/Team Names, Mission Configuration, Team Management).</div>
-  <div class="row2">
-    <button class="btn btn-danger" onclick="qaResetMission()">🔄 Reset Current Mission</button>
-    <button class="btn btn-danger" onclick="resetGame()">🔄 Reset Tournament</button>
-  </div>
-  <button class="btn btn-purple" onclick="returnToLobby()">🚪 Return To Lobby</button>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ LEADER NAMES ═══════════ -->
-  <div class="sec">🏷️ Leader / Team Names</div>
-  <div id="leader-names"></div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ MANUAL SCORE ═══════════ -->
-  <div class="sec">✏️ Manual Score Adjust</div>
-  <div class="adj-grid">
-    <select id="adj-team">
-      <option value="1">ทีม 1</option><option value="2">ทีม 2</option>
-      <option value="3">ทีม 3</option><option value="4">ทีม 4</option>
-      <option value="5">ทีม 5</option><option value="6">ทีม 6</option>
-    </select>
-    <input type="number" id="adj-pts" placeholder="±pts"/>
-    <button class="btn btn-acc" style="margin:0;padding:.45rem;" onclick="adjustScore()">+/−</button>
-  </div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ ADMIN FREEZE ═══════════ -->
-  <div class="sec">❄️ Admin Freeze Override</div>
-  <div id="freeze-rows"></div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ LIVE DASHBOARD (RPC-007A) ═══════════ -->
-  <div class="sec">📡 Live Dashboard</div>
-  <div class="mc-dash-row"><span>Current Mission</span><span id="dash-mission">Lobby</span></div>
-  <div class="mc-dash-row"><span>Current Question</span><span id="dash-question">—</span></div>
-  <div class="mc-dash-row"><span>Remaining Time</span><span id="dash-time">—</span></div>
-  <div class="mc-dash-row"><span>Connected Devices</span><span id="dash-devices">0</span></div>
-  <div class="mc-dash-row"><span>Current Leader (Rank 1)</span><span id="dash-leader">—</span></div>
-  <button class="btn btn-dark" style="margin-top:.4rem;" onclick="refreshDashboard()">🔄 Refresh Dashboard</button>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ LIVE STATISTICS (RPC-007A) ═══════════ -->
-  <div class="sec">📈 Live Statistics</div>
-  <div id="live-stats-content" style="font-size:.7rem;color:var(--muted);">Tap "Refresh Stats" to load</div>
-  <button class="btn btn-dark" style="margin-top:.4rem;" onclick="refreshLiveStats()">🔄 Refresh Stats</button>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ TEAM MANAGEMENT (RPC-007A) ═══════════ -->
-  <div class="sec">🛠️ Team Management</div>
-  <div id="team-mgmt-list"></div>
-
-  <div class="div"></div>
-
-  <!-- ═══════════ MISSION CONFIGURATION (RPC-007A) ═══════════ -->
-  <div class="sec">⚙️ Mission Configuration</div>
-  <div class="p3-box">
-    <div class="p3-box-title">MISSION 2 — Product Names</div>
-    <div class="leader-row"><input type="text" id="cfg-prod-A" placeholder="Product A name"/></div>
-    <div class="leader-row"><input type="text" id="cfg-prod-B" placeholder="Product B name"/></div>
-    <div class="leader-row"><input type="text" id="cfg-prod-C" placeholder="Product C name"/></div>
-    <button class="btn btn-a2" onclick="saveProductNames()">💾 Save Product Names</button>
-  </div>
-  <div class="p3-box">
-    <div class="p3-box-title">MISSION 3 — Wager Values</div>
-    <div class="row" style="flex-wrap:wrap;">
-      <input type="number" id="cfg-wager-0" style="flex:1;min-width:70px;" placeholder="100"/>
-      <input type="number" id="cfg-wager-1" style="flex:1;min-width:70px;" placeholder="200"/>
-      <input type="number" id="cfg-wager-2" style="flex:1;min-width:70px;" placeholder="300"/>
-      <input type="number" id="cfg-wager-3" style="flex:1;min-width:70px;" placeholder="400"/>
-      <input type="number" id="cfg-wager-4" style="flex:1;min-width:70px;" placeholder="500"/>
+  <!-- HEADER — always pinned -->
+  <div id="mc-header">
+    <div class="mc-h-top">
+      <svg viewBox="0 0 100 100" class="mc-h-icon" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/><path d="M50 12 L58 46 L50 50 L42 46 Z" fill="#3b82f6"/><path d="M50 88 L42 54 L50 50 L58 54 Z" fill="rgba(255,255,255,0.3)"/><circle cx="50" cy="50" r="4" fill="#22d3ee"/></svg>
+      <div class="mc-h-mission" id="mc-h-mission">LOBBY</div>
+      <div class="mc-h-stage" id="mc-h-stage">Waiting</div>
     </div>
-    <button class="btn btn-a3" onclick="saveWagerTiers()">💾 Save Wager Values</button>
-  </div>
-  <div class="p3-box">
-    <div class="p3-box-title">TOURNAMENT POINTS — Rank → Points</div>
-    <div class="row" style="flex-wrap:wrap;">
-      <input type="number" id="cfg-tp-1" style="flex:1;min-width:60px;" placeholder="1000"/>
-      <input type="number" id="cfg-tp-2" style="flex:1;min-width:60px;" placeholder="800"/>
-      <input type="number" id="cfg-tp-3" style="flex:1;min-width:60px;" placeholder="600"/>
-      <input type="number" id="cfg-tp-4" style="flex:1;min-width:60px;" placeholder="400"/>
-      <input type="number" id="cfg-tp-5" style="flex:1;min-width:60px;" placeholder="300"/>
-      <input type="number" id="cfg-tp-6" style="flex:1;min-width:60px;" placeholder="200"/>
+    <div class="mc-h-mid">
+      <div class="mc-h-countdown" id="mc-h-countdown">—:—</div>
+      <div class="mc-h-qnum" id="mc-h-qnum"></div>
+      <div class="mc-h-tp" id="mc-h-tp">
+        <div class="mc-h-tp-dot" id="mc-h-tp-1">1</div>
+        <div class="mc-h-tp-dot" id="mc-h-tp-2">2</div>
+        <div class="mc-h-tp-dot" id="mc-h-tp-3">3</div>
+      </div>
     </div>
-    <button class="btn btn-a3" onclick="saveTournamentPoints()">💾 Save Tournament Points</button>
   </div>
 
+  <div id="app-scroll">
 
-  <div class="div"></div>
-
-  <!-- ═══════════ OPERATOR NOTES (RPC-007A) ═══════════ -->
-  <div class="sec">📝 Operator Notes</div>
-  <div style="font-size:.62rem;color:var(--muted);margin-bottom:.35rem;">Personal reminders — visible only in this browser, not synced to Arena/Players.</div>
-  <div class="row2">
-    <input type="text" id="note-input" placeholder="e.g. Sponsor announcement after Mission 2" style="flex:2;"/>
-    <button class="btn btn-acc" style="margin:0;" onclick="addNote()">➕ Add</button>
+  <!-- PRIMARY WORKFLOW -->
+  <div class="mc-sec">
+    <div class="mc-sec-title">Primary Workflow</div>
+    <div id="primary-workflow" style="margin-top:.5rem;"></div>
+    <div class="glass" id="placement-box" style="display:none;margin-top:.6rem;">
+      <div class="mc-cfg-label">Placement Review — <span id="placement-mission-lbl">Mission 1</span></div>
+      <div style="font-size:.68rem;color:var(--muted);margin-bottom:.5rem;">Reorder if needed, then confirm to award Tournament Points.</div>
+      <div id="placement-list"></div>
+      <button class="mc-btn mc-btn-danger" onclick="confirmAwardTournamentPoints()">Confirm Placements &amp; Award Points</button>
+    </div>
   </div>
-  <div style="margin:.3rem 0;">
-    <span class="mc-suggest-chip" onclick="quickNote('Remind teams they can switch products anytime')">+ Switch products reminder</span>
-    <span class="mc-suggest-chip" onclick="quickNote('Sponsor announcement after this mission')">+ Sponsor announcement</span>
-    <span class="mc-suggest-chip" onclick="quickNote('Delay countdown until AV is ready')">+ AV delay</span>
-  </div>
-  <div id="notes-list"></div>
 
+  <!-- MISSION INFORMATION (collapsed by default) -->
+  <div class="mc-sec">
+    <div class="mc-sec-head" onclick="toggleSection('mission-info')">
+      <div class="mc-sec-title">Mission Information</div>
+      <div class="mc-sec-chevron" id="mission-info-chevron">▸</div>
+    </div>
+    <div class="mc-sec-body" id="mission-info-body">
+      <div class="glass">
+        <div class="mc-cfg-group">
+          <div class="mc-cfg-label">Mission 1 — Freeze Duration / Charge Requirement</div>
+          <div class="mc-cfg-row">
+            <input type="number" id="cfg-freeze-secs" placeholder="12 sec"/>
+            <input type="number" id="cfg-charge-per-player" placeholder="5 per player"/>
+          </div>
+          <button class="mc-save-btn" onclick="saveMission1Config()">Save Mission 1</button>
+        </div>
+        <div class="mc-cfg-group">
+          <div class="mc-cfg-label">Mission 2 — Weapon Names</div>
+          <div class="mc-cfg-row">
+            <input type="text" id="cfg-prod-A" placeholder="Product A"/>
+            <input type="text" id="cfg-prod-B" placeholder="Product B"/>
+            <input type="text" id="cfg-prod-C" placeholder="Product C"/>
+          </div>
+          <button class="mc-save-btn" onclick="saveProductNames()">Save Weapon Names</button>
+        </div>
+        <div class="mc-cfg-group">
+          <div class="mc-cfg-label">Mission 3 — Wager Tiers</div>
+          <div class="mc-cfg-row">
+            <input type="number" id="cfg-wager-0" placeholder="100"/>
+            <input type="number" id="cfg-wager-1" placeholder="200"/>
+            <input type="number" id="cfg-wager-2" placeholder="300"/>
+            <input type="number" id="cfg-wager-3" placeholder="400"/>
+            <input type="number" id="cfg-wager-4" placeholder="500"/>
+          </div>
+          <button class="mc-save-btn" onclick="saveWagerTiers()">Save Wager Tiers</button>
+        </div>
+        <div class="mc-cfg-group" style="margin-bottom:0;">
+          <div class="mc-cfg-label">Tournament Points (Rank → Points)</div>
+          <div class="mc-cfg-row">
+            <input type="number" id="cfg-tp-1" placeholder="1000"/>
+            <input type="number" id="cfg-tp-2" placeholder="800"/>
+            <input type="number" id="cfg-tp-3" placeholder="600"/>
+          </div>
+          <div class="mc-cfg-row">
+            <input type="number" id="cfg-tp-4" placeholder="400"/>
+            <input type="number" id="cfg-tp-5" placeholder="300"/>
+            <input type="number" id="cfg-tp-6" placeholder="200"/>
+          </div>
+          <button class="mc-save-btn" onclick="saveTournamentPoints()">Save Tournament Points</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE STATISTICS (collapsed by default; internally scrollable when open) -->
+  <div class="mc-sec">
+    <div class="mc-sec-head" onclick="toggleSection('live-stats')">
+      <div class="mc-sec-title">Live Statistics</div>
+      <div class="mc-sec-chevron" id="live-stats-chevron">▸</div>
+    </div>
+    <div class="mc-sec-body" id="live-stats-body">
+      <div id="live-stats"></div>
+    </div>
+  </div>
+
+  <!-- OPERATIONS (collapsed by default) -->
+  <div class="mc-sec">
+    <div class="mc-sec-head" onclick="toggleSection('operations')">
+      <div class="mc-sec-title">Operations</div>
+      <div class="mc-sec-chevron" id="operations-chevron">▸</div>
+    </div>
+    <div class="mc-sec-body" id="operations-body">
+      <div class="glass" style="margin-bottom:.6rem;">
+        <div class="mc-cfg-label">Rename Teams</div>
+        <div id="leader-names"></div>
+      </div>
+      <div class="glass" style="margin-bottom:.6rem;">
+        <div class="mc-cfg-label">Override Mission Score / Tournament Points</div>
+        <div id="team-mgmt-list"></div>
+      </div>
+      <div class="glass" style="margin-bottom:.6rem;">
+        <div class="mc-cfg-label">Manual Score Adjust</div>
+        <div class="mc-op-row">
+          <select id="adj-team">
+            <option value="1">Team 1</option><option value="2">Team 2</option>
+            <option value="3">Team 3</option><option value="4">Team 4</option>
+            <option value="5">Team 5</option><option value="6">Team 6</option>
+          </select>
+          <input type="number" id="adj-amount" placeholder="±points"/>
+          <button class="mc-save-btn" onclick="adjustScore()">Apply</button>
+        </div>
+      </div>
+      <div class="mc-btn-row">
+        <button class="mc-btn mc-btn-secondary" onclick="qaResetMission()">Reset Current Mission</button>
+        <button class="mc-btn mc-btn-secondary" onclick="resetGame()">Reset Tournament</button>
+      </div>
+      <div class="glass" style="margin-top:.6rem;">
+        <div class="mc-cfg-label">Operator Notes</div>
+        <div class="mc-op-row">
+          <input type="text" id="note-input" placeholder="e.g. Sponsor announcement after Mission 2"/>
+          <button class="mc-save-btn" onclick="addNote()">Add</button>
+        </div>
+        <div style="margin:.3rem 0;">
+          <span class="mc-suggest-chip" onclick="quickNote('Remind teams they can switch products anytime')">+ Switch products reminder</span>
+          <span class="mc-suggest-chip" onclick="quickNote('Sponsor announcement after this mission')">+ Sponsor announcement</span>
+          <span class="mc-suggest-chip" onclick="quickNote('Delay countdown until AV is ready')">+ AV delay</span>
+        </div>
+        <div id="notes-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMERGENCY (collapsed, danger styling) -->
+  <div class="mc-sec" id="emergency">
+    <div class="mc-sec-head" onclick="toggleSection('emergency')">
+      <div class="mc-sec-title">Emergency</div>
+      <div class="mc-sec-chevron" id="emergency-chevron">▸</div>
+    </div>
+    <div class="mc-sec-body" id="emergency-body">
+      <div class="mc-danger-warn">⚠️ These actions affect the live event immediately.</div>
+      <div class="mc-btn-row" style="margin-bottom:.5rem;">
+        <button class="mc-btn mc-btn-danger" onclick="endMission()">Force End Mission</button>
+        <button class="mc-btn mc-btn-danger" onclick="kickAllPlayers()">Disconnect All</button>
+      </div>
+      <div class="glass" style="margin-bottom:.6rem;">
+        <div class="mc-cfg-label">Kick Player</div>
+        <div class="player-count-lbl" id="players-count-lbl">0 joined</div>
+        <button class="mc-save-btn" onclick="loadPlayersPanel()" style="margin-bottom:.4rem;">Refresh List</button>
+        <div id="players-list"></div>
+      </div>
+      <div class="glass" style="margin-bottom:.6rem;">
+        <div class="mc-cfg-label">Freeze Override</div>
+        <div id="freeze-rows"></div>
+      </div>
+      <button class="mc-btn mc-btn-danger" onclick="resetGame()">Reset Database (Full Wipe)</button>
+    </div>
+  </div>
+
+  </div><!-- /app-scroll -->
 </div><!-- /app -->
 
 <div id="toast"></div>
@@ -467,7 +369,9 @@ select,input[type=number],input[type=text]{padding:.45rem .55rem;background:var(
 const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
 const ADMIN_PWD = 'race2025'; // ← Change before event
-const PHASE_LABELS = {0:'LOBBY',1:'PHASE 1',2:'PHASE 2',3:'PHASE 3',4:'RESULTS'};
+const PHASE_LABELS = {0:'LOBBY',1:'MISSION 1 · FROSTBITE',2:'MISSION 2 · BLITZ',3:'MISSION 3 · GAMBIT',4:'FINAL RESULTS'};
+const MISSION_COLORS = {1:'#60a5fa',2:'#2563eb',3:'#f59e0b'};
+const STAGE_LABELS = {background:'Background',demo:'Demo',strategy:'Strategy Minute',live:'Gameplay',result:'Mission Result',standings:'Tournament Standings'};
 const DEMO_STEPS = {1:3,2:3,3:3};
 const TC = {1:'#38bdf8',2:'#a78bfa',3:'#fbbf24',4:'#34d399',5:'#fb7185',6:'#67e8f9'};
 const TIER_CELLS = {A:8,B:30,C:100};
@@ -505,8 +409,8 @@ async function initAdmin(){
   renderTeamMgmt();
   loadNotes();
   loadConfigFields();
-  refreshDashboard();
-  setInterval(refreshDashboard,4000);
+  refreshLiveStats();
+  setInterval(refreshLiveStats,4000);
 }
 
 async function loadGS(){const{data}=await sb.from('game_state').select('*').eq('id',1).single();if(data)gs=data;}
@@ -518,13 +422,11 @@ function subscribeRT(){
     gs=p.new;render();
   }).subscribe();
   sb.channel('admin-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},async()=>{
-    await loadTeams();renderScores();renderLaunchMonitor();
+    await loadTeams();renderPrimaryWorkflow();renderLaunchMonitor();
   }).subscribe();
   sb.channel('admin-players').on('postgres_changes',{event:'*',schema:'public',table:'players'},()=>{
     loadPlayersPanel();
   }).subscribe();
-  // RPC-007C — Mission Control's own factQs array had the same staleness
-  // bug as play.html: loaded once at initAdmin(), never refreshed.
   sb.channel('admin-fact-qs').on('postgres_changes',
     {event:'*',schema:'public',table:'fact_questions'},async()=>{
       await loadFactQs();render();
@@ -534,24 +436,53 @@ function subscribeRT(){
 function pollOnline(){
   setInterval(async()=>{
     const{count}=await sb.from('players').select('*',{count:'exact',head:true});
-    document.getElementById('online-badge').textContent=`${count||0} online`;
+    onlineCount=count||0;
   },3000);
 }
 
-// ── RENDER ─────────────────────────────────────────────
+// ── SECTION TOGGLES ─────────────────────────────────────
+function toggleSection(name){
+  const body=document.getElementById(`${name}-body`);
+  const chev=document.getElementById(`${name}-chevron`);
+  if(!body)return;
+  const open=body.classList.toggle('open');
+  if(chev)chev.classList.toggle('open',open);
+}
+
+// ── HEADER + PRIMARY WORKFLOW (RPC-007F) ────────────────
+let onlineCount=0;
 function render(){
   if(!gs) return;
-  const p=gs.phase, sub=gs.sub_state||'lobby';
-  document.getElementById('phase-lbl').textContent=PHASE_LABELS[p]||'LOBBY';
-  document.getElementById('sub-badge').textContent=sub;
-  document.getElementById('q-badge').textContent=`Q${(gs.active_question||0)+1}`;
-  renderScores();
+  const p=gs.phase, stage=gs.mission_stage||'background';
+  document.getElementById('mc-h-mission').textContent=PHASE_LABELS[p]||'LOBBY';
+  document.getElementById('mc-h-stage').textContent=p===0?'Waiting':(STAGE_LABELS[stage]||stage);
+  // Countdown — reads whichever duration applies to the current mission/stage
+  const durMap={1:gs.phase1_duration||240,2:gs.phase2_duration||90,3:gs.phase3_duration||60};
+  const dur=stage==='strategy'?60:durMap[p];
+  const cdEl=document.getElementById('mc-h-countdown');
+  if(dur&&gs.phase_start_at&&(stage==='live'||stage==='strategy')){
+    const ref=(gs.is_paused&&gs.paused_at)?new Date(gs.paused_at).getTime():Date.now();
+    const rem=Math.max(0,dur-(ref-new Date(gs.phase_start_at).getTime())/1000);
+    cdEl.textContent=`${String(Math.floor(rem/60)).padStart(2,'0')}:${String(Math.floor(rem%60)).padStart(2,'0')}`;
+    cdEl.classList.toggle('paused',!!gs.is_paused);
+  } else {
+    cdEl.textContent=gs.is_paused?'PAUSED':'—:—';
+    cdEl.classList.toggle('paused',!!gs.is_paused);
+  }
+  document.getElementById('mc-h-qnum').textContent=p===3?`Q${(gs.active_question||0)+1}/4`:'';
+  // Tournament progress dots
+  [1,2,3].forEach(m=>{
+    const dot=document.getElementById(`mc-h-tp-${m}`);
+    if(!dot)return;
+    dot.classList.remove('done','active');
+    if(p>m || (p===4))dot.classList.add('done');
+    else if(p===m)dot.classList.add('active');
+    dot.textContent=(p>m||p===4)?'✓':(p===m?'▶':'○');
+  });
+  renderPrimaryWorkflow();
   renderLaunchMonitor();
   loadP3Subs();
-  // Pause state (RPC-007A)
-  const pauseEl=document.getElementById('mc-pause-state');
-  if(pauseEl)pauseEl.textContent=gs.is_paused?'⏸ PAUSED':'Running';
-  // Demo card navigator visibility (RPC-007E) — one nav per mission section
+  // Demo card navigator (shared strip inside Primary Workflow)
   [1,2,3].forEach(m=>{
     const nav=document.getElementById(`m${m}-demo-nav`);
     const lbl=document.getElementById(`m${m}-demo-lbl`);
@@ -559,31 +490,98 @@ function render(){
     if(nav)nav.style.display=active?'flex':'none';
     if(lbl&&active)lbl.textContent=`Card ${(gs.demo_card||0)+1}/5`;
   });
-  // Demo bars
-  [1,2,3].forEach(ph=>{
-    const bar=document.getElementById(`demo-bar-${ph}`);
-    if(bar) bar.style.display=(sub==='demo'&&p===ph)?'flex':'none';
-    const lbl=document.getElementById(`demo-lbl-${ph}`);
-    if(lbl) lbl.textContent=`Step ${(gs.demo_step||0)+1}/${DEMO_STEPS[ph]||3}`;
-  });
 }
+setInterval(()=>{if(gs)render();},500); // keep countdown ticking
 
-function renderScores(){
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  const el=document.getElementById('score-grid');
-  el.innerHTML=sorted.map((t,rank)=>{
-    const clr=TC[t.id]||'#fff';
-    const nm=t.leader_name||t.name||`ทีม ${t.id}`;
-    const frozen=t.frozen_until&&new Date(t.frozen_until)>new Date();
-    return `<div class="sc ${frozen?'frozen':''} ${rank===0?'leading':''}" style="border-color:${clr}33;">
-      <div class="sc-name" style="color:${clr};" title="${nm}">${nm}</div>
-      <div class="sc-pts">${(t.total_score||0).toLocaleString()}</div>
-      <div class="sc-meta">
-        ${frozen?'❄️ ':''} ${t.weapon_charges>0?`💣×${t.weapon_charges}`:''}
-        ${rank===0?'👑':''}
+// Only ONE button should be visually dominant (mc-btn-primary) per spec.
+function wfBtn(label,fn,type){
+  return `<button class="mc-btn mc-btn-${type||'secondary'}" onclick="${fn}">${label}</button>`;
+}
+function renderPrimaryWorkflow(){
+  const el=document.getElementById('primary-workflow');
+  if(!el||!gs)return;
+  const p=gs.phase, stage=gs.mission_stage||'background';
+  let html='';
+
+  if(p===0){
+    // LOBBY
+    html+=`<div class="glass" style="margin-bottom:.6rem;">
+      <div class="mc-stat-grid" style="margin-bottom:0;">
+        <div class="mc-stat-card"><div class="mc-stat-val" id="mc-players">0</div><div class="mc-stat-lbl">Players</div></div>
+        <div class="mc-stat-card"><div class="mc-stat-val" id="mc-leaders">0</div><div class="mc-stat-lbl">Leaders</div></div>
       </div>
     </div>`;
-  }).join('');
+    html+=wfBtn('Open Registration','setRegistration(true)','primary');
+    html+=`<div class="mc-btn-row">${wfBtn('Close Registration','setRegistration(false)')}${wfBtn('Restart Lobby','resetLobby()')}</div>`;
+    html+=wfBtn('Show Mission 1 Background','showMissionBackground(1)','secondary');
+    refreshLobbyCounts();
+  } else if(p>=1&&p<=3){
+    const mName={1:'Frostbite',2:'Blitz',3:'Gambit'}[p];
+    if(stage==='background'){
+      html+=`<div class="mc-empty-hint">${mName} background is live on Arena.</div>`;
+      html+=wfBtn(`Show ${mName} Demo`,`showMissionDemo(${p})`,'primary');
+      if(p===2)html+=wfBtn('Start Strategy Minute','startStrategyMinute()','secondary');
+    } else if(stage==='strategy'){
+      html+=`<div class="mc-empty-hint">Strategy Minute is running on Arena.</div>`;
+      html+=wfBtn('End Strategy Minute','endStrategyMinute()','primary');
+    } else if(stage==='demo'){
+      html+=`<div class="mc-btn-row" id="m${p}-demo-nav" style="display:flex;">
+        <button class="mc-btn mc-btn-secondary" onclick="demoCardNav(-1)">◀ Prev</button>
+        <div class="mc-empty-hint" id="m${p}-demo-lbl" style="padding:0;flex:1;">Card 1/5</div>
+        <button class="mc-btn mc-btn-secondary" onclick="demoCardNav(1)">Next ▶</button>
+      </div>`;
+      html+=wfBtn(`Launch ${mName}`,`launchMission(${p})`,'primary');
+    } else if(stage==='live'){
+      html+=wfBtn(gs.is_paused?'▶ Resume':'⏸ Pause',gs.is_paused?'resumeMission()':'pauseMission()','secondary');
+      if(p===3){
+        html+=`<div class="mc-btn-row">${wfBtn('−30s','adjustTimer(-30)')}${wfBtn('+30s','adjustTimer(30)')}</div>`;
+      }
+      html+=wfBtn('End Mission','endMission()','primary');
+    } else if(stage==='result'){
+      html+=wfBtn('Show Mission Result',`showMissionResultStage(${p})`,'secondary');
+      html+=wfBtn('Tournament Standings',`showTournamentStandingsAdmin(${p})`,'primary');
+    } else if(stage==='standings'){
+      if(p<3){
+        html+=wfBtn('Proceed to Next Mission','proceedToNextMission()','primary');
+      } else {
+        html+=`<div class="mc-empty-hint">Gambit does not use a standings stage — proceed via reveal controls below.</div>`;
+      }
+    }
+    // Gambit-specific reveal controls, shown throughout M3 live/result
+    if(p===3&&(stage==='live')){
+      html+=`<div class="glass" style="margin-top:.7rem;">
+        <div class="mc-cfg-label">Gambit Reveal Sequence</div>
+        <div class="mc-btn-row" style="margin-bottom:.4rem;">${wfBtn('1. Correct Answer',"gambitStep('answer')")}${wfBtn('2. x2',"gambitStep('x2')")}</div>
+        <div class="mc-btn-row" style="margin-bottom:.4rem;">${wfBtn('3. Steal / Shield',"gambitStep('shield')")}${wfBtn('4. Update Leaderboard','gambitUpdateLeaderboard()','danger')}</div>
+        <div class="mc-btn-row">${wfBtn('Next Question','nextQ3()')}${wfBtn('Final Champion','showChampion()','primary')}</div>
+      </div>`;
+    }
+  } else if(p===4){
+    html+=wfBtn('Show Champion','showChampion()','primary');
+    html+=wfBtn('Return To Lobby','returnToLobby()','secondary');
+  }
+  el.innerHTML=html;
+}
+
+async function saveMission1Config(){
+  const freeze=parseInt(document.getElementById('cfg-freeze-secs').value);
+  const charge=parseInt(document.getElementById('cfg-charge-per-player').value);
+  const patch={};
+  if(!isNaN(charge))patch.charge_per_player=charge;
+  // Freeze duration (FREEZE_SECS) is currently a play.html/screen.html constant,
+  // not a game_state field — flagged, not silently invented. Charge requirement
+  // (charge_per_player) is a real existing field and is saved here.
+  if(Object.keys(patch).length){
+    await sb.from('game_state').update(patch).eq('id',1);
+    toast('💾 Mission 1 config saved (Freeze duration is a code constant — see note)');
+  } else {
+    toast('Enter a charge requirement value to save');
+  }
+}
+
+
+function renderScores(){
+  refreshLiveStats();
 }
 
 function renderLaunchMonitor(){
@@ -837,7 +835,7 @@ async function resetGame(){
 
 async function adjustScore(){
   const team=parseInt(document.getElementById('adj-team').value);
-  const pts=parseInt(document.getElementById('adj-pts').value);
+  const pts=parseInt(document.getElementById('adj-amount').value);
   if(isNaN(pts)){toast('ใส่คะแนน');return;}
   const t=teams.find(x=>x.id===team)||{};
   const newScore=Math.max(0,(t.total_score||0)+pts);
@@ -915,9 +913,10 @@ async function resetLobby(){
 async function refreshLobbyCounts(){
   const{data}=await sb.from('players').select('team_id,role');
   const players=data||[];
-  document.getElementById('mc-players').textContent=players.length;
-  document.getElementById('mc-leaders').textContent=players.filter(p=>p.role==='leader').length;
-  document.getElementById('mc-teams').textContent=new Set(players.map(p=>p.team_id)).size;
+  const pEl=document.getElementById('mc-players');
+  const lEl=document.getElementById('mc-leaders');
+  if(pEl)pEl.textContent=players.length;
+  if(lEl)lEl.textContent=players.filter(p=>p.role==='leader').length;
 }
 
 // ── MISSION INTRO ───────────────────────────────────────
@@ -1074,49 +1073,48 @@ async function gambitUpdateLeaderboard(){
 }
 
 // ── LIVE DASHBOARD ───────────────────────────────────────
-async function refreshDashboard(){
-  if(!gs)return;
-  document.getElementById('dash-mission').textContent=PHASE_LABELS[gs.phase]||'Lobby';
-  const qi=(gs.active_question||0)+1;
-  document.getElementById('dash-question').textContent=gs.phase===1?'—':`Q${qi}`;
-  const durMap={1:gs.phase1_duration||240,2:gs.phase2_duration||90,3:gs.phase3_duration||60};
-  const dur=durMap[gs.phase];
-  if(dur&&gs.phase_start_at){
-    const ref=(gs.is_paused&&gs.paused_at)?new Date(gs.paused_at).getTime():Date.now();
-    const rem=Math.max(0,dur-(ref-new Date(gs.phase_start_at).getTime())/1000);
-    document.getElementById('dash-time').textContent=`${Math.floor(rem/60)}:${String(Math.floor(rem%60)).padStart(2,'0')}`;
-  } else document.getElementById('dash-time').textContent='—';
-  const{count}=await sb.from('players').select('*',{count:'exact',head:true});
-  document.getElementById('dash-devices').textContent=count||0;
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  document.getElementById('dash-leader').textContent=sorted[0]?(sorted[0].leader_name||sorted[0].name):'—';
-  refreshLobbyCounts();
-}
-
 // ── LIVE STATISTICS ──────────────────────────────────────
 async function refreshLiveStats(){
-  const el=document.getElementById('live-stats-content');
-  el.innerHTML='Loading...';
+  const el=document.getElementById('live-stats');
+  if(!el)return;
+  const p=gs?.phase||0;
+  const missionField=p===1?'trivia_score':p===2?'pipeline_score':p===3?'total_score':null;
   const[{data:players},{data:answers}]=await Promise.all([
     sb.from('players').select('name,team_id,session_score,streak').order('session_score',{ascending:false}).limit(3),
     sb.from('trivia_answers').select('is_correct,team_id')
   ]);
-  const top3=(players||[]).map((p,i)=>`${i+1}. ${p.name} (ทีม ${p.team_id}) — ${p.session_score||0}pts`).join('<br>');
+  const top3=(players||[]).map((pl,i)=>`${i+1}. ${pl.name} (ทีม ${pl.team_id}) — ${pl.session_score||0}pts`).join('<br>')||'No data yet';
   const total=(answers||[]).length;
   const correct=(answers||[]).filter(a=>a.is_correct).length;
   const acc=total?Math.round((correct/total)*100):0;
-  const maxStreak=Math.max(0,...(await sb.from('players').select('streak')).data?.map(p=>p.streak||0)||[0]);
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  const topTeam=sorted[0]?(sorted[0].leader_name||sorted[0].name):'—';
+  const freezeCount=teams.reduce((s,t)=>s+(t.weapon_charges||0),0);
+  const weaponLaunches=teams.reduce((s,t)=>s+(t.tier_a_launches||0)+(t.tier_b_launches||0)+(t.tier_c_launches||0),0);
+  const responseCount=total;
+  const missionSorted=missionField?[...teams].sort((a,b)=>(b[missionField]||0)-(a[missionField]||0)):[];
+  const tourneySorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+
   el.innerHTML=`
-    <b>🏅 Top 3 Players</b><br>${top3||'No data'}<br><br>
-    <b>🎯 Current Accuracy</b>: ${acc}% (${correct}/${total})<br>
-    <b>🔥 Current Streak (max)</b>: ${maxStreak}<br>
-    <b>🏆 Top Team</b>: ${topTeam}<br>
-    <b>📊 Mission Accuracy</b>: ${acc}%<br>
-    <span style="color:var(--muted);font-size:.6rem;">Average Response Time: not tracked in current schema (no per-answer timestamp delta captured) — N/A</span>
+    <div class="mc-stat-grid">
+      <div class="mc-stat-card"><div class="mc-stat-val">${acc}%</div><div class="mc-stat-lbl">Accuracy</div></div>
+      <div class="mc-stat-card"><div class="mc-stat-val">${responseCount}</div><div class="mc-stat-lbl">Responses</div></div>
+      <div class="mc-stat-card"><div class="mc-stat-val">${freezeCount}</div><div class="mc-stat-lbl">Freeze Charges Live</div></div>
+      <div class="mc-stat-card"><div class="mc-stat-val">${weaponLaunches}</div><div class="mc-stat-lbl">Weapons Deployed</div></div>
+    </div>
+    ${p>=1&&p<=3?`<div class="mc-cfg-label">Mission Leaderboard</div>${missionSorted.map((t,i)=>`
+      <div class="mc-lb-row"><div class="mc-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="mc-lb-name">${t.leader_name||t.name}</div>
+      <div class="mc-lb-score">${(t[missionField]||0).toLocaleString()}</div></div>`).join('')}`:''}
+    <div class="mc-cfg-label" style="margin-top:.6rem;">Tournament Standings</div>
+    ${tourneySorted.map((t,i)=>`
+      <div class="mc-lb-row"><div class="mc-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="mc-lb-name">${t.leader_name||t.name}</div>
+      <div class="mc-lb-score">${(t.total_score||0).toLocaleString()}</div></div>`).join('')}
+    <div class="mc-cfg-label" style="margin-top:.6rem;">Top Players</div>
+    <div style="font-size:.78rem;color:var(--text2);line-height:1.6;">${top3}</div>
+    ${p===3?`<div class="mc-cfg-label" style="margin-top:.6rem;">Current Question</div>
+      <div style="font-size:.8rem;">Q${(gs.active_question||0)+1} / 4</div>`:''}
+    <div style="font-size:.62rem;color:var(--muted);margin-top:.6rem;">Average Response Time not shown — not captured in current schema.</div>
   `;
-  toast('📈 Stats refreshed');
 }
 
 // ── TEAM MANAGEMENT ──────────────────────────────────────
@@ -1165,6 +1163,8 @@ async function resetOneTeam(id){
 
 // ── MISSION CONFIGURATION ───────────────────────────────
 function loadConfigFields(){
+  const chargeEl=document.getElementById('cfg-charge-per-player');
+  if(chargeEl)chargeEl.value=gs?.charge_per_player||5;
   const pn=gs?.product_names||{};
   ['A','B','C'].forEach(k=>{const el=document.getElementById(`cfg-prod-${k}`);if(el)el.value=pn[k]||'';});
   const wt=gs?.wager_tiers||[100,200,300,400,500];
