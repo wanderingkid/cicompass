@@ -694,12 +694,23 @@ async function kickAllPlayers(){
 
 // ── PHASE 1 ────────────────────────────────────────────
 async function launchMission(p){
+  // RPC-009G fix: gs.phase1_duration (etc.) is read by play.html/screen.html
+  // in preference to their own code defaults — g1Duration() and screen.html's
+  // timer both do `gameState.phase1_duration || <code default>`. This `dur`
+  // object used to be declared and never actually used, so if the DB row
+  // ever had a stray/stale phase1_duration value (e.g. from an earlier
+  // config), no client-side code change could ever override it — the code
+  // default only applies when the DB field is unset. Now explicitly written
+  // on every launch so the correct duration always wins regardless of
+  // whatever was previously stored.
   const dur={1:150,2:90,3:60};
+  const durField=`phase${p}_duration`;
   await sb.from('game_state').update({
     phase:p, sub_state:'active', mission_stage:'live',
     phase_start_at:new Date().toISOString(),
     active_question:0, demo_step:0, demo_card:0,
-    submissions_open:false
+    submissions_open:false,
+    [durField]:dur[p]
   }).eq('id',1);
   toast(`▶ Mission ${p} Launched`);
 }
