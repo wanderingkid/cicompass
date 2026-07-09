@@ -619,6 +619,9 @@ body::before{content:'';position:fixed;inset:0;
 .arena-lb-rank{font-weight:900;min-width:1.3rem;}
 .arena-lb-name{flex:1;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .arena-lb-score{font-weight:700;}
+/* RPC-009E — tier-launch code (e.g. "A2B1C0"), Blitz leaderboard only */
+.arena-lb-code{font-family:'Share Tech Mono',monospace;font-size:.62rem;
+  color:var(--text2,#94a3b8);min-width:52px;text-align:right;}
 .arena-lb-move{font-size:.62rem;width:1.2rem;text-align:center;}
 .arena-lb-move.up{color:var(--green);}
 .arena-lb-move.down{color:var(--red);}
@@ -644,6 +647,12 @@ body::before{content:'';position:fixed;inset:0;
 .champ-label{font-size:clamp(.9rem,1.6vw,1.4rem);letter-spacing:4px;color:var(--gold2);text-transform:uppercase;}
 .champ-team-name{font-size:clamp(2.2rem,5.5vw,5.5rem);font-weight:900;color:#fff;
   text-shadow:0 0 60px rgba(245,158,11,.7);}
+/* RPC-009E — tie support: multiple teams can share first place. Each name
+   gets its own line; the Thai conjunction "และ" prefixes the last line
+   when there's more than one. Slightly smaller than the single-champion
+   size so 2-3 stacked names don't overflow. */
+.champ-name-line{font-size:clamp(1.6rem,4vw,3.6rem);font-weight:900;color:#fff;
+  text-shadow:0 0 50px rgba(245,158,11,.65);line-height:1.25;}
 .champ-score{font-family:'Share Tech Mono',monospace;font-size:clamp(1.5rem,3vw,3rem);color:var(--gold2);}
 .champ-mvp{font-size:clamp(.7rem,1.2vw,1rem);color:var(--text3);margin-top:1vh;}
 .champ-hud-wrap{width:clamp(120px,14vh,200px);height:clamp(120px,14vh,200px);}
@@ -754,9 +763,7 @@ body::before{content:'';position:fixed;inset:0;
     <div class="arena-background" id="champion-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1vh;">
       <div class="champ-label">👑 CHAMPION</div>
-      <div class="champ-team-name" id="champ-team-name">—</div>
-      <div class="champ-score" id="champ-score">0</div>
-      <div class="champ-mvp" id="champ-mvp"></div>
+      <div id="champ-team-name"></div>
     </div>
   </div>
 
@@ -1465,12 +1472,16 @@ function renderMission2Leaderboard(){
   // RPC-009D fix: same class of bug as Frostbite's leaderboard — total_score
   // doesn't move during live Blitz gameplay; pipeline_score is what SQL
   // actually increments on every weapon launch.
+  // RPC-009E: added the A#B#C# tier-launch code, matching the format
+  // already shown on the Leader's own Product Standings panel in play.html.
   const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
   flipReorder('p2-lb',sorted,(row,t,i)=>{
     row.className='arena-lb-row';
+    const code=`A${t.tier_a_launches||0}B${t.tier_b_launches||0}C${t.tier_c_launches||0}`;
     row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
       <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.pipeline_score||0).toLocaleString()}</div>`;
+      <div class="arena-lb-score">${(t.pipeline_score||0).toLocaleString()}</div>
+      <div class="arena-lb-code">${code}</div>`;
   });
 }
 function addBlitzFeed(msg){
@@ -1664,13 +1675,20 @@ function renderTournamentStandingsStage(p){
 
 // CHAMPION
 function renderChampion(){
+  // RPC-009E: no longer shows points, and now supports a tie for first —
+  // every team whose total_score matches the max is a Champion, each on
+  // its own line, with the Thai conjunction "และ" (and) before the last
+  // name when there's more than one.
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  const champ=sorted[0];
-  if(!champ)return;
-  document.getElementById('champ-team-name').textContent=champ.leader_name||champ.name;
-  document.getElementById('champ-team-name').style.color=TC[champ.id]||'#fff';
-  document.getElementById('champ-score').textContent=(champ.total_score||0).toLocaleString();
-  document.getElementById('champ-mvp').textContent=''; // MVP not tracked in current schema
+  if(!sorted.length)return;
+  const topScore=sorted[0].total_score||0;
+  const champs=sorted.filter(t=>(t.total_score||0)===topScore);
+  const el=document.getElementById('champ-team-name');
+  el.innerHTML=champs.map((t,i)=>{
+    const nm=t.leader_name||t.name;
+    const prefix=(champs.length>1&&i===champs.length-1)?'และ ':'';
+    return `<div class="champ-name-line" style="color:${TC[t.id]||'#fff'}">${prefix}${nm}</div>`;
+  }).join('');
   confetti({particleCount:150,spread:120,origin:{y:.4}});
 }
 
