@@ -559,7 +559,7 @@ body::before{content:'';position:fixed;inset:0;
 /* ============================================================
    ARENA — FREEZE EVENT (dedicated hero view)
    ============================================================ */
-#v-freeze-event{position:relative;overflow:hidden;padding:0;}
+#v-freeze-event{overflow:hidden;padding:0;}
 .fe-team-name{position:absolute;font-size:clamp(.85rem,1.6vw,1.4rem);font-weight:700;
   text-align:center;width:14%;}
 .fe-team-name.attacker{left:13%;top:73.5%;color:#fb7185;}
@@ -640,7 +640,7 @@ body::before{content:'';position:fixed;inset:0;
 .mc-complete-winner{font-size:clamp(.85rem,1.5vw,1.3rem);color:#fff;margin-top:.2rem;}
 
 /* CHAMPION */
-#v-champion{position:relative;overflow:hidden;align-items:center;justify-content:center;flex-direction:column;gap:1.5vh;}
+#v-champion{overflow:hidden;align-items:center;justify-content:center;flex-direction:column;gap:1.5vh;}
 .champ-label{font-size:clamp(.9rem,1.6vw,1.4rem);letter-spacing:4px;color:var(--gold2);text-transform:uppercase;}
 .champ-team-name{font-size:clamp(2.2rem,5.5vw,5.5rem);font-weight:900;color:#fff;
   text-shadow:0 0 60px rgba(245,158,11,.7);}
@@ -1059,6 +1059,7 @@ function traceScreen(stage,detail){
 // is indistinguishable from "not rendering." Now: log every status change,
 // and auto-resubscribe (with backoff) on CHANNEL_ERROR/TIMED_OUT/CLOSED.
 let gsChannel=null,gsResubTimer=null,gsResubDelay=1000;
+let launchResetPending=false; // RPC-009D — dedup guard, see applyState()'s 'launch:' handler
 function subscribeRT(){
   gsChannel=sb.channel('scr-gs').on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_state'},p=>{
     traceScreen('Realtime Received',{phase:p.new.phase,mission_stage:p.new.mission_stage,sub_state:p.new.sub_state});
@@ -1172,9 +1173,23 @@ function applyState(){
     showView('v-mission3');renderMissionLive(3);renderGambitReveal(gs.sub_state.split(':')[2]);return;
   }
   if(gs.sub_state&&gs.sub_state.startsWith('launch:')){
-    const parts=gs.sub_state.split(':');
-    triggerLaunchAnim(parseInt(parts[1]),parts[2]);
-    setTimeout(()=>sb.from('game_state').update({sub_state:'active'}).eq('id',1),200);
+    // RPC-009D fix: applyState() can run more than once while the same
+    // transient 'launch:team:tier' sub_state is still live — the realtime
+    // callback and the RPC-008B fallback poll can both observe it inside
+    // the ~200ms window before it resets back to 'active', which fired
+    // addBlitzFeed/the launch animation twice for that one deploy. Guard
+    // so only the first observer per pending cycle acts; the flag clears
+    // once the reset-to-'active' write actually completes, so a genuinely
+    // new deploy (even an identical team+tier combo later in the mission)
+    // is never suppressed.
+    if(!launchResetPending){
+      launchResetPending=true;
+      triggerLaunchAnim(parseInt(gs.sub_state.split(':')[1]),gs.sub_state.split(':')[2]);
+      setTimeout(()=>{
+        sb.from('game_state').update({sub_state:'active'}).eq('id',1)
+          .then(()=>{launchResetPending=false;});
+      },200);
+    }
     return;
   }
 
@@ -1371,8 +1386,13 @@ function renderMissionLive(p){
 
 // MISSION 1 — leaderboard (existing rich Frostbite row content, unchanged)
 function renderRankList(){
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
+  // RPC-009D fix: this used total_score, which only changes when Tournament
+  // Points get awarded after the mission ends — it's static all through
+  // live Frostbite gameplay. trivia_score is what SQL actually increments
+  // on every correct answer, so that's what the live leaderboard must sort/
+  // display by.
+  const sorted=[...teams].sort((a,b)=>(b.trivia_score||0)-(a.trivia_score||0));
+  const maxScore=Math.max(1,...teams.map(t=>t.trivia_score||0));
   const poolLbl=document.getElementById('p1-pool-lbl');
   if(poolLbl)poolLbl.textContent=triviaQs.length?`${triviaQs.length} QUESTIONS IN PLAY`:'';
   flipReorder('p1-lb',sorted,(row,t,rank)=>{
@@ -1380,7 +1400,7 @@ function renderRankList(){
     const clr=TC[t.id]||'#fff';
     const frozen=t.frozen_until&&new Date(t.frozen_until)>new Date();
     const nm=t.leader_name||t.name;
-    const pct=Math.max(4,((t.total_score||0)/maxScore)*86);
+    const pct=Math.max(4,((t.trivia_score||0)/maxScore)*86);
     row.className=`rank-row${frozen?' frozen':''}`;
     row.style.background=frozen?'rgba(30,58,138,0.2)':`rgba(${hexRgb(clr)},.04)`;
     row.style.borderColor=frozen?'rgba(96,165,250,0.35)':`rgba(${hexRgb(clr)},.12)`;
@@ -1398,7 +1418,7 @@ function renderRankList(){
       <div class="rank-bar-wrap">
         <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
       </div>
-      <div class="rank-score" style="color:${clr};">${(t.total_score||0).toLocaleString()}</div>`;
+      <div class="rank-score" style="color:${clr};">${(t.trivia_score||0).toLocaleString()}</div>`;
   });
   startFrozenCountdowns();
 }
@@ -1417,7 +1437,17 @@ function startFrozenCountdowns(){
           const byClr=byTeam?TC[byTeam.id]||'#fff':'#fff';
           tag.innerHTML=`❄️ Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${rem}s`;
         }
-        if(rem<=0)clearInterval(iv);
+        if(rem<=0){
+          clearInterval(iv);
+          // RPC-009D fix: this used to only stop the interval, leaving the
+          // frozen tag text and row background/border tint stuck at "0s"
+          // indefinitely — nothing else re-renders the leaderboard while a
+          // frozen team can't score, so it never had a reason to refresh.
+          // A full re-render correctly clears the frozen styling, restores
+          // the FREEZE READY badge if applicable, and re-sorts if scores
+          // shifted meanwhile.
+          renderRankList();
+        }
       },500);
     }
   });
@@ -1432,12 +1462,15 @@ function checkFreezeEvents(prev){
 // no territory progress bars — RPC-007E retires that panel entirely)
 let p2FeedItems=[];
 function renderMission2Leaderboard(){
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  // RPC-009D fix: same class of bug as Frostbite's leaderboard — total_score
+  // doesn't move during live Blitz gameplay; pipeline_score is what SQL
+  // actually increments on every weapon launch.
+  const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
   flipReorder('p2-lb',sorted,(row,t,i)=>{
     row.className='arena-lb-row';
     row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
       <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
+      <div class="arena-lb-score">${(t.pipeline_score||0).toLocaleString()}</div>`;
   });
 }
 function addBlitzFeed(msg){
@@ -1573,7 +1606,13 @@ function renderMissionDemo(p){
 function renderMissionResultStage(p){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
-  const field=p===1?'m1_points':p===2?'m2_points':null;
+  // RPC-009D fix: this used to read m1_points/m2_points, but those fields
+  // hold the *tournament placement award* (1000/800/600...) set by
+  // confirmAwardTournamentPoints() — that's what Tournament Standings
+  // should show, not Mission Result. Mission Result is meant to show each
+  // team's raw in-mission performance, which lives in trivia_score /
+  // pipeline_score instead.
+  const field=p===1?'trivia_score':p===2?'pipeline_score':null;
   const sorted=field?[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0)):[];
   const medals=['🥇','🥈','🥉','4th','5th','6th'];
   el.innerHTML=`
@@ -1581,7 +1620,7 @@ function renderMissionResultStage(p){
     ${sorted.map((t,i)=>`<div class="result-row">
       <div class="result-medal">${medals[i]||i+1}</div>
       <div class="result-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name||t.name}</div>
-      <div class="result-award">+${(t[field]||0).toLocaleString()}</div>
+      <div class="result-award">${(t[field]||0).toLocaleString()}</div>
     </div>`).join('')}`;
 }
 
@@ -1592,22 +1631,24 @@ function renderMissionResultStage(p){
 function renderTournamentStandingsStage(p){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
   if(p===2){
+    // RPC-009D: reverted to Mission-2-only standings — showing the
+    // cumulative Total here spoiled the Champion reveal that's supposed
+    // to happen after this. Only M2's own tournament points are shown;
+    // the M1+M2 running total stays hidden until Champion.
+    const sorted=[...teams].sort((a,b)=>(b.m2_points||0)-(a.m2_points||0));
     el.innerHTML=`<div class="arena-panel" style="flex:1;">
-      <div class="arena-panel-lbl">🏆 Tournament Standings</div>
-      <div class="ts-header-row"><span style="min-width:1.4rem;"></span><span style="flex:1;">Team</span><span class="ts-col">M1</span><span class="ts-col">M2</span><span class="ts-col total">Total</span></div>
+      <div class="arena-panel-lbl">🏆 Tournament Standings — Mission 2</div>
       <div id="ts-body"></div>
     </div>`;
     flipReorder('ts-body',sorted,(row,t,i)=>{
-      row.className='ts-table-row';
-      row.innerHTML=`<div class="ts-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-        <div class="ts-name">${t.leader_name||t.name}</div>
-        <div class="ts-col">${(t.m1_points||0).toLocaleString()}</div>
-        <div class="ts-col">${(t.m2_points||0).toLocaleString()}</div>
-        <div class="ts-col total">${(t.total_score||0).toLocaleString()}</div>`;
+      row.className='arena-lb-row';
+      row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+        <div class="arena-lb-name">${t.leader_name||t.name}</div>
+        <div class="arena-lb-score">${(t.m2_points||0).toLocaleString()}</div>`;
     });
   } else {
+    const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
     el.innerHTML=`<div class="arena-panel" style="flex:1;">
       <div class="arena-panel-lbl">🏆 Tournament Standings</div>
       <div id="ts-body"></div>
@@ -1826,4 +1867,3 @@ init();
 </script>
 </body>
 </html>
- 
