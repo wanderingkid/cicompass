@@ -1116,7 +1116,7 @@ body::before{content:'';position:fixed;inset:0;
       <span class="dot-sep">·</span>
       <span><span class="ready-b" id="wait-ready">0/6</span> <span id="wait-ready-lbl">teams ready</span></span>
     </div>
-    <div style="color:var(--text3);font-size:.8rem;text-align:center;">
+    <div style="color:var(--text3);font-size:.8rem;text-align:center;" id="wait-msg">
       รอการเริ่มเกม...<br>กรุณาอย่าปิดหน้าจอ
     </div>
   </div>
@@ -2159,22 +2159,55 @@ function showErr(msg){
   e.textContent=msg;e.style.display='block';
   setTimeout(()=>e.style.display='none',3000);
 }
-function updateWait(){
+function updateWait(msg){
   if(!player)return;
   const t=teams.find(x=>x.id===player.team_id)||{};
   document.getElementById('wait-team').textContent=t.leader_name||t.name||`ทีม ${player.team_id}`;
   document.getElementById('wait-name').textContent=player.name;
   document.getElementById('wait-role').textContent=player.role==='leader'?'👑 หัวหน้าทีม':'👤 ผู้เล่น';
+  const m=document.getElementById('wait-msg');
+  if(m&&msg)m.innerHTML=msg;
+}
+
+// RPC-007E.1 — mission_stage 'background' / 'result' / 'standings' all
+// reuse the same waiting shell (s-wait), just with a stage-appropriate
+// message, instead of leaving the player stuck on stale gameplay UI.
+const MISSION_WAIT_MSG={
+  background:'ภารกิจกำลังจะเริ่ม...<br>ดูหน้าจอ Arena เพื่อติดตาม',
+  result:'ภารกิจจบแล้ว!<br>ดูผลลัพธ์บนหน้าจอ Arena',
+  standings:'อันดับทัวร์นาเมนต์<br>ดูคะแนนสะสมบนหน้าจอ Arena'
+};
+function showMissionWaitScreen(kind){
+  showScreen('s-wait');
+  updateWait(MISSION_WAIT_MSG[kind]||MISSION_WAIT_MSG.background);
 }
 
 // APPLY STATE
 function applyState(){
   if(!gameState||!player)return;
   phase=gameState.phase;
-  const sub=gameState.sub_state||'lobby';
   const isLeader=player.role==='leader';
-  if(phase===0){showScreen('s-wait');return;}
-  if(sub==='demo'){showDemoScreen();return;}
+  if(phase===0){showScreen('s-wait');updateWait();return;}
+
+  // RPC-007E.1 fix: this used to route purely off `phase`, checking only
+  // sub_state==='demo' as a special case. It never looked at mission_stage
+  // at all, which is the field admin.html and screen.html actually use to
+  // drive background/demo/strategy/live/result/standings. That mismatch is
+  // why Player/Leader showed live gameplay during "Show Background", never
+  // reacted to "Show Demo" or "Strategy Minute" (those set mission_stage,
+  // not sub_state), and had nothing to show for Mission Result / Tournament
+  // Standings. mission_stage is now the single source of truth here too,
+  // matching the other two pages.
+  if(phase>=1&&phase<=3){
+    const stage=gameState.mission_stage||'background';
+    if(stage==='background'){stopAllMissionTimers();showMissionWaitScreen('background');return;}
+    if(stage==='demo'){stopAllMissionTimers();showDemoScreen();return;}
+    if(stage==='strategy'){stopAllMissionTimers();showStrategyScreen();return;}
+    if(stage==='result'){stopAllMissionTimers();showMissionWaitScreen('result');return;}
+    if(stage==='standings'){stopAllMissionTimers();showMissionWaitScreen('standings');return;}
+    // stage==='live' falls through to normal gameplay below
+  }
+
   const my=teams.find(t=>t.id===player.team_id);
   const frozen=my&&my.frozen_until&&new Date(my.frozen_until)>new Date();
   switch(phase){
@@ -2186,8 +2219,7 @@ function applyState(){
       break;
     case 2:
       startMission2Timer();
-      if(sub==='strategy')showStrategyScreen();
-      else if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();}
+      if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();}
       else{
         const alreadyTapping=document.getElementById('s-tapping').classList.contains('active');
         showScreen('s-tapping');
@@ -2209,6 +2241,17 @@ function applyState(){
   if(phase!==3&&mission3TimerInt){clearInterval(mission3TimerInt);mission3TimerInt=null;}
   if(phase!==3&&p3VotesChannel){sb.removeChannel(p3VotesChannel);p3VotesChannel=null;}
 }
+// Shared cleanup when leaving live gameplay for a non-live stage
+// (background/demo/strategy/result/standings) so no stale timer keeps
+// ticking, and no player can keep tapping/answering after the mission
+// has technically moved on.
+function stopAllMissionTimers(){
+  if(tapFlushInterval){clearInterval(tapFlushInterval);tapFlushInterval=null;}
+  if(mission2TimerInt){clearInterval(mission2TimerInt);mission2TimerInt=null;}
+  if(game1TimerInt){clearInterval(game1TimerInt);game1TimerInt=null;}
+  if(mission3TimerInt){clearInterval(mission3TimerInt);mission3TimerInt=null;}
+  if(p3VotesChannel){sb.removeChannel(p3VotesChannel);p3VotesChannel=null;}
+}
 // DEMO
 let demoAutoInt=null,demoProgInt=null,demoProgVal=0;
 function showDemoScreen(){
@@ -2218,7 +2261,10 @@ function showDemoScreen(){
   showScreen('s-demo');
 }
 function renderDemoSlide(){
-  const step=gameState.demo_step||0;
+  // RPC-007E.1 fix: admin.html's demo navigator writes to demo_card, not
+  // demo_step (a legacy field no longer written anywhere) — this was
+  // silently stuck on card 1 regardless of Mission Control's nav clicks.
+  const step=gameState.demo_card||0;
   const content=DEMO_CONTENT[gameState.phase]||[];
   const c=content[Math.min(step,content.length-1)]||{};
   document.getElementById('demo-phase-lbl').textContent=`PHASE ${gameState.phase} — DEMO`;

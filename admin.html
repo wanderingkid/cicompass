@@ -658,11 +658,14 @@ async function launchMission(p){
   toast(`▶ Mission ${p} Launched`);
 }
 async function showMissionBackground(p){
-  await sb.from('game_state').update({phase:p,mission_stage:'background'}).eq('id',1);
+  // sub_state reset prevents a leftover 'champion' / 'p3reveal:...' / 'launch:...'
+  // value from a prior mission hijacking Arena/Player routing (both check
+  // sub_state before mission_stage).
+  await sb.from('game_state').update({phase:p,mission_stage:'background',sub_state:'active'}).eq('id',1);
   toast(`🖼️ Mission ${p} background shown`);
 }
 async function showMissionDemo(p){
-  await sb.from('game_state').update({phase:p,mission_stage:'demo',demo_card:0}).eq('id',1);
+  await sb.from('game_state').update({phase:p,mission_stage:'demo',demo_card:0,sub_state:'active'}).eq('id',1);
   toast(`🎬 Mission ${p} demo started`);
 }
 async function demoCardNav(dir){
@@ -671,17 +674,17 @@ async function demoCardNav(dir){
 }
 async function startStrategyMinute(){
   await sb.from('game_state').update({
-    phase:2, mission_stage:'strategy',
+    phase:2, mission_stage:'strategy', sub_state:'active',
     phase_start_at:new Date().toISOString()
   }).eq('id',1);
   toast('🧠 Strategy Minute started');
 }
 async function showMissionResultStage(p){
-  await sb.from('game_state').update({phase:p,mission_stage:'result'}).eq('id',1);
+  await sb.from('game_state').update({phase:p,mission_stage:'result',sub_state:'active'}).eq('id',1);
   toast(`🏁 Mission ${p} Result shown`);
 }
 async function showTournamentStandingsAdmin(p){
-  await sb.from('game_state').update({phase:p,mission_stage:'standings'}).eq('id',1);
+  await sb.from('game_state').update({phase:p,mission_stage:'standings',sub_state:'active'}).eq('id',1);
   toast(`🏆 Tournament Standings shown`);
 }
 
@@ -965,8 +968,17 @@ async function forceReveal(){
 }
 async function endMission(){
   if(!confirm('End current mission now?'))return;
-  await sb.from('game_state').update({sub_state:'scoreboard'}).eq('id',1);
-  toast('⏹ Mission ended — showing scoreboard');
+  // RPC-007E.1 fix: this used to only set the legacy sub_state:'scoreboard',
+  // which no page's rendering actually keys off anymore. mission_stage is the
+  // single source of truth for admin/screen/play — it must move to 'result'
+  // or the Primary Workflow panel never surfaces the Show Mission Result /
+  // Tournament Standings buttons (they're gated on stage==='result'), and
+  // Arena/Player stay stuck on the live gameplay overlay. Also clear any
+  // pause and reset sub_state so a stale value can't hijack routing.
+  await sb.from('game_state').update({
+    mission_stage:'result', sub_state:'active', is_paused:false, paused_at:null
+  }).eq('id',1);
+  toast('⏹ Mission ended — showing Mission Result');
   // Immediately surface the placement review — ending a mission should lead
   // straight into ranking/confirmation rather than requiring the admin to
   // separately find "Freeze & Rank Mission" further down the page.

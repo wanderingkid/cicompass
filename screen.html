@@ -1162,9 +1162,38 @@ function renderMissionOverlay(){
   const stage=gs.mission_stage||'background';
   if(stage==='background'){el.innerHTML='';return;}
   if(stage==='demo'){renderMissionDemo(p);return;}
+  if(stage==='strategy'){renderStrategyMinute(p);return;}
   if(stage==='live'){renderMissionLive(p);return;}
   if(stage==='result'){renderMissionResultStage(p);return;}
   if(stage==='standings'){renderTournamentStandingsStage(p);return;}
+}
+
+/* ============================================================
+   STRATEGY MINUTE — Blitz only. Stays on the Blitz background
+   shell (RPC-007E.1: this was previously missing from the stage
+   dispatcher entirely, which is why the overlay stayed blank).
+   ============================================================ */
+let strategyTimerInt=null;
+function renderStrategyMinute(p){
+  const el=document.getElementById(`m${p}-overlay`);
+  if(!el)return;
+  el.innerHTML=`
+    <div class="arena-panel" style="flex:1;align-items:center;justify-content:center;text-align:center;gap:1rem;">
+      <div class="arena-panel-lbl">🧠 Strategy Minute</div>
+      <div class="arena-timer-big" id="strategy-timer-arena">01:00</div>
+      <div style="color:var(--text2, #9fb0c9);font-size:clamp(.7rem,1vw,.9rem);">Leaders are choosing their opening Tier before Blitz launches.</div>
+    </div>`;
+  if(strategyTimerInt)clearInterval(strategyTimerInt);
+  const dur=60;
+  strategyTimerInt=setInterval(()=>{
+    if(!gs?.phase_start_at)return;
+    const elapsed=(Date.now()-new Date(gs.phase_start_at).getTime())/1000;
+    const rem=Math.max(0,dur-elapsed);
+    const m=Math.floor(rem/60),s=Math.floor(rem%60);
+    const t=document.getElementById('strategy-timer-arena');
+    if(t){t.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;t.classList.toggle('urgent',rem<=15);}
+    if(rem<=0)clearInterval(strategyTimerInt);
+  },500);
 }
 
 // TIMER
@@ -1734,3 +1763,4 @@ init();
 </script>
 </body>
 </html>
+ 
