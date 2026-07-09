@@ -560,10 +560,18 @@ body::before{content:'';position:fixed;inset:0;
    ARENA — FREEZE EVENT (dedicated hero view)
    ============================================================ */
 #v-freeze-event{overflow:hidden;padding:0;}
-.fe-team-name{position:absolute;font-size:clamp(.85rem,1.6vw,1.4rem);font-weight:700;
-  text-align:center;width:14%;}
-.fe-team-name.attacker{left:13%;top:73.5%;color:#fb7185;}
-.fe-team-name.target{left:66%;top:73.5%;color:#67e8f9;}
+/* RPC-009G: the small plain team-name text used to sit directly over the
+   shield graphics baked into Frostbite_Freeze.png, illegible from across
+   a room. Moved down to sit clear of the shields (below the countdown
+   ring, above the icy ground), restyled as a proper wide chip with its
+   own background/border for contrast against any part of the artwork,
+   and sized for readability at event-hall distance. */
+.fe-team-name{position:absolute;font-size:clamp(1.3rem,2.6vw,2.4rem);font-weight:800;
+  text-align:center;width:26%;padding:.6rem 1rem;border-radius:999px;
+  background:rgba(4,10,26,.62);backdrop-filter:blur(8px);
+  border:1.5px solid currentColor;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+.fe-team-name.attacker{left:5%;top:83%;color:#fb7185;}
+.fe-team-name.target{left:69%;top:83%;color:#67e8f9;}
 .fe-countdown{position:absolute;left:49.8%;top:55.8%;transform:translate(-50%,-50%);
   font-family:'Share Tech Mono',monospace;font-weight:900;
   font-size:clamp(3.5rem,11vw,8rem);line-height:1;color:#fff;
