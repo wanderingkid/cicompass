@@ -395,6 +395,10 @@ body::before{content:'';position:fixed;inset:0;
 .status-chip.sc-standing .status-dot{background:var(--gold2);}
 .status-chip.sc-champion{border-color:rgba(245,158,11,.4);color:var(--gold2);}
 .status-chip.sc-champion .status-dot{background:var(--gold);}
+.status-chip.sc-frozen{border-color:rgba(96,165,250,.4);color:var(--blue3);}
+.status-chip.sc-frozen .status-dot{background:var(--blue2);}
+.status-chip.sc-signallost{border-color:rgba(148,163,184,.4);color:var(--text2);}
+.status-chip.sc-signallost .status-dot{background:var(--text2);}
 
 /* MISSION COMPLETE / TOURNAMENT STANDING — RPC-009A, share one layout */
 .result-card{width:100%;max-width:360px;text-align:center;padding:1.6rem 1.4rem;
@@ -443,17 +447,16 @@ body::before{content:'';position:fixed;inset:0;
   border-radius:8px;overflow:hidden;aspect-ratio:2/1;}
 .mock-cell{aspect-ratio:1;border-radius:1px;transition:background .3s;}
 
-/* FROZEN — Captain-triggered, ice-themed (Compass HUD 'freeze' state) */
-#s-frozen{align-items:center;justify-content:center;gap:.9rem;
-  background:linear-gradient(135deg,#0c1445,#0a0e27);}
-.frz-hud-wrap{width:104px;height:104px;}
+/* FROZEN — Captain-triggered. RPC-009E: removed the opaque gradient
+   background that was covering the new Frozen artwork mounted behind
+   every screen (#mobile-bg-layer) — that was the actual root cause of
+   "Frozen still shows old design." Screen must stay transparent. */
+#s-frozen{align-items:center;justify-content:center;gap:.9rem;}
 .frz-title{font-size:1.5rem;font-weight:900;color:var(--blue3);letter-spacing:1px;}
 
-/* SIGNAL LOST — self-inflicted wrong-answer penalty. Deliberately NOT ice —
-   greyscale/interference language per Compass HUD spec, distinct from Freeze. */
-#s-penalty{align-items:center;justify-content:center;gap:.8rem;
-  background:linear-gradient(135deg,#14171f,#0a0e27);}
-.sl-hud-wrap{width:104px;height:104px;}
+/* SIGNAL LOST — self-inflicted wrong-answer penalty. RPC-009E: same fix
+   as Frozen above — dropped the opaque background. */
+#s-penalty{align-items:center;justify-content:center;gap:.8rem;}
 .sl-title{font-size:1.3rem;font-weight:900;color:var(--text2);letter-spacing:2px;}
 .pen-num{font-size:5rem;font-weight:900;
   background:linear-gradient(135deg,var(--text2),#cbd5e1);
@@ -1273,209 +1276,35 @@ body::before{content:'';position:fixed;inset:0;
   </div>
 </div>
 
-<!-- FROZEN -->
+<!-- FROZEN — RPC-009E: dropped the old Compass HUD SVG entirely (no
+     longer needed now that the Frozen artwork itself carries the visual
+     theme) and the opaque gradient background that was hiding the new
+     mobile background layer mounted behind every screen. -->
 <div id="s-frozen" class="screen">
+  <div class="logo-wrap">
+    <img id="logo-img-frozen" class="logo-img" alt="Compass OS">
+    <div class="logo-text" id="logo-text-frozen">COMPASS OS</div>
+  </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;">
-    <div class="frz-hud-wrap">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="chud-frz-hud" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="freeze">
-  <defs>
-    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
-    <line id="chud-tick-major-def" x1="0" y1="-78" x2="0" y2="-66"/>
-    <line id="chud-tick-minor-def" x1="0" y1="-78" x2="0" y2="-74.5"/>
-  </defs>
-  <g id="compass-hud" transform="translate(100,100)">
-    <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
-      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
-      <g id="chud-sweep" class="chud-sweep">
-        <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.75" d="M -16.79 -86.38 A 88 88 0 0 0 -22.78 -85"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.68" d="M -24.99 -84.38 A 88 88 0 0 0 -30.82 -82.43"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.60" d="M -32.97 -81.59 A 88 88 0 0 0 -38.58 -79.09"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.53" d="M -40.63 -78.06 A 88 88 0 0 0 -45.98 -75.03"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.45" d="M -47.93 -73.8 A 88 88 0 0 0 -52.96 -70.28"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.38" d="M -54.78 -68.87 A 88 88 0 0 0 -59.45 -64.88"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.30" d="M -61.13 -63.3 A 88 88 0 0 0 -65.4 -58.88"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.23" d="M -66.92 -57.15 A 88 88 0 0 0 -70.74 -52.34"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.15" d="M -72.09 -50.47 A 88 88 0 0 0 -75.43 -45.32"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.08" d="M -76.59 -43.33 A 88 88 0 0 0 -79.43 -37.88"/>
-      </g>
-    </g>
-    <line id="chud-service-mark" class="chud-layer chud-static-mark" x1="-78.75" y1="39.27" x2="-80.7" y2="35.09"/>
-    <g id="chud-ticks" class="chud-layer chud-ticks">
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(0)" style="--tick-index:0"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(30)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(60)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(90)" style="--tick-index:1"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(120)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(150)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(180)" style="--tick-index:2"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(210)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(240)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(270)" style="--tick-index:3"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(300)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(330)"/>
-    </g>
-    <g id="chud-calibration-notch" class="chud-layer chud-static-mark">
-      <line x1="70.16" y1="26.51" x2="65.48" y2="24.74"/>
-      <line x1="68.88" y1="29.67" x2="64.29" y2="27.69"/>
-    </g>
-    <g id="chud-inner-ring" class="chud-layer">
-      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
-      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
-    </g>
-    <g id="chud-needle" class="chud-layer">
-      <g id="chud-needle-reticle" class="chud-needle-reticle" aria-hidden="true">
-        <line x1="0" y1="0" x2="24.75" y2="-24.75"/>
-        <line x1="0" y1="0" x2="24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="-24.75"/>
-      </g>
-      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
-      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
-    </g>
-    <g id="chud-core" class="chud-layer">
-      <circle id="chud-core-iris" class="chud-core-iris" cx="0" cy="0" r="7.5"/>
-      <circle id="chud-core-halo" class="chud-core-halo" cx="0" cy="0" r="5"/>
-      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
-    </g>
-    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
-    <g id="chud-fx" class="chud-fx" aria-hidden="true">
-      <g id="chud-freeze-fx" class="chud-freeze-fx">
-        <path class="chud-freeze-crystal" d="M23.81 -88.87 L36.55 -95.23 M23.81 -88.87 L15.64 -98.77"/>
-        <path class="chud-freeze-crystal" d="M75.36 -52.77 L89.21 -49.45 M75.36 -52.77 L75.47 -65.61"/>
-        <path class="chud-freeze-crystal" d="M91.65 8.02 L100.13 19.46 M91.65 8.02 L99.98 -1.75"/>
-        <path class="chud-freeze-crystal" d="M-38.88 83.38 L-52.53 87.43 M-38.88 83.38 L-32.56 94.55"/>
-        <path class="chud-freeze-crystal" d="M-86.45 31.47 L-98.97 24.68 M-86.45 31.47 L-89.88 43.84"/>
-        <path class="chud-freeze-crystal" d="M-79.67 -46 L-82.52 -59.95 M-79.67 -46 L-91.35 -40.67"/>
-        <circle id="chud-freeze-countdown" class="chud-freeze-countdown" cx="0" cy="0" r="60"/>
-      </g>
-      <g id="chud-deploy-fx" class="chud-deploy-fx">
-        <circle class="chud-deploy-ring chud-deploy-ring-1" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-2" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-3" cx="0" cy="0" r="20"/>
-      </g>
-      <circle id="chud-ready-pulse" class="chud-ready-pulse" cx="0" cy="0" r="60"/>
-      <g id="chud-champion-fx" class="chud-champion-fx">
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="-16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="-11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="-11.31"/>
-        <circle id="chud-champion-bloom" class="chud-champion-bloom" cx="0" cy="0" r="130"/>
-      </g>
-    </g>
-  </g>
-</svg>
-    </div>
+    <div class="status-chip sc-frozen"><span class="status-dot"></span>Frozen</div>
     <div class="frz-title">ทีมถูก FREEZE!</div>
-    <div style="font-size:3rem;font-weight:900;color:var(--blue2);" id="frz-clock">12</div>
-    <div style="color:var(--text3);font-size:.82rem;text-align:center;" id="frz-by"></div>
+    <div style="font-size:4rem;font-weight:900;color:var(--blue3);line-height:1;" id="frz-clock">12</div>
+    <div style="color:var(--text2);font-size:.9rem;text-align:center;" id="frz-by"></div>
   </div>
 </div>
 
 <!-- SIGNAL LOST (formerly PENALTY) — self-inflicted wrong-answer state.
      Distinct Compass OS language from Freeze: no ice, greyscale interference. -->
+<!-- SIGNAL LOST (formerly PENALTY) — RPC-009E: dropped the old Compass
+     HUD SVG and the opaque gradient background for the same reason as
+     Frozen above. -->
 <div id="s-penalty" class="screen">
+  <div class="logo-wrap">
+    <img id="logo-img-penalty" class="logo-img" alt="Compass OS">
+    <div class="logo-text" id="logo-text-penalty">COMPASS OS</div>
+  </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:2rem;">
-    <div class="sl-hud-wrap">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" id="chud-sl-hud" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="signal-lost">
-  <defs>
-    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
-    <line id="chud-tick-major-def" x1="0" y1="-78" x2="0" y2="-66"/>
-    <line id="chud-tick-minor-def" x1="0" y1="-78" x2="0" y2="-74.5"/>
-  </defs>
-  <g id="compass-hud" transform="translate(100,100)">
-    <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
-      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
-      <g id="chud-sweep" class="chud-sweep">
-        <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.75" d="M -16.79 -86.38 A 88 88 0 0 0 -22.78 -85"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.68" d="M -24.99 -84.38 A 88 88 0 0 0 -30.82 -82.43"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.60" d="M -32.97 -81.59 A 88 88 0 0 0 -38.58 -79.09"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.53" d="M -40.63 -78.06 A 88 88 0 0 0 -45.98 -75.03"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.45" d="M -47.93 -73.8 A 88 88 0 0 0 -52.96 -70.28"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.38" d="M -54.78 -68.87 A 88 88 0 0 0 -59.45 -64.88"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.30" d="M -61.13 -63.3 A 88 88 0 0 0 -65.4 -58.88"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.23" d="M -66.92 -57.15 A 88 88 0 0 0 -70.74 -52.34"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.15" d="M -72.09 -50.47 A 88 88 0 0 0 -75.43 -45.32"/>
-        <path class="chud-sweep-seg" style="--seg-op:0.08" d="M -76.59 -43.33 A 88 88 0 0 0 -79.43 -37.88"/>
-      </g>
-    </g>
-    <line id="chud-service-mark" class="chud-layer chud-static-mark" x1="-78.75" y1="39.27" x2="-80.7" y2="35.09"/>
-    <g id="chud-ticks" class="chud-layer chud-ticks">
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(0)" style="--tick-index:0"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(30)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(60)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(90)" style="--tick-index:1"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(120)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(150)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(180)" style="--tick-index:2"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(210)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(240)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(270)" style="--tick-index:3"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(300)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(330)"/>
-    </g>
-    <g id="chud-calibration-notch" class="chud-layer chud-static-mark">
-      <line x1="70.16" y1="26.51" x2="65.48" y2="24.74"/>
-      <line x1="68.88" y1="29.67" x2="64.29" y2="27.69"/>
-    </g>
-    <g id="chud-inner-ring" class="chud-layer">
-      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
-      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
-    </g>
-    <g id="chud-needle" class="chud-layer">
-      <g id="chud-needle-reticle" class="chud-needle-reticle" aria-hidden="true">
-        <line x1="0" y1="0" x2="24.75" y2="-24.75"/>
-        <line x1="0" y1="0" x2="24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="-24.75"/>
-      </g>
-      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
-      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
-    </g>
-    <g id="chud-core" class="chud-layer">
-      <circle id="chud-core-iris" class="chud-core-iris" cx="0" cy="0" r="7.5"/>
-      <circle id="chud-core-halo" class="chud-core-halo" cx="0" cy="0" r="5"/>
-      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
-    </g>
-    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
-    <g id="chud-fx" class="chud-fx" aria-hidden="true">
-      <g id="chud-freeze-fx" class="chud-freeze-fx">
-        <path class="chud-freeze-crystal" d="M23.81 -88.87 L36.55 -95.23 M23.81 -88.87 L15.64 -98.77"/>
-        <path class="chud-freeze-crystal" d="M75.36 -52.77 L89.21 -49.45 M75.36 -52.77 L75.47 -65.61"/>
-        <path class="chud-freeze-crystal" d="M91.65 8.02 L100.13 19.46 M91.65 8.02 L99.98 -1.75"/>
-        <path class="chud-freeze-crystal" d="M-38.88 83.38 L-52.53 87.43 M-38.88 83.38 L-32.56 94.55"/>
-        <path class="chud-freeze-crystal" d="M-86.45 31.47 L-98.97 24.68 M-86.45 31.47 L-89.88 43.84"/>
-        <path class="chud-freeze-crystal" d="M-79.67 -46 L-82.52 -59.95 M-79.67 -46 L-91.35 -40.67"/>
-        <circle id="chud-freeze-countdown" class="chud-freeze-countdown" cx="0" cy="0" r="60"/>
-      </g>
-      <g id="chud-deploy-fx" class="chud-deploy-fx">
-        <circle class="chud-deploy-ring chud-deploy-ring-1" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-2" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-3" cx="0" cy="0" r="20"/>
-      </g>
-      <circle id="chud-ready-pulse" class="chud-ready-pulse" cx="0" cy="0" r="60"/>
-      <g id="chud-champion-fx" class="chud-champion-fx">
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="-16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="-11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="-11.31"/>
-        <circle id="chud-champion-bloom" class="chud-champion-bloom" cx="0" cy="0" r="130"/>
-      </g>
-    </g>
-  </g>
-</svg>
-    </div>
+    <div class="status-chip sc-signallost"><span class="status-dot"></span>Signal Lost</div>
     <div class="sl-title">SIGNAL LOST</div>
     <div class="pen-num" id="pen-clock">3</div>
     <div style="color:var(--text2);font-size:1rem;font-weight:700;">ตอบผิด! Streak หายหมด</div>
