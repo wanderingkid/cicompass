@@ -52,6 +52,15 @@
   /* --- New: safe-area insets --- */
   --safe-t:env(safe-area-inset-top,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
+
+  /* --- RPC-009C: mission background artwork — SINGLE POINT OF CHANGE.
+     To swap an asset later (e.g. Blitz_mobile_bg_v2.png), edit only the
+     filename on the relevant line below. Nothing else in this file
+     references these images directly. --- */
+  --bg-frostbite:url('Frostbite_mobile_bg.png');
+  --bg-frozen:url('Frostbite_Frozen_mobile_bg.png');
+  --bg-signallost:url('Frostbite_SignalLost_mobile_bg.png');
+  --bg-blitz:url('Blitz_mobile_bg.png');
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;overflow:hidden;
@@ -64,8 +73,36 @@ body::before{content:'';position:fixed;inset:0;
 
 /* SCREENS */
 .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;
-  -webkit-overflow-scrolling:touch;}
+  -webkit-overflow-scrolling:touch;background:transparent;z-index:1;}
 .screen.active{display:flex;}
+
+/* MOBILE BACKGROUND LAYER — RPC-009C. Sits behind every .screen. Each
+   .mobile-bg is a full-bleed static image (background-size:cover, centered,
+   never stretched/repeated/distorted) that is mounted once and only ever
+   toggled via .active (opacity), never re-created or re-fetched. Screens
+   remain transparent HTML overlays on top, exactly like Arena. */
+#mobile-bg-layer{position:fixed;inset:0;z-index:0;}
+.mobile-bg{position:absolute;inset:0;
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:0;transition:opacity var(--dur-md,400ms) ease;}
+.mobile-bg.active{opacity:1;}
+#mobile-bg-frostbite{background-image:var(--bg-frostbite);}
+#mobile-bg-frozen{background-image:var(--bg-frozen);}
+#mobile-bg-signallost{background-image:var(--bg-signallost);}
+#mobile-bg-blitz{background-image:var(--bg-blitz);}
+/* Readability scrim — RPC-009C spec: "if readability requires adjustment,
+   adjust ONLY overlay opacity, never the artwork." A flat, uniform veil
+   over the whole background layer (not per-image editing) so question
+   text/buttons/status chip stay legible over any bright region of any
+   of the four images, top and bottom safe zones a little heavier since
+   that's where the compass header and footer status text sit. */
+#mobile-bg-layer::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(4,8,20,.55) 0%, rgba(4,8,20,.15) 18%,
+    rgba(4,8,20,.15) 78%, rgba(4,8,20,.55) 100%);}
+/* Lobby, Join, and Champion keep the existing gradient look (body's base
+   background, set above) — no production artwork supplied for those in
+   RPC-009C yet. */
 
 /* GLASS CARD */
 .glass{background:var(--surf);backdrop-filter:blur(12px);
@@ -754,6 +791,27 @@ body::before{content:'';position:fixed;inset:0;
 </style>
 </head>
 <body>
+
+<!-- ============================================================
+     MOBILE BACKGROUND LAYER — RPC-009C
+     Same architecture as Arena (screen.html): one persistent,
+     absolutely-positioned artwork layer mounted once at page load
+     and never recreated. Screens above it are transparent; only
+     this layer's visible sub-element (via .active) changes, and
+     only a CSS class/background-image swap — no re-fetch, no DOM
+     rebuild. All four images are preloaded once in init() so
+     switching between them is instant with zero network cost.
+
+     To replace an asset later (e.g. Blitz_mobile_bg_v2.png): edit
+     ONLY the MOBILE_BG_ASSETS filenames below. No other HTML, CSS,
+     or JS change is required — every other div/class stays fixed.
+     ============================================================ -->
+<div id="mobile-bg-layer">
+  <div class="mobile-bg" id="mobile-bg-frostbite"></div>
+  <div class="mobile-bg" id="mobile-bg-frozen"></div>
+  <div class="mobile-bg" id="mobile-bg-signallost"></div>
+  <div class="mobile-bg" id="mobile-bg-blitz"></div>
+</div>
 
 <!-- LOADING -->
 <div id="s-loading" class="screen active">
@@ -2072,6 +2130,7 @@ function pollLobbyCount(){
 // INIT
 async function init(){
   initLogo();
+  preloadMobileBackgrounds();
   pollLobbyCount();
   const saved=localStorage.getItem('pr_pid');
   if(saved){
@@ -2087,6 +2146,27 @@ async function init(){
   await loadTeams();
   renderTeamGrid();
   showScreen('s-join');
+}
+
+// MOBILE BACKGROUND LAYER — RPC-009C. Reads the actual URL out of each
+// --bg-* CSS custom property (rather than duplicating filenames in JS),
+// so the single point of change for a future asset swap really is just
+// the :root block above — nothing here needs to know the filenames.
+const MOBILE_BG_KEYS=['frostbite','frozen','signallost','blitz'];
+function preloadMobileBackgrounds(){
+  MOBILE_BG_KEYS.forEach(k=>{
+    const raw=getComputedStyle(document.documentElement).getPropertyValue(`--bg-${k}`).trim();
+    const m=raw.match(/url\((['"]?)(.*?)\1\)/);
+    if(m)new Image().src=m[2];
+  });
+}
+let currentMobileBg=null;
+function setMobileBg(key){
+  if(currentMobileBg===key)return; // already showing it — no-op, no reflow
+  currentMobileBg=key;
+  MOBILE_BG_KEYS.forEach(k=>{
+    document.getElementById(`mobile-bg-${k}`)?.classList.toggle('active',k===key);
+  });
 }
 
 async function loadAll(){
@@ -2287,6 +2367,12 @@ function applyState(){
   // Standings. mission_stage is now the single source of truth here too,
   // matching the other two pages.
   if(phase>=1&&phase<=3){
+    // RPC-009C: mission background stays mounted for the whole mission
+    // lifecycle (Waiting → Demo → Strategy → Result → Standings) — only
+    // the two Frostbite exceptions (Frozen/Signal Lost) override it, and
+    // only from inside the 'live' gameplay branch below, never here.
+    if(phase===1)setMobileBg('frostbite');
+    if(phase===2)setMobileBg('blitz');
     const stage=gameState.mission_stage||'background';
     if(stage==='background'){stopAllMissionTimers();showMissionWaitScreen('background');return;}
     if(stage==='demo'){stopAllMissionTimers();showDemoScreen();return;}
@@ -2301,12 +2387,19 @@ function applyState(){
   switch(phase){
     case 1:
       startGame1Timer();
+      // Only reassert the Frostbite background here if neither Frozen nor
+      // Signal Lost is currently showing — otherwise this would stomp
+      // their artwork every time an unrelated game_state field changes
+      // and applyState() re-runs mid-event. startFreeze()/startPenalty()
+      // set their own background when they actually trigger.
+      if(!isFrozen&&!isPenalty)setMobileBg('frostbite');
       if(isLeader){showScreen('s-leader-p1');renderLeaderP1Dashboard();}
       else if(frozen&&!isFrozen)startFreeze(my.frozen_until,my.frozen_by_team);
       else if(!isFrozen&&!isPenalty){showScreen('s-trivia');renderTrivia();}
       break;
     case 2:
       startMission2Timer();
+      setMobileBg('blitz'); // no Frozen/Signal Lost equivalent in Blitz
       if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();}
       else{
         const alreadyTapping=document.getElementById('s-tapping').classList.contains('active');
@@ -2530,6 +2623,7 @@ async function answerTrivia(letter,qId,correct){
 }
 function startPenalty(){
   isPenalty=true;let secs=3;
+  setMobileBg('signallost'); // RPC-009C — auto-reverts to Frostbite below
   document.getElementById('pen-clock').textContent=secs;
   document.getElementById('pen-msg').textContent=JOKES[Math.floor(Math.random()*JOKES.length)];
   showScreen('s-penalty');
@@ -2541,12 +2635,12 @@ function startPenalty(){
       const my=teams.find(t=>t.id===player.team_id);
       const frozen=my&&my.frozen_until&&new Date(my.frozen_until)>new Date();
       if(frozen)startFreeze(my.frozen_until,my.frozen_by_team);
-      else{showScreen('s-trivia');renderTrivia();}
+      else{setMobileBg('frostbite');showScreen('s-trivia');renderTrivia();}
     }
   },1000);
 }
 function startFreeze(until,byTeamId){
-  isFrozen=true;showScreen('s-frozen');
+  isFrozen=true;setMobileBg('frozen');showScreen('s-frozen'); // RPC-009C
   const byTeam=byTeamId?teams.find(t=>t.id===byTeamId):null;
   const byName=byTeam?(byTeam.leader_name||byTeam.name):'';
   document.getElementById('frz-by').textContent=byName?`โดย ${byName}`:'';
@@ -2555,7 +2649,11 @@ function startFreeze(until,byTeamId){
   frozenTimer=setInterval(()=>{
     const rem=Math.max(0,Math.ceil((end-Date.now())/1000));
     document.getElementById('frz-clock').textContent=rem;
-    if(rem<=0){clearInterval(frozenTimer);isFrozen=false;showScreen('s-trivia');renderTrivia();}
+    if(rem<=0){
+      clearInterval(frozenTimer);isFrozen=false;
+      setMobileBg('frostbite'); // RPC-009C — automatic return
+      showScreen('s-trivia');renderTrivia();
+    }
   },500);
 }
 
