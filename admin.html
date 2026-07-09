@@ -1105,10 +1105,23 @@ async function confirmAwardTournamentPoints(){
   if(!confirm(`Award Tournament Points for Mission ${gs.phase} in this order? This cannot be undone.`))return;
   const tp=gs.tournament_points||{1:1000,2:800,3:600,4:400,5:300,6:200};
   const missionPointsField=gs.phase===1?'m1_points':gs.phase===2?'m2_points':null;
+  // RPC-009H — tiebreaker fix: this used to award purely by array position
+  // (1st slot always gets 1000, 2nd always 800, ...) with no regard for
+  // whether two teams actually tied on raw score. Now uses standard
+  // competition ranking: teams with equal scores share the same (higher)
+  // award, and the next distinct score jumps to its true position — e.g.
+  // two teams tied for 1st both get 1000, and the next team gets 3rd-place
+  // points (600), not 2nd (800).
+  let rank=1;
   for(let i=0;i<placementOrder.length;i++){
     const id=placementOrder[i];
     const t=teams.find(x=>x.id===id);
-    const award=tp[String(i+1)]||tp[i+1]||0;
+    if(i>0){
+      const prevT=teams.find(x=>x.id===placementOrder[i-1]);
+      const tied=(t?.[field]||0)===(prevT?.[field]||0);
+      if(!tied)rank=i+1; // skip ahead to this team's true 1-indexed position
+    }
+    const award=tp[String(rank)]||tp[rank]||0;
     const patch={
       total_score:(t?.total_score||0)+award,
       [field]:0 // discard the mission's live score now that it's converted to Tournament Points
