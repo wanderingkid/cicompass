@@ -1111,10 +1111,6 @@ body::before{content:'';position:fixed;inset:0;
 
 <!-- WAIT -->
 <div id="s-wait" class="screen">
-  <div class="logo-wrap">
-    <img id="logo-img-wait" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-wait">COMPASS OS</div>
-  </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;padding:1rem;">
     <div class="wait-ring">
 <svg id="chud-wait" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="idle">
@@ -1281,11 +1277,7 @@ body::before{content:'';position:fixed;inset:0;
      theme) and the opaque gradient background that was hiding the new
      mobile background layer mounted behind every screen. -->
 <div id="s-frozen" class="screen">
-  <div class="logo-wrap">
-    <img id="logo-img-frozen" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-frozen">COMPASS OS</div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;padding:2rem 2rem 4rem;">
     <div class="status-chip sc-frozen"><span class="status-dot"></span>Frozen</div>
     <div class="frz-title">ทีมถูก FREEZE!</div>
     <div style="font-size:4rem;font-weight:900;color:var(--blue3);line-height:1;" id="frz-clock">12</div>
@@ -1299,15 +1291,10 @@ body::before{content:'';position:fixed;inset:0;
      HUD SVG and the opaque gradient background for the same reason as
      Frozen above. -->
 <div id="s-penalty" class="screen">
-  <div class="logo-wrap">
-    <img id="logo-img-penalty" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-penalty">COMPASS OS</div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:2rem;">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:2rem 2rem 4rem;">
     <div class="status-chip sc-signallost"><span class="status-dot"></span>Signal Lost</div>
-    <div class="sl-title">SIGNAL LOST</div>
+    <div class="sl-title" id="sl-title-text">ตอบผิด Bonus Streak หายหมด</div>
     <div class="pen-num" id="pen-clock">3</div>
-    <div style="color:var(--text2);font-size:1rem;font-weight:700;">ตอบผิด! Streak หายหมด</div>
     <div style="color:var(--text3);font-size:.78rem;text-align:center;" id="pen-msg"></div>
   </div>
 </div>
@@ -1340,7 +1327,7 @@ body::before{content:'';position:fixed;inset:0;
       <div class="hud-team" id="t-team"></div>
       <div class="q-prog" id="t-prog">Q 1</div>
     </div>
-    <div class="t-timer" id="t-timer">04:00</div>
+    <div class="t-timer" id="t-timer">02:30</div>
     <div class="hero-score-wrap">
       <div class="hero-score" id="t-pts">0 pts</div>
       <div style="font-size:.62rem;color:var(--text3);" id="t-stk">🔥 0</div>
@@ -1472,7 +1459,7 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-leader-p1" class="screen">
   <div class="hud">
     <div class="hud-team" id="lcmd1-team"></div>
-    <div class="t-timer" id="lcmd1-timer">04:00</div>
+    <div class="t-timer" id="lcmd1-timer">02:30</div>
     <div class="hud-pts" id="lcmd1-score">0 pts</div>
   </div>
   <div style="padding:.9rem;display:flex;flex-direction:column;gap:.6rem;flex:1;min-height:0;">
@@ -1752,7 +1739,7 @@ const DEMO_AUTO_SECS = 4;
    Reads optional overrides from game_state so Mission Control can tune these
    without a code change or schema migration; falls back to documented defaults
    when the field isn't present. */
-const GAME1_DEFAULTS = { durationSec:240, chargePerPlayer:5, streakStart:3, minChargePlayers:3 };
+const GAME1_DEFAULTS = { durationSec:150, chargePerPlayer:5, streakStart:3, minChargePlayers:3 };
 function g1Duration(){ return (gameState&&gameState.phase1_duration)||GAME1_DEFAULTS.durationSec; }
 function g1ChargePerPlayer(){ return (gameState&&gameState.charge_per_player)||GAME1_DEFAULTS.chargePerPlayer; }
 function g1StreakStart(){ return (gameState&&gameState.streak_start)||GAME1_DEFAULTS.streakStart; }
@@ -2392,6 +2379,32 @@ function startGame1Timer(){
       document.querySelectorAll('#ans-list .ans-btn').forEach(b=>b.classList.add('disabled'));
       const banner=document.getElementById('timeup-banner');
       if(banner)banner.style.display='block';
+    }
+    // RPC-009F fix: the leader's "your team is frozen" banner was only
+    // ever set once, when renderLeaderP1Dashboard() happened to run while
+    // frozen_until was still in the future. If the frozen team's players
+    // can't act (that's the whole point of being frozen) and the leader
+    // doesn't trigger a teams update either, nothing re-renders it — the
+    // banner (and its stale countdown number) stayed stuck forever, even
+    // after the freeze actually expired. This piggybacks on the timer's
+    // already-running per-500ms tick to keep it live and correctly clear
+    // it once frozen_until passes.
+    if(player?.role==='leader'){
+      const my=teams.find(t=>t.id===player.team_id);
+      const fc=document.getElementById('lcmd1-frozen');
+      if(my&&fc){
+        const stillFrozen=my.frozen_until&&new Date(my.frozen_until)>new Date();
+        if(stillFrozen){
+          const byTeam=teams.find(t=>t.id===my.frozen_by_team);
+          const byName=byTeam?(byTeam.leader_name||byTeam.name):'???';
+          const rem2=Math.max(0,Math.ceil((new Date(my.frozen_until).getTime()-Date.now())/1000));
+          fc.style.display='block';fc.innerHTML=`❄️ ถูก FREEZE โดย <b>${byName}</b> · เหลือ ${rem2}s`;
+        } else if(fc.style.display!=='none'){
+          fc.style.display='none';
+          const capHud=document.getElementById('chud-cap-hud');
+          if(capHud&&capHud.getAttribute('data-state')==='freeze')capHud.setAttribute('data-state','idle');
+        }
+      }
     }
   };
   tick();
