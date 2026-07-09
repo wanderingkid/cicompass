@@ -18,7 +18,11 @@
 :root {
   /* --- Original tokens (unchanged; source of truth) --- */
   --bg1:#0a0e27;--bg2:#0d1b4b;
-  --surf:rgba(255,255,255,0.07);--surf2:rgba(255,255,255,0.12);
+  /* RPC-009D: bumped from 0.07/0.12 — cards were too transparent to read
+     text through now that a photographic background sits behind them
+     (introduced in RPC-009C). Kept the same hue/blur language, just less
+     see-through. */
+  --surf:rgba(8,14,32,0.62);--surf2:rgba(8,14,32,0.74);
   --border:rgba(255,255,255,0.12);--border2:rgba(96,165,250,0.3);
   --blue:#3b82f6;--blue2:#60a5fa;--blue3:#93c5fd;
   --purple:#8b5cf6;--gold:#f59e0b;--gold2:#fbbf24;
@@ -95,11 +99,22 @@ body::before{content:'';position:fixed;inset:0;
    over the whole background layer (not per-image editing) so question
    text/buttons/status chip stay legible over any bright region of any
    of the four images, top and bottom safe zones a little heavier since
-   that's where the compass header and footer status text sit. */
+   that's where the compass header and footer status text sit.
+   RPC-009D: strengthened across the board — text directly on the artwork
+   (not inside a glass card) was reported hard to read at the original
+   opacities. */
 #mobile-bg-layer::after{content:'';position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,
-    rgba(4,8,20,.55) 0%, rgba(4,8,20,.15) 18%,
-    rgba(4,8,20,.15) 78%, rgba(4,8,20,.55) 100%);}
+    rgba(4,8,20,.72) 0%, rgba(4,8,20,.4) 18%,
+    rgba(4,8,20,.4) 78%, rgba(4,8,20,.72) 100%);}
+
+/* Text readability safety net — RPC-009D. Applies to any text sitting
+   directly on the artwork rather than inside a .glass/.glass2 card
+   (cards already got their own opacity bump above). A soft shadow, not
+   a plate/box, so it stays "adjust opacity only" in spirit rather than
+   adding new visual chrome. */
+.screen{text-shadow:0 1px 3px rgba(0,0,0,.55),0 2px 10px rgba(0,0,0,.35);}
+.glass,.glass2{text-shadow:none;} /* cards already have their own solid backing */
 /* Lobby, Join, and Champion keep the existing gradient look (body's base
    background, set above) — no production artwork supplied for those in
    RPC-009C yet. */
@@ -2339,14 +2354,19 @@ function showMissionCompleteScreen(){
 }
 function showTournamentStandingScreen(){
   showScreen('s-standing');
+  // RPC-009D: mirrors the same change on screen.html — for Blitz (phase 2)
+  // this must show only Mission 2's own points, not the cumulative Total,
+  // or it spoils the Champion reveal that follows. Mission 1 standings
+  // still show total_score (equivalent to M1 points at that point anyway).
+  const field=gameState?.phase===2?'m2_points':'total_score';
   const my=teams.find(t=>t.id===player?.team_id);
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const sorted=[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0));
   const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
   const teamEl=document.getElementById('standing-team');
   const ptsEl=document.getElementById('standing-points');
   const rankEl=document.getElementById('standing-rank');
   if(teamEl)teamEl.textContent=my?.leader_name||my?.name||'';
-  if(ptsEl)ptsEl.textContent=(my?.total_score||0).toLocaleString();
+  if(ptsEl)ptsEl.textContent=(my?.[field]||0).toLocaleString();
   if(rankEl)rankEl.textContent=rankIdx>=0?`${MEDALS[rankIdx]||''} อันดับที่ ${rankIdx+1}`.trim():'อันดับที่ —';
 }
 
