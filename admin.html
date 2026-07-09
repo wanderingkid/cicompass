@@ -494,7 +494,7 @@ function render(){
   document.getElementById('mc-h-mission').textContent=PHASE_LABELS[p]||'LOBBY';
   document.getElementById('mc-h-stage').textContent=p===0?'Waiting':(STAGE_LABELS[stage]||stage);
   // Countdown — reads whichever duration applies to the current mission/stage
-  const durMap={1:gs.phase1_duration||240,2:gs.phase2_duration||90,3:gs.phase3_duration||60};
+  const durMap={1:gs.phase1_duration||150,2:gs.phase2_duration||90,3:gs.phase3_duration||60};
   const dur=stage==='strategy'?60:durMap[p];
   const cdEl=document.getElementById('mc-h-countdown');
   if(dur&&gs.phase_start_at&&(stage==='live'||stage==='strategy')){
@@ -694,7 +694,7 @@ async function kickAllPlayers(){
 
 // ── PHASE 1 ────────────────────────────────────────────
 async function launchMission(p){
-  const dur={1:240,2:90,3:60};
+  const dur={1:150,2:90,3:60};
   await sb.from('game_state').update({
     phase:p, sub_state:'active', mission_stage:'live',
     phase_start_at:new Date().toISOString(),
