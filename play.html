@@ -359,7 +359,7 @@ body::before{content:'';position:fixed;inset:0;
 .mock-score-up{font-size:1.2rem;font-weight:900;color:var(--green);
   text-align:center;animation:scoreUp .6s ease-out infinite alternate;}
 @keyframes scoreUp{from{transform:translateY(0);opacity:.6}to{transform:translateY(-4px);opacity:1}}
-/* Territory mini mock */
+/* Weapon deployment mini mock */
 .mock-terr{display:grid;grid-template-columns:repeat(10,1fr);gap:1px;
   border-radius:8px;overflow:hidden;aspect-ratio:2/1;}
 .mock-cell{aspect-ratio:1;border-radius:1px;transition:background .3s;}
@@ -1855,7 +1855,7 @@ const DEMO_CONTENT = {
         return `<div class="mock-cell" style="background:${colors[team]};opacity:${team?0.8:0.15};"></div>`;
       }).join('');
       return `<div style="width:100%">
-        <div style="font-size:.65rem;color:var(--text2);text-align:center;margin-bottom:.3rem;">🗺️ Territory Map (Live)</div>
+        <div style="font-size:.65rem;color:var(--text2);text-align:center;margin-bottom:.3rem;">⚡ Team Weapon Charge (Live)</div>
         <div class="mock-terr">${cells}</div>
         <div style="display:flex;gap:.3rem;justify-content:center;margin-top:.4rem;flex-wrap:wrap;">
           ${[{c:'#60a5fa',n:'ทีม 1'},{c:'#a78bfa',n:'ทีม 2'},{c:'#fbbf24',n:'ทีม 3'}].map(x=>`<span style="font-size:.6rem;color:${x.c};font-weight:700;">● ${x.n}</span>`).join('')}
