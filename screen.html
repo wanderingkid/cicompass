@@ -1028,7 +1028,7 @@ async function init(){
   initLogo();
   preloadBackgrounds();
   await Promise.all([loadGS(),loadTeams(),loadQs()]);
-  subscribeRT();pollPlayers();
+  subscribeRT();pollPlayers();pollGameStateFallback();
   setupKeyboard();applyState();
 }
 function preloadBackgrounds(){
@@ -1045,10 +1045,43 @@ async function loadQs(){
   if(t)triviaQs=t;if(f)factQs=f;
 }
 
+// RPC-008B — trace instrumentation. Leave this in: it's the only way to
+// see, from the Arena's own console, whether a realtime message actually
+// arrived versus rendering silently going stale.
+function traceScreen(stage,detail){
+  console.log(`[SCREEN] ${stage}`+(detail?` — ${JSON.stringify(detail)}`:''));
+}
+
+// RPC-008B fix: .subscribe() previously had no status callback at all — if
+// the websocket ever errored, timed out, or closed (network blip, RLS/auth
+// hiccup, tab backgrounding), screen.html had no way to notice or recover.
+// It would sit on stale state indefinitely with zero console output, which
+// is indistinguishable from "not rendering." Now: log every status change,
+// and auto-resubscribe (with backoff) on CHANNEL_ERROR/TIMED_OUT/CLOSED.
+let gsChannel=null,gsResubTimer=null,gsResubDelay=1000;
 function subscribeRT(){
-  sb.channel('scr-gs').on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_state'},p=>{
-    gs=p.new;applyState();
-  }).subscribe();
+  gsChannel=sb.channel('scr-gs').on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_state'},p=>{
+    traceScreen('Realtime Received',{phase:p.new.phase,mission_stage:p.new.mission_stage,sub_state:p.new.sub_state});
+    gs=p.new;
+    applyState();
+  }).subscribe(status=>{
+    traceScreen(`game_state channel status: ${status}`);
+    if(status==='SUBSCRIBED'){
+      gsResubDelay=1000; // connection healthy again — reset backoff
+      if(gsResubTimer){clearTimeout(gsResubTimer);gsResubTimer=null;}
+      // We may have missed updates while disconnected — reconcile immediately.
+      loadGS().then(()=>applyState());
+    }
+    if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+      console.warn(`[SCREEN] game_state realtime channel dropped (${status}) — resubscribing in ${gsResubDelay}ms`);
+      if(gsResubTimer)clearTimeout(gsResubTimer);
+      gsResubTimer=setTimeout(()=>{
+        sb.removeChannel(gsChannel);
+        subscribeRT();
+      },gsResubDelay);
+      gsResubDelay=Math.min(gsResubDelay*2,15000);
+    }
+  });
   sb.channel('scr-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},async()=>{
     const prev=[...teams];await loadTeams();
     updateHeroStrip(prev);
@@ -1068,6 +1101,25 @@ function subscribeRT(){
     }
   }).subscribe();
   sb.channel('scr-p3').on('postgres_changes',{event:'INSERT',schema:'public',table:'phase3_submissions'},()=>renderP3Subs()).subscribe();
+}
+
+// RPC-008B — safety net. Realtime should always win the race (it's near-
+// instant), but this guarantees Arena self-heals within a few seconds even
+// if a subscription drop somehow isn't caught above, instead of relying on
+// realtime being perfectly reliable for the length of a live event.
+let lastPolledGsKey=null;
+function pollGameStateFallback(){
+  setInterval(async()=>{
+    const{data}=await sb.from('game_state').select('*').eq('id',1).single();
+    if(!data)return;
+    const key=`${data.phase}|${data.mission_stage}|${data.sub_state}|${data.demo_card}|${data.is_paused}`;
+    if(key!==lastPolledGsKey){
+      if(lastPolledGsKey!==null)traceScreen('Fallback poll detected change realtime missed',{phase:data.phase,mission_stage:data.mission_stage});
+      lastPolledGsKey=key;
+      gs=data;
+      applyState();
+    }
+  },4000);
 }
 
 function pollPlayers(){
@@ -1106,13 +1158,14 @@ async function presenterAct(action){
 let freezeEventInt=null;
 
 function applyState(){
-  if(!gs)return;
+  if(!gs){traceScreen('applyState() aborted — gs is not loaded yet');return;}
   const p=gs.phase;
+  traceScreen('applyState()',{phase:p,mission_stage:gs.mission_stage,sub_state:gs.sub_state});
   document.getElementById('hero-strip').style.display='none';
   document.getElementById('main').style.top='0';
   document.getElementById('pause-overlay').classList.toggle('show',!!gs.is_paused);
 
-  if(gs.sub_state==='champion'){showView('v-champion');renderChampion();return;}
+  if(gs.sub_state==='champion'){traceScreen('-> v-champion');showView('v-champion');renderChampion();traceScreen('Render Complete');return;}
   if(gs.sub_state&&gs.sub_state.startsWith('p3reveal:')){
     // Mission Control's manual Gambit reveal sequence — Arena only
     // visualizes the current stage, no calculations happen here.
@@ -1126,18 +1179,20 @@ function applyState(){
   }
 
   switch(p){
-    case 0:showView('v-lobby');updateLobbyTeams();break;
+    case 0:traceScreen('-> v-lobby');showView('v-lobby');updateLobbyTeams();break;
     case 1:
       // Don't stomp an in-progress Freeze Event takeover with an incidental
       // game_state update — let it finish, the mission background/overlay
       // underneath is unaffected either way (RPC-007E: same shell throughout).
-      if(!freezeEventInt)showView('v-mission1');
+      if(!freezeEventInt){traceScreen('-> v-mission1');showView('v-mission1');}
+      else traceScreen('-> v-mission1 SKIPPED (freeze event in progress)');
       renderMissionOverlay();
       break;
-    case 2:showView('v-mission2');renderMissionOverlay();break;
-    case 3:showView('v-mission3');renderMissionOverlay();break;
-    case 4:showView('v-results');renderResults();confetti({particleCount:120,spread:110,origin:{y:.35}});break;
+    case 2:traceScreen('-> v-mission2');showView('v-mission2');renderMissionOverlay();break;
+    case 3:traceScreen('-> v-mission3');showView('v-mission3');renderMissionOverlay();break;
+    case 4:traceScreen('-> v-results');showView('v-results');renderResults();confetti({particleCount:120,spread:110,origin:{y:.35}});break;
   }
+  traceScreen('Render Complete',{activeView:document.querySelector('.view.active')?.id||'(none — BLANK)'});
 }
 
 function showView(id){
@@ -1160,12 +1215,14 @@ function renderMissionOverlay(){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
   const stage=gs.mission_stage||'background';
+  traceScreen(`renderMissionOverlay() stage=${stage}`,{overlayTarget:`m${p}-overlay`});
   if(stage==='background'){el.innerHTML='';return;}
-  if(stage==='demo'){renderMissionDemo(p);return;}
-  if(stage==='strategy'){renderStrategyMinute(p);return;}
-  if(stage==='live'){renderMissionLive(p);return;}
-  if(stage==='result'){renderMissionResultStage(p);return;}
-  if(stage==='standings'){renderTournamentStandingsStage(p);return;}
+  if(stage==='demo'){traceScreen('-> renderMissionDemo()');renderMissionDemo(p);return;}
+  if(stage==='strategy'){traceScreen('-> renderStrategyMinute()');renderStrategyMinute(p);return;}
+  if(stage==='live'){traceScreen('-> renderMissionLive()');renderMissionLive(p);return;}
+  if(stage==='result'){traceScreen('-> renderMissionResultStage()');renderMissionResultStage(p);return;}
+  if(stage==='standings'){traceScreen('-> renderTournamentStandingsStage()');renderTournamentStandingsStage(p);return;}
+  traceScreen(`*** unrecognized mission_stage "${stage}" — overlay left unchanged ***`);
 }
 
 /* ============================================================
@@ -1604,7 +1661,13 @@ function enterFreezeEventView(attackerId,targetId){
     if(remaining<=0){
       clearInterval(freezeEventInt);freezeEventInt=null;
       freezeShowing=false;
-      if(gs?.phase===1)showView('v-phase1');
+      // RPC-008B fix: this called showView('v-phase1') — a pre-RPC-007E
+      // element id that no longer exists (the view is now v-mission1).
+      // showView() unconditionally clears .active from every view first,
+      // so when the target lookup returned null NOTHING got .active back —
+      // the entire Arena went blank the instant any Freeze event resolved,
+      // and stayed blank until the next realtime update happened to arrive.
+      if(gs?.phase===1)showView('v-mission1');
       processFreezeQueue(); // play next queued freeze, if any
       return;
     }
