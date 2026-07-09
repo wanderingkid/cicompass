@@ -560,23 +560,24 @@ body::before{content:'';position:fixed;inset:0;
    ARENA — FREEZE EVENT (dedicated hero view)
    ============================================================ */
 #v-freeze-event{overflow:hidden;padding:0;}
-/* RPC-009G: the small plain team-name text used to sit directly over the
-   shield graphics baked into Frostbite_Freeze.png, illegible from across
-   a room. Moved down to sit clear of the shields (below the countdown
-   ring, above the icy ground), restyled as a proper wide chip with its
-   own background/border for contrast against any part of the artwork,
-   and sized for readability at event-hall distance. */
-.fe-team-name{position:absolute;font-size:clamp(1.3rem,2.6vw,2.4rem);font-weight:800;
-  text-align:center;width:26%;padding:.6rem 1rem;border-radius:999px;
-  background:rgba(4,10,26,.62);backdrop-filter:blur(8px);
-  border:1.5px solid currentColor;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-.fe-team-name.attacker{left:5%;top:83%;color:#fb7185;}
-.fe-team-name.target{left:69%;top:83%;color:#67e8f9;}
-.fe-countdown{position:absolute;left:49.8%;top:55.8%;transform:translate(-50%,-50%);
+/* RPC-009H: precisely centered in the ring (was 49.8%/55.8%, slightly
+   off). The attacker/target names moved from separate side chips into a
+   single matchup line directly beneath the countdown, inside the ring,
+   sized large but clearly secondary to the number itself. */
+.fe-countdown{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   font-family:'Share Tech Mono',monospace;font-weight:900;
   font-size:clamp(3.5rem,11vw,8rem);line-height:1;color:#fff;
-  text-shadow:0 0 40px rgba(147,197,253,.7);}
+  text-shadow:0 0 40px rgba(147,197,253,.7);text-align:center;}
 .fe-countdown.urgent{color:var(--red);text-shadow:0 0 40px rgba(244,63,94,.7);animation:urgPulse .5s infinite;}
+.fe-matchup{position:absolute;left:50%;top:66%;transform:translateX(-50%);
+  width:70%;text-align:center;font-weight:800;
+  font-size:clamp(1.1rem,2.4vw,2rem);color:#e2e8f0;
+  display:flex;align-items:center;justify-content:center;gap:.6em;flex-wrap:wrap;
+  text-shadow:0 2px 12px rgba(0,0,0,.6);}
+.fe-matchup #fe-attacker-name{color:#fb7185;}
+.fe-matchup #fe-target-name{color:#67e8f9;}
+.fe-matchup-arrow{color:var(--text2,#94a3b8);font-weight:700;
+  font-size:.7em;letter-spacing:.5px;}
 /* ============================================================
    RPC-007B — ARENA BROADCAST ADDITIONS
    ============================================================ */
@@ -775,12 +776,20 @@ body::before{content:'';position:fixed;inset:0;
     </div>
   </div>
 
-  <!-- FREEZE EVENT (Mission 1 hero takeover) -->
+  <!-- FREEZE EVENT (Mission 1 hero takeover) — RPC-009H: removed the side
+       chips (they sat over the shield artwork and were still hard to read)
+       and the bottom-left attack feed toast (redundant with this full-
+       screen takeover). Countdown is now precisely centered in the ring;
+       "attacker → Freeze → target" sits below it, large but visually
+       secondary to the number. -->
   <div id="v-freeze-event" class="view">
     <div class="arena-background" id="freeze-bg" style="background-image:url('Frostbite_Freeze.png');"></div>
-    <div class="fe-team-name attacker" id="fe-attacker-name">—</div>
-    <div class="fe-team-name target" id="fe-target-name">—</div>
     <div class="fe-countdown" id="fe-countdown">12</div>
+    <div class="fe-matchup" id="fe-matchup">
+      <span id="fe-attacker-name">—</span>
+      <span class="fe-matchup-arrow">→ Freeze →</span>
+      <span id="fe-target-name">—</span>
+    </div>
   </div>
 
   <!-- ═══════════ MISSION 1 — FROSTBITE (persistent shell, RPC-007E) ═══════════ -->
@@ -1727,6 +1736,12 @@ function enterFreezeEventView(attackerId,targetId){
   document.getElementById('fe-attacker-name').textContent=tName(attackerId);
   document.getElementById('fe-target-name').textContent=tName(targetId);
   showView('v-freeze-event');
+  // RPC-009H: the attack feed toast (bottom-left, position:fixed, shows on
+  // every view) was bleeding through into this full-screen takeover —
+  // redundant with the matchup line this view already shows front and
+  // center. Hidden for the duration of the takeover, restored after.
+  const feed=document.getElementById('atk-feed');
+  if(feed)feed.style.display='none';
   if(freezeEventInt)clearInterval(freezeEventInt);
   // RPC-009F fix: this counted down its own separate 5→0 sequence, which
   // didn't match the real 12s freeze duration at all. Now the number shown
@@ -1750,6 +1765,8 @@ function enterFreezeEventView(attackerId,targetId){
       // the entire Arena went blank the instant any Freeze event resolved,
       // and stayed blank until the next realtime update happened to arrive.
       if(gs?.phase===1)showView('v-mission1');
+      const feed=document.getElementById('atk-feed');
+      if(feed)feed.style.display='';
       processFreezeQueue(); // play next queued freeze, if any
       return;
     }
