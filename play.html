@@ -329,6 +329,33 @@ body::before{content:'';position:fixed;inset:0;
   background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);
   color:var(--gold);font-size:.82rem;font-weight:700;}
 
+/* STATUS CHIP — RPC-009A. Small, top-area indicator used across the
+   Waiting / Mission Complete / Tournament Standing / Champion screens.
+   Never oversized, never animated (per CompassOS_Mobile.md). */
+.status-chip{display:inline-flex;align-items:center;gap:.4rem;
+  padding:.28rem .75rem;border-radius:20px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  font-size:.6rem;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--text2);}
+.status-chip .status-dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);flex-shrink:0;}
+.status-chip.sc-live .status-dot{background:var(--green);}
+.status-chip.sc-complete .status-dot{background:var(--cyan);}
+.status-chip.sc-standing .status-dot{background:var(--gold2);}
+.status-chip.sc-champion{border-color:rgba(245,158,11,.4);color:var(--gold2);}
+.status-chip.sc-champion .status-dot{background:var(--gold);}
+
+/* MISSION COMPLETE / TOURNAMENT STANDING — RPC-009A, share one layout */
+.result-card{width:100%;max-width:360px;text-align:center;padding:1.6rem 1.4rem;
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;}
+.result-icon{font-size:2.1rem;line-height:1;margin-bottom:.1rem;}
+.result-title{font-size:1.3rem;font-weight:900;letter-spacing:.5px;
+  background:linear-gradient(135deg,var(--blue2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.result-sub{font-size:.8rem;color:var(--text2);}
+.standing-points{font-size:2.4rem;font-weight:900;color:var(--gold2);margin:.25rem 0;}
+.standing-rank{font-size:.95rem;font-weight:700;color:var(--text);}
+.standing-team{font-size:1.05rem;font-weight:700;color:var(--blue2);}
+
 /* DEMO */
 #s-demo{padding:1rem;gap:.7rem;align-items:center;justify-content:center;}
 .demo-phase{font-size:.65rem;font-weight:700;color:var(--blue2);
@@ -1111,13 +1138,48 @@ body::before{content:'';position:fixed;inset:0;
     <div class="wait-team" id="wait-team">ทีม 1</div>
     <div style="color:var(--text2);font-size:.9rem;" id="wait-name"></div>
     <div class="wait-pill" id="wait-role">👤 ผู้เล่น</div>
-    <div class="mission-status" id="wait-status-pill">
-      <span>👥 <b id="wait-count">0</b> <span id="wait-count-lbl">connected</span></span>
-      <span class="dot-sep">·</span>
-      <span><span class="ready-b" id="wait-ready">0/6</span> <span id="wait-ready-lbl">teams ready</span></span>
-    </div>
+    <!-- RPC-009A: removed the connected/teams-ready status pill that was
+         here — CompassOS_Mobile.md explicitly excludes player count and
+         connection stats from the Lobby/Waiting screen. Only team, role,
+         and status message remain. -->
     <div style="color:var(--text3);font-size:.8rem;text-align:center;" id="wait-msg">
       รอการเริ่มเกม...<br>กรุณาอย่าปิดหน้าจอ
+    </div>
+  </div>
+</div>
+
+<!-- MISSION COMPLETE — RPC-009A. Distinct from the generic Waiting screen:
+     no gameplay controls, explicitly says what happens next. -->
+<div id="s-complete" class="screen">
+  <div class="logo-wrap">
+    <img id="logo-img-complete" class="logo-img" alt="Compass OS">
+    <div class="logo-text" id="logo-text-complete">COMPASS OS</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;">
+    <div class="status-chip sc-complete"><span class="status-dot"></span>Mission Complete</div>
+    <div class="glass result-card">
+      <div class="result-icon">✓</div>
+      <div class="result-title" id="complete-title">ภารกิจสำเร็จ</div>
+      <div class="result-sub">รอผลอันดับทัวร์นาเมนต์</div>
+      <div class="wait-pill" id="complete-role">👤 ผู้เล่น</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOURNAMENT STANDING — RPC-009A. Shows the team's own tournament
+     points and current rank; no other team's detailed stats. -->
+<div id="s-standing" class="screen">
+  <div class="logo-wrap">
+    <img id="logo-img-standing" class="logo-img" alt="Compass OS">
+    <div class="logo-text" id="logo-text-standing">COMPASS OS</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;">
+    <div class="status-chip sc-standing"><span class="status-dot"></span>Tournament Standing</div>
+    <div class="glass result-card">
+      <div class="standing-team" id="standing-team">ทีม 1</div>
+      <div class="standing-points" id="standing-points">0</div>
+      <div class="result-sub">คะแนนสะสมทัวร์นาเมนต์</div>
+      <div class="standing-rank" id="standing-rank">อันดับที่ —</div>
     </div>
   </div>
 </div>
@@ -1641,12 +1703,17 @@ body::before{content:'';position:fixed;inset:0;
 
 <!-- RESULTS -->
 <div id="s-results" class="screen">
+  <div class="logo-wrap">
+    <img id="logo-img-results" class="logo-img" alt="Compass OS">
+    <div class="logo-text" id="logo-text-results">COMPASS OS</div>
+  </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:1rem;padding:1.5rem;overflow-y:auto;">
+    <div class="status-chip sc-champion"><span class="status-dot"></span>Champion</div>
     <div style="font-size:3rem;">🏆</div>
     <div style="font-size:1.4rem;font-weight:900;
       background:linear-gradient(135deg,var(--gold),var(--gold2));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;">เกมจบแล้ว!</div>
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;">แชมป์เปี้ยน</div>
     <div style="font-size:2.5rem;font-weight:900;color:var(--green);" id="r-score">0</div>
     <div style="font-size:.85rem;color:var(--text2);" id="r-rank">ทีม —</div>
     <div class="res-rows" id="r-rows"></div>
@@ -2169,17 +2236,38 @@ function updateWait(msg){
   if(m&&msg)m.innerHTML=msg;
 }
 
-// RPC-007E.1 — mission_stage 'background' / 'result' / 'standings' all
-// reuse the same waiting shell (s-wait), just with a stage-appropriate
-// message, instead of leaving the player stuck on stale gameplay UI.
+// RPC-007E.1: mission_stage 'background' still reuses the Waiting shell
+// (s-wait) — that's the same "waiting for Mission Control" moment as Lobby,
+// just mid-event. RPC-009A: 'result' and 'standings' now get their own
+// purpose-built screens per CompassOS_Mobile.md instead of reusing Waiting
+// with a text swap — Tournament Standing in particular needs to actually
+// show the team's points/rank, not just point at the Arena screen.
 const MISSION_WAIT_MSG={
-  background:'ภารกิจกำลังจะเริ่ม...<br>ดูหน้าจอ Arena เพื่อติดตาม',
-  result:'ภารกิจจบแล้ว!<br>ดูผลลัพธ์บนหน้าจอ Arena',
-  standings:'อันดับทัวร์นาเมนต์<br>ดูคะแนนสะสมบนหน้าจอ Arena'
+  background:'ภารกิจกำลังจะเริ่ม...<br>ดูหน้าจอ Arena เพื่อติดตาม'
 };
 function showMissionWaitScreen(kind){
   showScreen('s-wait');
   updateWait(MISSION_WAIT_MSG[kind]||MISSION_WAIT_MSG.background);
+}
+function roleBadge(){
+  return player?.role==='leader' ? '👑 กัปตัน' : '👤 ผู้เล่น';
+}
+function showMissionCompleteScreen(){
+  showScreen('s-complete');
+  const r=document.getElementById('complete-role');
+  if(r)r.textContent=roleBadge();
+}
+function showTournamentStandingScreen(){
+  showScreen('s-standing');
+  const my=teams.find(t=>t.id===player?.team_id);
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
+  const teamEl=document.getElementById('standing-team');
+  const ptsEl=document.getElementById('standing-points');
+  const rankEl=document.getElementById('standing-rank');
+  if(teamEl)teamEl.textContent=my?.leader_name||my?.name||'';
+  if(ptsEl)ptsEl.textContent=(my?.total_score||0).toLocaleString();
+  if(rankEl)rankEl.textContent=rankIdx>=0?`${MEDALS[rankIdx]||''} อันดับที่ ${rankIdx+1}`.trim():'อันดับที่ —';
 }
 
 // APPLY STATE
@@ -2203,8 +2291,8 @@ function applyState(){
     if(stage==='background'){stopAllMissionTimers();showMissionWaitScreen('background');return;}
     if(stage==='demo'){stopAllMissionTimers();showDemoScreen();return;}
     if(stage==='strategy'){stopAllMissionTimers();showStrategyScreen();return;}
-    if(stage==='result'){stopAllMissionTimers();showMissionWaitScreen('result');return;}
-    if(stage==='standings'){stopAllMissionTimers();showMissionWaitScreen('standings');return;}
+    if(stage==='result'){stopAllMissionTimers();showMissionCompleteScreen();return;}
+    if(stage==='standings'){stopAllMissionTimers();showTournamentStandingScreen();return;}
     // stage==='live' falls through to normal gameplay below
   }
 
