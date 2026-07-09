@@ -827,7 +827,7 @@ const SUPABASE_URL = 'https://oojyuucrsbzrqiiqzvhl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vanl1dWNyc2J6cnFpaXF6dmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTkzNDcsImV4cCI6MjA5NjQzNTM0N30.wV5aG189qq7yMx9na-GoF8lj3WwI8DKLJ_S29qvMSXg';
 const LOGO_URL = ''; // paste logo URL when ready
 
-const PHASE_DUR={1:240,2:90};
+const PHASE_DUR={1:150,2:90};
 const TC={1:'#60a5fa',2:'#a78bfa',3:'#fbbf24',4:'#34d399',5:'#fb7185',6:'#67e8f9'};
 const MEDALS=['🥇','🥈','🥉','4th','5th','6th'];
 const TIER_CELLS={A:8,B:30,C:100};
@@ -1334,7 +1334,7 @@ function renderMissionLive(p){
       el.innerHTML=`
         <div class="arena-panel">
           <div class="arena-panel-lbl">Mission Timer</div>
-          <div class="arena-timer-big" id="p1-timer">04:00</div>
+          <div class="arena-timer-big" id="p1-timer">02:30</div>
           <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
         </div>
         <div class="arena-panel" style="flex:0 0 auto;max-height:22vh;overflow-y:auto;">
@@ -1642,6 +1642,16 @@ function renderMissionResultStage(p){
 function renderTournamentStandingsStage(p){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
+  // RPC-009F fix: both branches used the same hardcoded id="ts-body". Since
+  // mission shells persist in the DOM (RPC-007E — v-mission1 is never
+  // destroyed, just hidden), once Mission 1 reached Standings once, its
+  // #ts-body stayed in the document forever. document.getElementById
+  // always returns the *first* match in document order — Mission 1's,
+  // which appears before Mission 2 in the HTML — so Mission 2's row data
+  // was being written into Mission 1's hidden, inactive overlay every
+  // time, leaving the actually-visible Mission 2 panel empty. Namespacing
+  // the id per mission fixes it.
+  const bodyId=`ts-body-${p}`;
   if(p===2){
     // RPC-009D: reverted to Mission-2-only standings — showing the
     // cumulative Total here spoiled the Champion reveal that's supposed
@@ -1650,9 +1660,9 @@ function renderTournamentStandingsStage(p){
     const sorted=[...teams].sort((a,b)=>(b.m2_points||0)-(a.m2_points||0));
     el.innerHTML=`<div class="arena-panel" style="flex:1;">
       <div class="arena-panel-lbl">🏆 Tournament Standings — Mission 2</div>
-      <div id="ts-body"></div>
+      <div id="${bodyId}"></div>
     </div>`;
-    flipReorder('ts-body',sorted,(row,t,i)=>{
+    flipReorder(bodyId,sorted,(row,t,i)=>{
       row.className='arena-lb-row';
       row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
         <div class="arena-lb-name">${t.leader_name||t.name}</div>
@@ -1662,9 +1672,9 @@ function renderTournamentStandingsStage(p){
     const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
     el.innerHTML=`<div class="arena-panel" style="flex:1;">
       <div class="arena-panel-lbl">🏆 Tournament Standings</div>
-      <div id="ts-body"></div>
+      <div id="${bodyId}"></div>
     </div>`;
-    flipReorder('ts-body',sorted,(row,t,i)=>{
+    flipReorder(bodyId,sorted,(row,t,i)=>{
       row.className='arena-lb-row';
       row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
         <div class="arena-lb-name">${t.leader_name||t.name}</div>
@@ -1710,14 +1720,19 @@ function enterFreezeEventView(attackerId,targetId){
   document.getElementById('fe-target-name').textContent=tName(targetId);
   showView('v-freeze-event');
   if(freezeEventInt)clearInterval(freezeEventInt);
-  // Announcement displays ~5s regardless of the actual (12s) freeze duration —
-  // the freeze effect itself continues independently in the background;
-  // this is just the broadcast moment. See ARENA.md §5.
-  let remaining=5;
+  // RPC-009F fix: this counted down its own separate 5→0 sequence, which
+  // didn't match the real 12s freeze duration at all. Now the number shown
+  // is the real remaining freeze time (12, 11, 10...), but the announcement
+  // overlay itself still only stays on screen for 5 seconds before handing
+  // back to the mission view — the freeze effect keeps running for its
+  // full 12s underneath regardless of how long this banner is shown.
+  const FREEZE_DURATION=12, ANNOUNCEMENT_SECS=5;
+  let remaining=FREEZE_DURATION, shown=0;
   const tick=()=>{
     const el=document.getElementById('fe-countdown');
     if(el){el.textContent=remaining;el.classList.toggle('urgent',remaining<=2&&remaining>0);}
-    if(remaining<=0){
+    shown++;
+    if(shown>=ANNOUNCEMENT_SECS){
       clearInterval(freezeEventInt);freezeEventInt=null;
       freezeShowing=false;
       // RPC-008B fix: this called showView('v-phase1') — a pre-RPC-007E
