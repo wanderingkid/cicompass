@@ -654,6 +654,74 @@ body::before{content:'';position:fixed;inset:0;
 #pause-overlay.show{display:flex;}
 .pause-badge{font-size:clamp(1.4rem,3vw,3rem);font-weight:900;letter-spacing:4px;
   color:#fff;border:2px solid rgba(255,255,255,.3);border-radius:16px;padding:1rem 2.5rem;}
+
+/* ============================================================
+   RPC-007E — TOURNAMENT ARCHITECTURE
+   ============================================================ */
+
+/* Mission shell — ONE persistent view per mission. Background never
+   changes for the lifetime of the mission; only .mission-overlay's
+   content is swapped between demo/live/result/standings. */
+.mission-shell{position:relative;overflow:hidden;padding:0;}
+.mission-overlay{position:absolute;right:3vw;width:27vw;top:6vh;bottom:6vh;
+  display:flex;flex-direction:column;gap:1.2vh;z-index:1;}
+
+/* MOBILE MOCKUP DEMO */
+.demo-phone-wrap{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:1.4vh;min-height:0;}
+.demo-phone{width:min(15vw,220px);aspect-ratio:9/18;border-radius:22px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.09),rgba(255,255,255,0.02));
+  backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.18);
+  padding:.9rem .7rem;display:flex;flex-direction:column;gap:.5rem;
+  box-shadow:0 0 40px rgba(0,0,0,.4);flex-shrink:0;}
+.demo-phone-notch{width:30%;height:5px;border-radius:4px;background:rgba(255,255,255,.2);
+  align-self:center;}
+.demo-phone-role{font-size:9px;letter-spacing:1px;color:var(--gold2);
+  text-transform:uppercase;font-weight:700;text-align:center;}
+.demo-phone-body{flex:1;display:flex;flex-direction:column;gap:.4rem;justify-content:center;}
+.demo-phone-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;padding:.4rem;font-size:8px;text-align:center;color:#fff;}
+.demo-phone-btn.hl{background:rgba(245,158,11,.25);border-color:var(--gold2);color:var(--gold2);font-weight:700;}
+.demo-text-panel{background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
+  backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);border-radius:14px;
+  padding:1rem 1.1rem;}
+.demo-section-eyebrow{font-size:.65rem;letter-spacing:2px;color:var(--gold2);
+  text-transform:uppercase;margin-bottom:.35rem;font-weight:700;}
+.demo-section-title{font-size:clamp(1rem,1.6vw,1.5rem);font-weight:700;color:#fff;margin-bottom:.4rem;}
+.demo-section-body{font-size:clamp(.75rem,1.1vw,.95rem);color:#e2e8f0;line-height:1.5;font-weight:300;}
+.demo-tp-reminder{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);
+  border-radius:14px;padding:.8rem 1rem;}
+.demo-tp-row{display:flex;justify-content:space-between;font-size:.72rem;padding:.15rem 0;color:#fff;}
+.demo-tp-row b{color:var(--gold2);}
+.demo-nav{display:flex;align-items:center;justify-content:center;gap:.6rem;}
+.demo-nav-dots{display:flex;gap:.4rem;}
+
+/* MISSION RESULT */
+.result-title-banner{text-align:center;font-size:clamp(1.1rem,1.9vw,1.7rem);
+  font-weight:900;letter-spacing:2px;color:var(--gold2);text-shadow:0 0 25px rgba(245,158,11,.5);}
+.result-row{display:flex;align-items:center;gap:.6rem;font-size:.85rem;padding:.5rem .7rem;
+  background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,0.1);border-radius:12px;}
+.result-medal{font-size:1.2rem;min-width:1.8rem;text-align:center;}
+.result-name{flex:1;font-weight:600;color:#fff;}
+.result-award{font-weight:900;color:var(--green);}
+
+/* TOURNAMENT STANDINGS */
+.ts-table-row{display:flex;align-items:center;gap:.5rem;font-size:.72rem;padding:.35rem .5rem;}
+.ts-rank{min-width:1.4rem;font-weight:900;}
+.ts-name{flex:1;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ts-col{min-width:3.4rem;text-align:right;color:var(--text3);}
+.ts-col.total{color:#fff;font-weight:700;min-width:4rem;}
+.ts-header-row{display:flex;gap:.5rem;padding:.2rem .5rem;font-size:.58rem;
+  color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.2rem;}
+
+/* MISSION 3 — question-hero layout */
+.m3-hero-q{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));
+  backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.14);border-radius:16px;
+  padding:1.4rem 1.2rem;flex:1;display:flex;flex-direction:column;justify-content:center;}
+.m3-hero-qnum{font-size:.7rem;letter-spacing:2px;color:var(--gold2);margin-bottom:.6rem;}
+.m3-hero-qtext{font-size:clamp(1.1rem,2vw,1.9rem);font-weight:600;color:#fff;line-height:1.4;}
+.m3-mini-panel{flex:0 0 auto;max-height:26vh;}
 </style>
 </head>
 <body>
@@ -681,20 +749,7 @@ body::before{content:'';position:fixed;inset:0;
 
 
   <!-- MISSION INTRO (RPC-007B) -->
-  <div id="v-intro" class="view">
-    <div class="arena-background" id="intro-bg" style="background-image:url('CompassOS_Lobby_Game1Hero.png');"></div>
-    <div class="intro-card-wrap" id="intro-card-wrap"></div>
-    <div class="intro-dots" id="intro-dots"></div>
-  </div>
-
-  <!-- STRATEGY MINUTE (RPC-007B, Mission 2 only) -->
-  <div id="v-strategy" class="view">
-    <div class="arena-background" id="strategy-bg" style="background-image:url('Blitz_Background.png');"></div>
-    <div class="strat-big-title">STRATEGY MINUTE</div>
-    <div class="strat-big-count" id="strat-count">60</div>
-  </div>
-
-  <!-- CHAMPION (RPC-007B) -->
+  <!-- CHAMPION -->
   <div id="v-champion" class="view">
     <div class="arena-background" id="champion-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1vh;">
@@ -705,40 +760,7 @@ body::before{content:'';position:fixed;inset:0;
     </div>
   </div>
 
-  <!-- DEMO -->
-  <div id="v-demo" class="view">
-    <div class="demo-card">
-      <div class="demo-phase-lbl" id="demo-phase-lbl">PHASE 1 — DEMO</div>
-      <div class="demo-prog"><div class="demo-prog-fill" id="demo-prog-fill" style="width:0%"></div></div>
-      <div class="demo-h1" id="demo-h1">Loading...</div>
-      <div class="demo-mockup-screen" id="demo-mockup"></div>
-      <div class="demo-body-txt" id="demo-body"></div>
-      <div class="demo-dots" id="demo-dots"></div>
-      <div class="demo-hint">← Emcee controls pace · Auto-advances every 4s →</div>
-    </div>
-  </div>
-
-  <!-- PHASE 1 -->
-  <div id="v-phase1" class="view">
-    <div class="arena-background" id="phase1-bg" style="background-image:url('CompassOS_Lobby_Game1Hero.png');"></div>
-    <div class="arena-panel-zone">
-      <div class="arena-panel">
-        <div class="arena-panel-lbl">Mission Timer</div>
-        <div class="arena-timer-big" id="p1-timer">04:00</div>
-        <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
-      </div>
-      <div class="arena-panel" style="flex:0 0 auto;max-height:22vh;overflow-y:auto;">
-        <div class="arena-panel-lbl">📡 Live Event Feed</div>
-        <div id="p1-feed"></div>
-      </div>
-      <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
-        <div class="arena-panel-lbl">🏆 Tournament Standings</div>
-        <div id="p1-lb"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FREEZE EVENT (Game 1 hero takeover — Compass HUD 'freeze' state) -->
+  <!-- FREEZE EVENT (Mission 1 hero takeover) -->
   <div id="v-freeze-event" class="view">
     <div class="arena-background" id="freeze-bg" style="background-image:url('Frostbite_Freeze.png');"></div>
     <div class="fe-team-name attacker" id="fe-attacker-name">—</div>
@@ -746,82 +768,24 @@ body::before{content:'';position:fixed;inset:0;
     <div class="fe-countdown" id="fe-countdown">12</div>
   </div>
 
-
-  <!-- PHASE 2 -->
-  <div id="v-phase2" class="view">
-    <div class="arena-background" id="phase2-bg" style="background-image:url('Blitz_Background.png');"></div>
-    <div class="arena-panel-zone">
-      <div class="arena-panel">
-        <div class="arena-panel-lbl">Mission Timer</div>
-        <div class="arena-timer-big" id="p2-timer">01:30</div>
-      </div>
-      <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
-        <div class="arena-panel-lbl">📡 Deployment Feed</div>
-        <div id="p2-feed"></div>
-      </div>
-      <div class="arena-panel">
-        <div class="arena-panel-lbl">⚡ Territory Progress</div>
-        <div id="p2-terr"></div>
-      </div>
-      <div class="arena-panel">
-        <div class="arena-panel-lbl">🏆 Leaderboard</div>
-        <div id="p2-lb"></div>
-      </div>
-    </div>
+  <!-- ═══════════ MISSION 1 — FROSTBITE (persistent shell, RPC-007E) ═══════════ -->
+  <div id="v-mission1" class="view mission-shell">
+    <div class="arena-background" style="background-image:url('CompassOS_Lobby_Game1Hero.png');"></div>
+    <div class="mission-overlay" id="m1-overlay"></div>
   </div>
 
-  <!-- PHASE 3 (Gambit) -->
-  <div id="v-phase3" class="view">
-    <div class="arena-background" id="phase3-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
-    <div class="arena-panel-zone">
-      <div class="arena-panel">
-        <div class="gambit-qnum" id="p3-qnum">QUESTION 1 / 4</div>
-        <div class="gambit-q-text" id="p3-stmt">Loading...</div>
-      </div>
-      <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
-        <div class="arena-panel-lbl">🏆 Live Leaderboard</div>
-        <div id="p3-lb"></div>
-      </div>
-      <div class="arena-panel">
-        <div class="arena-panel-lbl">🎲 Reveal Panel</div>
-        <div id="p3-reveal-panel">
-          <div class="reveal-stage-row" id="p3-rs-answer">1️⃣ Correct Answer</div>
-          <div class="reveal-stage-row" id="p3-rs-teamanswers">2️⃣ Team Answers</div>
-          <div class="reveal-stage-row" id="p3-rs-wagers">3️⃣ Wagers</div>
-          <div class="reveal-stage-row" id="p3-rs-x2">4️⃣ x2</div>
-          <div class="reveal-stage-row" id="p3-rs-shield">5️⃣ Shield</div>
-          <div class="reveal-stage-row" id="p3-rs-steals">6️⃣ Steals</div>
-          <div class="reveal-stage-row" id="p3-rs-done">7️⃣ Updated Score</div>
-        </div>
-      </div>
-    </div>
+  <!-- ═══════════ MISSION 2 — BLITZ (persistent shell, RPC-007E) ═══════════ -->
+  <div id="v-mission2" class="view mission-shell">
+    <div class="arena-background" style="background-image:url('Blitz_Background.png');"></div>
+    <div class="mission-overlay" id="m2-overlay"></div>
   </div>
 
-  <!-- SCOREBOARD -->
-  <div id="v-scoreboard" class="view">
-    <div class="mc-complete-banner" id="mc-complete-banner" style="display:none;">
-      <div class="mc-complete-title">🏁 MISSION COMPLETE</div>
-      <div class="mc-complete-winner" id="mc-complete-winner"></div>
-    </div>
-    <div class="sb-title" id="sb-title">📊 PHASE 1 RESULTS</div>
-    <div class="sb-top3" id="sb-top3"></div>
-    <div class="sb-bottom3" id="sb-bottom3"></div>
+  <!-- ═══════════ MISSION 3 — GAMBIT (persistent shell, RPC-007E) ═══════════ -->
+  <div id="v-mission3" class="view mission-shell">
+    <div class="arena-background" style="background-image:url('Mission3_Gambit_Background.png');"></div>
+    <div class="mission-overlay" id="m3-overlay"></div>
   </div>
 
-  <!-- DEBRIEF 1 -->
-  <div id="v-debrief1" class="view">
-    <div class="db1-title">📊 PHASE 1 — TEAM STATS</div>
-    <div class="db1-grid" id="db1-grid"></div>
-  </div>
-
-  <!-- DEBRIEF 2 -->
-  <div id="v-debrief2" class="view">
-    <div class="db2-title">📊 PHASE 2 — PORTFOLIO MIX</div>
-    <div class="db2-grid" id="db2-grid"></div>
-    <div style="font-size:clamp(.65rem,1vw,.85rem);color:var(--text3);text-align:center;">
-      🟡 Tier A (Run-Rate) · 🔵 Tier B (Mid-Market) · 🟢 Tier C (Enterprise)
-    </div>
-  </div>
 
   <!-- FINAL RESULTS -->
   <div id="v-results" class="view">
@@ -1065,7 +1029,7 @@ async function init(){
   preloadBackgrounds();
   await Promise.all([loadGS(),loadTeams(),loadQs()]);
   subscribeRT();pollPlayers();
-  initTerritoryCanvas();setupKeyboard();applyState();
+  setupKeyboard();applyState();
 }
 function preloadBackgrounds(){
   ['CompassOS_Lobby_Background.png','CompassOS_Lobby_Game1Hero.png','Frostbite_Freeze.png','Blitz_Background.png','Mission3_Gambit_Background.png']
@@ -1089,7 +1053,7 @@ function subscribeRT(){
     const prev=[...teams];await loadTeams();
     updateHeroStrip(prev);
     if(gs?.phase===1)renderRankList();
-    if(gs?.phase===2){updateTerritoryScores();updateP2Legend();}
+    if(gs?.phase===2&&gs?.mission_stage==='live')renderMission2Leaderboard();
     if(gs?.phase===3)updateP3Panels();
     checkFreezeEvents(prev);
   }).subscribe();
@@ -1138,59 +1102,42 @@ async function presenterAct(action){
 }
 
 // STATE ROUTER
+// FREEZE EVENT — Arena hero takeover for the duration of an active Freeze.
+let freezeEventInt=null;
+
 function applyState(){
   if(!gs)return;
-  const p=gs.phase,sub=gs.sub_state||'lobby';
-  // RPC-007D — top score strip removed; Tournament Standings (right-hand
-  // panel, all missions) replaces it. #hero-strip kept in DOM (id preserved)
-  // but permanently hidden; updateHeroStrip() calls left in place below are
-  // now safe no-ops rather than removed outright, to avoid touching every
-  // call site for a component that's simply retired.
+  const p=gs.phase;
   document.getElementById('hero-strip').style.display='none';
   document.getElementById('main').style.top='0';
-
-  // Pause overlay — layered above whichever view is active (RPC-007A/007B).
   document.getElementById('pause-overlay').classList.toggle('show',!!gs.is_paused);
 
-  // Handle special sub_states first
-  if(sub==='intro'){showView('v-intro');renderIntroCard();return;}
-  if(sub==='strategy'){showView('v-strategy');startStrategyTimer();return;}
-  if(sub==='strategy_end'){showView('v-strategy');return;}
-  if(sub==='champion'){showView('v-champion');renderChampion();return;}
-  if(sub==='demo'){showView('v-demo');renderDemo();return;}
-  if(sub==='scoreboard'){showView('v-scoreboard');renderScoreboard();return;}
-  if(sub==='debrief1'){showView('v-debrief1');renderDebrief1();return;}
-  if(sub==='debrief2'){showView('v-debrief2');renderDebrief2();return;}
-  if(sub&&sub.startsWith('launch:')){
-    const parts=sub.split(':');
+  if(gs.sub_state==='champion'){showView('v-champion');renderChampion();return;}
+  if(gs.sub_state&&gs.sub_state.startsWith('p3reveal:')){
+    // Mission Control's manual Gambit reveal sequence — Arena only
+    // visualizes the current stage, no calculations happen here.
+    showView('v-mission3');renderMissionLive(3);renderGambitReveal(gs.sub_state.split(':')[2]);return;
+  }
+  if(gs.sub_state&&gs.sub_state.startsWith('launch:')){
+    const parts=gs.sub_state.split(':');
     triggerLaunchAnim(parseInt(parts[1]),parts[2]);
-    setTimeout(()=>sb.from('game_state').update({sub_state:'blitz'}).eq('id',1),200);
+    setTimeout(()=>sb.from('game_state').update({sub_state:'active'}).eq('id',1),200);
     return;
   }
-  if(sub&&sub.startsWith('p3reveal:')){
-    // Mission Control's manual Gambit reveal sequence (RPC-007A) — Arena only
-    // visualizes the current stage, no calculations happen here.
-    showView('v-phase3');renderP3Question();renderGambitReveal(sub.split(':')[2]);return;
-  }
-  if(sub==='q4_reveal_prep'){prepQ4Reveal();return;}
-  if(sub==='q4_reveal_next'){p3AutoReveal=false;revealNextTeam();sb.from('game_state').update({sub_state:'active'}).eq('id',1);return;}
-  if(sub==='q4_reveal_auto'){p3AutoReveal=true;autoRevealAll();return;}
 
   switch(p){
     case 0:showView('v-lobby');updateLobbyTeams();break;
     case 1:
-      renderRankList();startTimer('p1-timer',1);
       // Don't stomp an in-progress Freeze Event takeover with an incidental
-      // game_state update (e.g. admin's "Reveal Answer" nav) — let it finish.
-      if(!freezeEventInt)showView('v-phase1');
+      // game_state update — let it finish, the mission background/overlay
+      // underneath is unaffected either way (RPC-007E: same shell throughout).
+      if(!freezeEventInt)showView('v-mission1');
+      renderMissionOverlay();
       break;
-    case 2:
-      showView('v-phase2');startTimer('p2-timer',2);renderBlitzOverlay();
-      break;
-    case 3:showView('v-phase3');renderP3Question();renderGambitReveal(null);break;
+    case 2:showView('v-mission2');renderMissionOverlay();break;
+    case 3:showView('v-mission3');renderMissionOverlay();break;
     case 4:showView('v-results');renderResults();confetti({particleCount:120,spread:110,origin:{y:.35}});break;
   }
-  const labels={1:'PHASE 1: SOLO SPRINT',2:'PHASE 2: TERRITORY',3:'PHASE 3: FINALE',4:'RESULTS'};
 }
 
 function showView(id){
@@ -1198,63 +1145,26 @@ function showView(id){
   document.getElementById(id)?.classList.add('active');
 }
 
-// HERO STRIP
-function updateHeroStrip(prevTeams){
-  return; // RPC-007D — top score strip retired; Tournament Standings panel replaces it
-  const strip=document.getElementById('hero-strip');
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  // Build or update cells
-  if(!strip.children.length||strip.children.length!==sorted.length){
-    strip.innerHTML='';
-    sorted.forEach(t=>{
-      const cell=document.createElement('div');
-      cell.className='hero-cell';cell.id=`hc-${t.id}`;
-      strip.appendChild(cell);
-    });
-  }
-  sorted.forEach((t,rank)=>{
-    const clr=TC[t.id]||'#fff';
-    const frozen=t.frozen_until&&new Date(t.frozen_until)>new Date();
-    const shielded=t.shield_until&&new Date(t.shield_until)>new Date();
-    const nm=t.leader_name||t.name;
-    const prevRank=prevRanks[t.id];
-    const rankDir=prevRank!==undefined?(rank<prevRank?'rank-up':rank>prevRank?'rank-down':''):'';
-    const prevScore=prevScores[t.id]||0;
-    const delta=(t.total_score||0)-prevScore;
-    prevRanks[t.id]=rank;prevScores[t.id]=t.total_score||0;
-    const cell=document.getElementById(`hc-${t.id}`);
-    if(!cell)return;
-    cell.className=`hero-cell ${rank===0?'rank1':''} ${rankDir}`;
-    const statusIco=frozen?'❄️':shielded?'🛡️':'';
-    const dStr=delta>0?`<span style="color:var(--green)">+${delta.toLocaleString()}</span>`:delta<0?`<span style="color:var(--red)">${delta.toLocaleString()}</span>`:'';
-    cell.innerHTML=`
-      <div class="hero-rank" style="color:${clr};">${MEDALS[rank]||rank+1}</div>
-      <div class="hero-name" style="color:${clr};">${nm}</div>
-      <div class="hero-score">${(t.total_score||0).toLocaleString()}</div>
-      <div class="hero-delta">${dStr}</div>
-      ${statusIco?`<div class="hero-status">${statusIco}</div>`:''}
-    `;
-  });
-}
+// HERO STRIP — retired (RPC-007D), kept as a safe no-op for its one
+// remaining call site rather than hunting down every reference.
+function updateHeroStrip(){ return; }
 
-// DEMO
-function renderDemo(){
-  const step=gs.demo_step||0;
-  const content=DEMO_CONTENT[gs.phase]||[];
-  const c=content[Math.min(step,content.length-1)]||{};
-  document.getElementById('demo-phase-lbl').textContent=`PHASE ${gs.phase} — DEMO`;
-  document.getElementById('demo-h1').textContent=c.title||'';
-  document.getElementById('demo-mockup').innerHTML=c.mock||'';
-  document.getElementById('demo-body').textContent=c.body||'';
-  document.getElementById('demo-dots').innerHTML=content.map((_,i)=>`<div class="demo-dot ${i===step?'on':''}"></div>`).join('');
-  // Progress bar
-  if(demoProgInt)clearInterval(demoProgInt);
-  demoProgVal=0;document.getElementById('demo-prog-fill').style.width='0%';
-  demoProgInt=setInterval(()=>{
-    demoProgVal+=100/(DEMO_AUTO_SECS*20);
-    document.getElementById('demo-prog-fill').style.width=Math.min(100,demoProgVal)+'%';
-    if(demoProgVal>=100)clearInterval(demoProgInt);
-  },50);
+/* ============================================================
+   RPC-007E — TOURNAMENT ARCHITECTURE: mission-stage dispatcher
+   One persistent shell per mission (background never changes);
+   only .mission-overlay's content swaps between demo/live/result/standings.
+   ============================================================ */
+function renderMissionOverlay(){
+  const p=gs.phase;
+  if(p<1||p>3)return;
+  const el=document.getElementById(`m${p}-overlay`);
+  if(!el)return;
+  const stage=gs.mission_stage||'background';
+  if(stage==='background'){el.innerHTML='';return;}
+  if(stage==='demo'){renderMissionDemo(p);return;}
+  if(stage==='live'){renderMissionLive(p);return;}
+  if(stage==='result'){renderMissionResultStage(p);return;}
+  if(stage==='standings'){renderTournamentStandingsStage(p);return;}
 }
 
 // TIMER
@@ -1272,10 +1182,10 @@ function startTimer(elId,phase){
   },500);
 }
 
-// RPC-007D — shared FLIP-style reorder animation, used by all three
-// mission leaderboards (Tournament Standings). Reuses existing row nodes
-// (keyed by team id) rather than recreating them, then animates any
-// position change with a single transform transition (~350ms).
+// RPC-007D — shared FLIP-style reorder animation, used by every
+// leaderboard (Mission Leaderboard, Mission Result, Tournament Standings).
+// Reuses existing row nodes (keyed by team id) rather than recreating them,
+// then animates any position change with a single transform transition.
 function flipReorder(containerId,sortedTeams,rowContentFn){
   const container=document.getElementById(containerId);
   if(!container)return;
@@ -1305,7 +1215,75 @@ function flipReorder(containerId,sortedTeams,rowContentFn){
   });
 }
 
-// RANK LIST (Phase 1) — now the standardized "Tournament Standings" panel
+/* ============================================================
+   MISSION LIVE — per-mission gameplay overlay content
+   ============================================================ */
+function renderMissionLive(p){
+  const el=document.getElementById(`m${p}-overlay`);
+  if(!el)return;
+  if(p===1){
+    if(!el.dataset.built){
+      el.innerHTML=`
+        <div class="arena-panel">
+          <div class="arena-panel-lbl">Mission Timer</div>
+          <div class="arena-timer-big" id="p1-timer">04:00</div>
+          <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
+        </div>
+        <div class="arena-panel" style="flex:0 0 auto;max-height:22vh;overflow-y:auto;">
+          <div class="arena-panel-lbl">❄️ Freeze Deployment Feed</div>
+          <div id="p1-feed"></div>
+        </div>
+        <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
+          <div class="arena-panel-lbl">🏆 Mission Leaderboard</div>
+          <div id="p1-lb"></div>
+        </div>`;
+      el.dataset.built='1';
+    }
+    startTimer('p1-timer',1);
+    renderRankList();
+  } else if(p===2){
+    if(!el.dataset.built){
+      el.innerHTML=`
+        <div class="arena-panel">
+          <div class="arena-panel-lbl">Mission Timer</div>
+          <div class="arena-timer-big" id="p2-timer">01:30</div>
+        </div>
+        <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
+          <div class="arena-panel-lbl">📡 Weapon Deployment Feed</div>
+          <div id="p2-feed"></div>
+        </div>
+        <div class="arena-panel">
+          <div class="arena-panel-lbl">🏆 Mission Leaderboard</div>
+          <div id="p2-lb"></div>
+        </div>`;
+      el.dataset.built='1';
+    }
+    startTimer('p2-timer',2);
+    renderMission2Leaderboard();
+  } else if(p===3){
+    if(!el.dataset.built){
+      el.innerHTML=`
+        <div class="arena-panel">
+          <div class="arena-panel-lbl">Mission Timer</div>
+          <div class="arena-timer-big" id="p3-timer-arena">01:00</div>
+        </div>
+        <div class="m3-hero-q">
+          <div class="m3-hero-qnum" id="p3-qnum">QUESTION 1 / 4</div>
+          <div class="m3-hero-qtext" id="p3-stmt">Loading...</div>
+        </div>
+        <div class="arena-panel m3-mini-panel" style="overflow-y:auto;">
+          <div class="arena-panel-lbl">🏆 Mission Bank / Leaderboard</div>
+          <div id="p3-lb"></div>
+        </div>`;
+      el.dataset.built='1';
+    }
+    startTimer('p3-timer-arena',3);
+    renderP3Question();
+    renderGambitLeaderboardOnly();
+  }
+}
+
+// MISSION 1 — leaderboard (existing rich Frostbite row content, unchanged)
 function renderRankList(){
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
   const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
@@ -1364,67 +1342,197 @@ function checkFreezeEvents(prev){
   prevFrozen=nowFrz;
 }
 
-// FREEZE EVENT — Arena hero takeover for the duration of an active Freeze.
-// Brief flash sting on #frz-overlay (existing element, preserved), then holds
-// on the dedicated #v-freeze-event view with a real giant countdown for the
-// actual freeze duration, auto-reverting to Game 1 Live (#v-phase1) after.
-let freezeEventInt=null;
-
-/* ============================================================
-   RPC-007B — NEW RENDER FUNCTIONS
-   ============================================================ */
-
-// MISSION INTRO — mirrors admin.html's INTRO_CARDS content exactly, so
-// what the emcee sees stepping through cards matches what Arena shows.
-const INTRO_CARDS = {
-  1:[{eyebrow:'Overview',body:'Answer trivia questions correctly to score points and build your team\'s Freeze Charge.'},
-     {eyebrow:'Player',body:'Answer as fast and accurately as you can. Streaks earn bonus points.'},
-     {eyebrow:'Leader',body:'Correct answers build your Freeze Charge. Deploy it on an opposing team when ready.'},
-     {eyebrow:'Freeze',body:'A frozen team cannot answer for 12 seconds. Use it strategically.'},
-     {eyebrow:'Mission Goal',body:'Highest score when the timer ends wins Mission 1: Frostbite.'}],
-  2:[{eyebrow:'Overview',body:'Tap continuously to charge one of three products, then have your Leader deploy it.'},
-     {eyebrow:'Player',body:'Tap anywhere on your screen. Switch products anytime — no cooldowns.'},
-     {eyebrow:'Products',body:'CI Care — fast charge, lower value. MPCI+ — slow charge, highest value.'},
-     {eyebrow:'Leader',body:'Deploy a product once it\'s fully charged. Choose your moment.'},
-     {eyebrow:'Strategy Minute',body:'A short discussion window before tapping begins.'},
-     {eyebrow:'Mission Goal',body:'Highest score when the timer ends wins Mission 2: Blitz.'}],
-  3:[{eyebrow:'Overview',body:'Vote FACT or FICTION on each statement. Your Leader submits the team\'s official answer.'},
-     {eyebrow:'Player',body:'Cast your vote. It feeds your Leader\'s live consensus view, not the final answer.'},
-     {eyebrow:'Leader',body:'Review consensus, choose the official answer, set your wager.'},
-     {eyebrow:'Weapons',body:'x2 doubles the outcome. Steal takes from a target. Shield blocks incoming Steals. One per question, unlocked from Question 2.'},
-     {eyebrow:'Mission Goal',body:'Highest final Bank wins Mission 3: Gambit.'}],
-};
-function renderIntroCard(){
-  const m=gs.intro_mission,c=gs.intro_card||0;
-  const cards=INTRO_CARDS[m]||[];
-  const wrap=document.getElementById('intro-card-wrap');
-  const bg=document.getElementById('intro-bg');
-  const bgMap={1:'CompassOS_Lobby_Game1Hero.png',2:'Blitz_Background.png',3:'Mission3_Gambit_Background.png'};
-  if(bg)bg.style.backgroundImage=`url('${bgMap[m]||bgMap[1]}')`;
-  if(wrap){
-    wrap.innerHTML=cards.map((card,i)=>`<div class="intro-card${i===c?' active':''}">
-      <div class="intro-card-eyebrow">${card.eyebrow}</div>
-      <div class="intro-card-body">${card.body}</div>
-    </div>`).join('');
-  }
-  const dots=document.getElementById('intro-dots');
-  if(dots)dots.innerHTML=cards.map((_,i)=>`<div class="intro-dot${i===c?' on':''}"></div>`).join('');
+// MISSION 2 (Blitz) — weapon deployment leaderboard (no territory wording,
+// no territory progress bars — RPC-007E retires that panel entirely)
+let p2FeedItems=[];
+function renderMission2Leaderboard(){
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  flipReorder('p2-lb',sorted,(row,t,i)=>{
+    row.className='arena-lb-row';
+    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="arena-lb-name">${t.leader_name||t.name}</div>
+      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
+  });
+}
+function addBlitzFeed(msg){
+  const el=document.getElementById('p2-feed');
+  if(!el)return;
+  p2FeedItems.unshift(msg);
+  p2FeedItems=p2FeedItems.slice(0,6);
+  el.innerHTML=p2FeedItems.map(m=>`<div class="feed-row">${m}</div>`).join('');
 }
 
-// STRATEGY MINUTE
-let strategyTimerInt=null;
-function startStrategyTimer(){
-  if(strategyTimerInt)clearInterval(strategyTimerInt);
-  const dur=STRATEGY_SECS||60;
-  const tick=()=>{
-    if(!gs?.phase_start_at)return;
-    const rem=Math.max(0,dur-(Date.now()-new Date(gs.phase_start_at).getTime())/1000);
-    const el=document.getElementById('strat-count');
-    if(el)el.textContent=Math.ceil(rem);
-    if(rem<=0){clearInterval(strategyTimerInt);strategyTimerInt=null;}
-  };
-  tick();
-  strategyTimerInt=setInterval(tick,250);
+// MISSION 3 (Gambit) — leaderboard only during live gameplay (no weapon
+// icons visible — Steal/Shield/x2 only appear during the Reveal stage)
+function renderGambitLeaderboardOnly(){
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  flipReorder('p3-lb',sorted,(row,t,i)=>{
+    row.className='arena-lb-row';
+    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="arena-lb-name">${t.leader_name||t.name}</div>
+      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
+  });
+}
+// GAMBIT reveal stage — appends the Reveal Panel into the Mission 3 overlay
+// (built fresh each time, since it only appears during the reveal moment).
+function renderGambitReveal(stage){
+  const el=document.getElementById('m3-overlay');
+  if(!el)return;
+  if(!document.getElementById('p3-reveal-panel')){
+    const panel=document.createElement('div');
+    panel.className='arena-panel';
+    panel.innerHTML=`<div class="arena-panel-lbl">🎲 Reveal Panel</div>
+      <div id="p3-reveal-panel">
+        <div class="reveal-stage-row" id="p3-rs-answer">1️⃣ Correct Answer</div>
+        <div class="reveal-stage-row" id="p3-rs-x2">2️⃣ x2</div>
+        <div class="reveal-stage-row" id="p3-rs-shield">3️⃣ Steal / Shield</div>
+        <div class="reveal-stage-row" id="p3-rs-done">4️⃣ Leaderboard Update</div>
+      </div>`;
+    el.appendChild(panel);
+  }
+  renderGambitLeaderboardOnly();
+  const stageOrder=['answer','x2','shield','done'];
+  const idx=stage?stageOrder.indexOf(stage):-1;
+  stageOrder.forEach((s,i)=>{
+    const row=document.getElementById(`p3-rs-${s}`);
+    if(!row)return;
+    row.classList.toggle('done',idx>=0&&i<idx);
+    row.classList.toggle('current',i===idx);
+  });
+}
+
+/* ============================================================
+   MISSION DEMO — mobile-mockup style, 5 fixed sections per mission
+   ============================================================ */
+const MISSION_DEMO = {
+  1:{sections:[
+    {eyebrow:'Player Role & Action',title:'Answer Fast, Answer Right',
+      body:'Read the question and tap your answer. Correct answers score points immediately, and a streak of correct answers earns a growing bonus.',
+      phoneRole:'PLAYER',phoneBtns:['A. Atlantic Ocean','B. Indian Ocean','C. Arctic Ocean','D. Pacific Ocean']},
+    {eyebrow:'Leader Role & Action',title:'Deploy the Freeze',
+      body:'Every correct answer from your team charges your Freeze weapon. Once charged, select an opposing team and deploy — it\'s your call on timing.',
+      phoneRole:'LEADER',phoneBtns:['❄️ DEPLOY FREEZE']},
+    {eyebrow:'Special Weapon',title:'❄️ Freeze',
+      body:'A frozen team cannot answer for 12 seconds. Use it to slow down a leader, or to protect a lead late in the mission.'},
+    {eyebrow:'Winning Criteria',title:'Highest Score Wins',
+      body:'When the mission timer reaches zero, the team with the most correct-answer points wins Mission 1: Frostbite.'},
+  ]},
+  2:{sections:[
+    {eyebrow:'Player Role & Action',title:'Tap to Charge',
+      body:'Tap anywhere on your screen to charge a weapon. Switch between weapons anytime — there are no cooldowns.',
+      phoneRole:'PLAYER',phoneBtns:['⚡ TAP TO CHARGE','Small Weapon','Large Weapon']},
+    {eyebrow:'Leader Role & Action',title:'Deploy When Ready',
+      body:'Once your team has charged a weapon, you choose when to deploy it for points. Timing your deployments is the strategy.',
+      phoneRole:'LEADER',phoneBtns:['🚀 DEPLOY WEAPON']},
+    {eyebrow:'Special Weapons',title:'Small vs. Large',
+      body:'Smaller weapons charge faster but score less. Larger weapons take longer to charge but score significantly more.'},
+    {eyebrow:'Winning Criteria',title:'Highest Score Wins',
+      body:'When the mission timer reaches zero, the team with the most deployment points wins Mission 2: Blitz.'},
+  ]},
+  3:{sections:[
+    {eyebrow:'Player Role & Action',title:'Vote FACT or FICTION',
+      body:'Read each statement and cast your vote. Your vote feeds your Leader\'s live team consensus — it does not decide the answer by itself.',
+      phoneRole:'PLAYER',phoneBtns:['✅ FACT','❌ FICTION']},
+    {eyebrow:'Leader Role & Action',title:'Wager and Decide',
+      body:'Review your team\'s consensus, choose the official answer, and set your wager from the Tournament Bank.',
+      phoneRole:'LEADER',phoneBtns:['Official Answer','Wager','Submit']},
+    {eyebrow:'Special Weapons',title:'x2 · Steal · Shield',
+      body:'x2 doubles your outcome. Steal takes half of a target\'s wager if you\'re correct. Shield blocks all incoming Steals. One weapon per question.'},
+    {eyebrow:'Winning Criteria',title:'Highest Final Bank Wins',
+      body:'After the final question resolves, the team with the highest Tournament Bank is crowned Champion.'},
+  ]},
+};
+function renderMissionDemo(p){
+  const el=document.getElementById(`m${p}-overlay`);
+  if(!el)return;
+  const sections=[...MISSION_DEMO[p].sections];
+  const card=gs.demo_card||0;
+  const isLast=card>=sections.length;
+  if(isLast){
+    const tp=gs.tournament_points||{1:1000,2:800,3:600,4:400,5:300,6:200};
+    el.innerHTML=`
+      <div class="demo-text-panel">
+        <div class="demo-section-eyebrow">Tournament Reminder</div>
+        <div class="demo-section-title">This Mission Awards Tournament Points</div>
+        <div class="demo-section-body">Final placement matters — every mission counts toward the Championship.</div>
+      </div>
+      <div class="demo-tp-reminder">
+        ${[1,2,3,4,5,6].map(r=>`<div class="demo-tp-row"><span>${['🥇','🥈','🥉','4th','5th','6th'][r-1]}</span><b>${(tp[r]||tp[String(r)]||0).toLocaleString()} pts</b></div>`).join('')}
+      </div>
+      <div class="demo-nav"><div class="demo-nav-dots">${sections.map((_,i)=>`<div class="intro-dot"></div>`).join('')}<div class="intro-dot on"></div></div></div>`;
+    return;
+  }
+  const s=sections[card];
+  el.innerHTML=`
+    <div class="demo-phone-wrap">
+      <div class="demo-phone">
+        <div class="demo-phone-notch"></div>
+        <div class="demo-phone-role">${s.phoneRole||''}</div>
+        <div class="demo-phone-body">
+          ${(s.phoneBtns||[]).map(b=>`<div class="demo-phone-btn${b===s.phoneBtns[s.phoneBtns.length-1]&&s.phoneRole==='LEADER'?' hl':''}">${b}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="demo-text-panel">
+      <div class="demo-section-eyebrow">${s.eyebrow}</div>
+      <div class="demo-section-title">${s.title}</div>
+      <div class="demo-section-body">${s.body}</div>
+    </div>
+    <div class="demo-nav"><div class="demo-nav-dots">${sections.map((_,i)=>`<div class="intro-dot${i===card?' on':''}"></div>`).join('')}<div class="intro-dot"></div></div></div>`;
+}
+
+/* ============================================================
+   MISSION RESULT — placement reveal (Mission Control confirms first)
+   ============================================================ */
+function renderMissionResultStage(p){
+  const el=document.getElementById(`m${p}-overlay`);
+  if(!el)return;
+  const field=p===1?'m1_points':p===2?'m2_points':null;
+  const sorted=field?[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0)):[];
+  const medals=['🥇','🥈','🥉','4th','5th','6th'];
+  el.innerHTML=`
+    <div class="result-title-banner">🏁 MISSION RESULT</div>
+    ${sorted.map((t,i)=>`<div class="result-row">
+      <div class="result-medal">${medals[i]||i+1}</div>
+      <div class="result-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name||t.name}</div>
+      <div class="result-award">+${(t[field]||0).toLocaleString()}</div>
+    </div>`).join('')}`;
+}
+
+/* ============================================================
+   TOURNAMENT STANDINGS — M1 shows Total only; M2 shows
+   Mission 1 | Mission 2 | Total columns; M3 doesn't use this stage.
+   ============================================================ */
+function renderTournamentStandingsStage(p){
+  const el=document.getElementById(`m${p}-overlay`);
+  if(!el)return;
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  if(p===2){
+    el.innerHTML=`<div class="arena-panel" style="flex:1;">
+      <div class="arena-panel-lbl">🏆 Tournament Standings</div>
+      <div class="ts-header-row"><span style="min-width:1.4rem;"></span><span style="flex:1;">Team</span><span class="ts-col">M1</span><span class="ts-col">M2</span><span class="ts-col total">Total</span></div>
+      <div id="ts-body"></div>
+    </div>`;
+    flipReorder('ts-body',sorted,(row,t,i)=>{
+      row.className='ts-table-row';
+      row.innerHTML=`<div class="ts-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+        <div class="ts-name">${t.leader_name||t.name}</div>
+        <div class="ts-col">${(t.m1_points||0).toLocaleString()}</div>
+        <div class="ts-col">${(t.m2_points||0).toLocaleString()}</div>
+        <div class="ts-col total">${(t.total_score||0).toLocaleString()}</div>`;
+    });
+  } else {
+    el.innerHTML=`<div class="arena-panel" style="flex:1;">
+      <div class="arena-panel-lbl">🏆 Tournament Standings</div>
+      <div id="ts-body"></div>
+    </div>`;
+    flipReorder('ts-body',sorted,(row,t,i)=>{
+      row.className='arena-lb-row';
+      row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+        <div class="arena-lb-name">${t.leader_name||t.name}</div>
+        <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
+    });
+  }
 }
 
 // CHAMPION
@@ -1439,56 +1547,6 @@ function renderChampion(){
   confetti({particleCount:150,spread:120,origin:{y:.4}});
 }
 
-// BLITZ overlay — lightweight bars/feed/leaderboard, no animated map (per spec)
-let p2FeedItems=[];
-function renderBlitzOverlay(){
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  flipReorder('p2-lb',sorted,(row,t,i)=>{
-    row.className='arena-lb-row';
-    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-      <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
-  });
-  const terr=document.getElementById('p2-terr');
-  if(terr){
-    const maxTaps=Math.max(1,...teams.flatMap(t=>[t.tier_a_taps||0,t.tier_b_taps||0,t.tier_c_taps||0]));
-    terr.innerHTML=teams.map(t=>{
-      const total=(t.tier_a_taps||0)+(t.tier_b_taps||0)+(t.tier_c_taps||0);
-      const pct=Math.min(100,(total/(maxTaps*3))*100);
-      return `<div class="terr-row">
-        <div class="terr-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name||t.name}</div>
-        <div class="terr-bar-wrap"><div class="terr-bar-fill" style="width:${pct}%;background:${TC[t.id]||'#fff'};"></div></div>
-      </div>`;
-    }).join('');
-  }
-}
-function addBlitzFeed(msg){
-  const el=document.getElementById('p2-feed');
-  if(!el)return;
-  p2FeedItems.unshift(msg);
-  p2FeedItems=p2FeedItems.slice(0,6);
-  el.innerHTML=p2FeedItems.map(m=>`<div class="feed-row">${m}</div>`).join('');
-}
-
-// GAMBIT reveal stage visualization — Arena only displays the current stage;
-// Mission Control drives the sequence, no calculations happen here.
-function renderGambitReveal(stage){
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  flipReorder('p3-lb',sorted,(row,t,i)=>{
-    row.className='arena-lb-row';
-    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-      <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
-  });
-  const stageOrder=['answer','teamanswers','wagers','x2','shield','steals','done'];
-  const idx=stage?stageOrder.indexOf(stage):-1;
-  stageOrder.forEach((s,i)=>{
-    const row=document.getElementById(`p3-rs-${s}`);
-    if(!row)return;
-    row.classList.toggle('done',idx>=0&&i<idx);
-    row.classList.toggle('current',i===idx);
-  });
-}
 let freezeQueue=[],freezeShowing=false;
 function showFreezeOverlay(attackerId,targetId){
   // Queue — never overlap multiple freeze announcements (RPC-007B).
@@ -1528,91 +1586,10 @@ function enterFreezeEventView(attackerId,targetId){
 }
 
 // TERRITORY (Phase 2)
-function initTerritoryCanvas(){
-  const canvas=document.getElementById('territory-canvas');
-  if(!canvas)return;
-  terrCtx=canvas.getContext('2d');
-  resizeCanvas();window.addEventListener('resize',resizeCanvas);
-  terrGrid=new Int8Array(GRID_COLS*GRID_ROWS);
-  Object.entries(EDGE_SEEDS).forEach(([tid,[col,row]])=>{
-    terrGrid[row*GRID_COLS+col]=parseInt(tid);
-    getNeighbors(col,row).slice(0,3).forEach(([nc,nr])=>{terrGrid[nr*GRID_COLS+nc]=parseInt(tid);});
-  });
-  drawTerr();
-}
-function resizeCanvas(){
-  const canvas=document.getElementById('territory-canvas');if(!canvas)return;
-  const p=canvas.parentElement;
-  canvas.width=p.clientWidth;canvas.height=Math.max(p.clientHeight-56-36,200);
-  drawTerr();
-}
-function cs(){
-  const c=document.getElementById('territory-canvas');
-  return c?{w:c.width/GRID_COLS,h:c.height/GRID_ROWS}:{w:20,h:20};
-}
-function drawTerr(){
-  if(!terrCtx)return;
-  const c=document.getElementById('territory-canvas');
-  const{w,h}=cs();
-  terrCtx.fillStyle='#07091f';terrCtx.fillRect(0,0,c.width,c.height);
-  for(let row=0;row<GRID_ROWS;row++){
-    for(let col=0;col<GRID_COLS;col++){
-      const team=terrGrid[row*GRID_COLS+col];
-      if(team>0){terrCtx.fillStyle=TC[team]||'#fff';terrCtx.globalAlpha=.8;terrCtx.fillRect(col*w+.5,row*h+.5,w-1,h-1);}
-      else{terrCtx.fillStyle='rgba(255,255,255,0.03)';terrCtx.globalAlpha=1;terrCtx.fillRect(col*w+.5,row*h+.5,w-1,h-1);}
-    }
-  }
-  terrCtx.globalAlpha=1;
-}
-function getNeighbors(col,row){
-  const n=[];
-  [[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([dc,dr])=>{
-    const nc=col+dc,nr=row+dr;
-    if(nc>=0&&nc<GRID_COLS&&nr>=0&&nr<GRID_ROWS)n.push([nc,nr]);
-  });
-  return n;
-}
-function getFrontier(teamId){
-  const f=[];
-  for(let row=0;row<GRID_ROWS;row++)for(let col=0;col<GRID_COLS;col++){
-    if(terrGrid[row*GRID_COLS+col]===teamId&&getNeighbors(col,row).some(([nc,nr])=>terrGrid[nr*GRID_COLS+nc]===0))f.push([col,row]);
-  }
-  return f;
-}
-function expandTerr(teamId,cellCount){
-  const frontier=getFrontier(teamId);if(!frontier.length)return[];
-  const painted=[],queue=[...frontier],visited=new Set(frontier.map(([c,r])=>`${c},${r}`));
-  let n=0;
-  while(queue.length&&n<cellCount){
-    const[col,row]=queue.shift();
-    for(const[nc,nr]of getNeighbors(col,row)){
-      const k=`${nc},${nr}`;
-      if(!visited.has(k)&&terrGrid[nr*GRID_COLS+nc]===0){
-        visited.add(k);terrGrid[nr*GRID_COLS+nc]=teamId;
-        painted.push([nc,nr,teamId]);queue.push([nc,nr]);n++;
-        if(n>=cellCount)break;
-      }
-    }
-  }
-  return painted;
-}
-function animateCells(cells,teamId){
-  const seed=EDGE_SEEDS[teamId]||[20,10];
-  cells.sort((a,b)=>Math.hypot(a[0]-seed[0],a[1]-seed[1])-Math.hypot(b[0]-seed[0],b[1]-seed[1]));
-  const{w,h}=cs();const clr=TC[teamId]||'#fff';
-  cells.forEach(([col,row],i)=>{
-    setTimeout(()=>{
-      if(!terrCtx)return;
-      terrCtx.fillStyle='#fff';terrCtx.globalAlpha=1;terrCtx.fillRect(col*w,row*h,w,h);
-      setTimeout(()=>{terrCtx.fillStyle=clr;terrCtx.globalAlpha=.8;terrCtx.fillRect(col*w+.5,row*h+.5,w-1,h-1);terrCtx.globalAlpha=1;},100);
-    },i*45);
-  });
-  setTimeout(()=>{updateTerritoryScores();updateP2Legend();},cells.length*45+200);
-}
 function triggerLaunchAnim(teamId,tier){
   showLaunchFlash(teamId,tier);
   ({A:sfxLaunchA,B:sfxLaunchB,C:sfxLaunchC}[tier]||sfxLaunchA)();
-  renderBlitzOverlay();
+  renderMission2Leaderboard();
 }
 function showLaunchFlash(teamId,tier){
   const clr=TC[teamId]||'#fff';
@@ -1627,16 +1604,6 @@ function showLaunchFlash(teamId,tier){
   addBlitzFeed(`${nm} deployed ${prodName}`);
   setTimeout(()=>el.remove(),1100);
 }
-function updateTerritoryScores(){
-  const el=document.getElementById('p2-scores');if(!el)return;
-  el.innerHTML=teams.map(t=>`<div class="p2-tscore" style="color:${TC[t.id]||'#fff'};border-color:${TC[t.id]||'#fff'}33;">${t.leader_name||t.name}: ${(t.pipeline_score||0).toLocaleString()}pts</div>`).join('');
-}
-function updateP2Legend(){
-  const el=document.getElementById('p2-legend');if(!el)return;
-  const sorted=[...teams].map(t=>({...t,cells:countCells(t.id)})).sort((a,b)=>b.cells-a.cells);
-  el.innerHTML=sorted.map(t=>`<div class="p2-leg"><div class="p2-leg-dot" style="background:${TC[t.id]};"></div><span style="color:${TC[t.id]};">${t.leader_name||t.name}</span><span style="color:var(--text3);">${t.cells} cells · A${t.tier_a_launches||0}B${t.tier_b_launches||0}C${t.tier_c_launches||0}</span></div>`).join('');
-}
-function countCells(teamId){let c=0;for(let i=0;i<terrGrid.length;i++)if(terrGrid[i]===teamId)c++;return c;}
 
 // PHASE 3
 function renderP3Question(){
@@ -1645,7 +1612,7 @@ function renderP3Question(){
   document.getElementById('p3-qnum').textContent=`QUESTION ${qi+1} / 4`;
   if(!q){document.getElementById('p3-stmt').textContent='No questions loaded';return;}
   document.getElementById('p3-stmt').textContent=(scrLang==='th'?q.statement_th:q.statement_en)||q.statement_th;
-  ['p3-true','p3-false','p3-notsure'].forEach(id=>document.getElementById(id).classList.remove('revealed'));
+  ['p3-true','p3-false','p3-notsure'].forEach(id=>document.getElementById(id)?.classList.remove('revealed'));
 }
 async function renderP3Subs(){
   const el=document.getElementById('p3-subs');
@@ -1748,80 +1715,6 @@ async function revealNextTeam(){
 async function autoRevealAll(){p3AutoReveal=true;while(p3RevealIdx<p3RevealQueue.length){await revealNextTeam();if(p3RevealIdx<p3RevealQueue.length)await sleep(3000);}}
 
 // SCOREBOARD (between phases / End of Game 1)
-function renderScoreboard(){
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  const title=document.getElementById('sb-title');
-  const isEndOfGame1=gs?.phase===1;
-  if(title)title.textContent=isEndOfGame1?'🏆 GAME 1 — FINAL RESULTS':`📊 PHASE ${gs?.phase||1} RESULTS`;
-  const banner=document.getElementById('mc-complete-banner');
-  const winnerEl=document.getElementById('mc-complete-winner');
-  if(banner&&winnerEl&&sorted[0]){
-    banner.style.display='block';
-    winnerEl.textContent=`${sorted[0].leader_name||sorted[0].name} leads with ${(sorted[0].total_score||0).toLocaleString()} pts`;
-    winnerEl.style.color=TC[sorted[0].id]||'#fff';
-  }
-  const maxScore=Math.max(1,...teams.map(t=>t.total_score||0));
-  // Top 3
-  const top3=sorted.slice(0,3);
-  const rankCls=['rank1','rank2','rank3'];
-  const rankLabels=isEndOfGame1?['🏆 WINNER','2nd Place 🥈','3rd Place 🥉']:['1st Place 🥇','2nd Place 🥈','3rd Place 🥉'];
-  document.getElementById('sb-top3').innerHTML=top3.map((t,i)=>{
-    const clr=TC[t.id]||'#fff';const nm=t.leader_name||t.name;
-    const pct=Math.max(4,((t.total_score||0)/maxScore)*92);
-    return `<div class="sb-podium-card ${rankCls[i]}" style="border-color:${clr}33;">
-      <div class="sb-podium-rank-label" style="color:${clr};">${rankLabels[i]}</div>
-      <div class="sb-podium-badge" style="color:${clr};">${MEDALS[i]}</div>
-      <div class="sb-podium-name" style="color:${clr};">${nm}</div>
-      <div class="sb-podium-score">${(t.total_score||0).toLocaleString()}</div>
-      <div class="sb-podium-phases">
-        <span class="sb-phase-tag" style="color:var(--gold);">P1: ${(t.trivia_score||0).toLocaleString()}</span>
-        <span class="sb-phase-tag" style="color:var(--blue2);">P2: ${(t.pipeline_score||0).toLocaleString()}</span>
-        <span class="sb-phase-tag" style="color:var(--green);">P3: ${(t.fact_score||0).toLocaleString()}</span>
-      </div>
-      <div class="sb-podium-bar-wrap"><div class="sb-podium-bar" style="width:${pct}%;background:${clr};"></div></div>
-    </div>`;
-  }).join('');
-  // Bottom 3 (ranks 4-6)
-  const bottom3=sorted.slice(3,6);
-  document.getElementById('sb-bottom3').innerHTML=bottom3.map((t,i)=>{
-    const clr=TC[t.id]||'#fff';const nm=t.leader_name||t.name;
-    const pct=Math.max(4,((t.total_score||0)/maxScore)*92);
-    return `<div class="sb-rank-row" style="border-color:${clr}22;">
-      <div class="sb-rr-badge" style="color:${clr};">${MEDALS[i+3]||i+4}</div>
-      <div class="sb-rr-name" style="color:${clr};">${nm}</div>
-      <div class="sb-rr-bar-wrap"><div class="sb-rr-bar" style="width:${pct}%;background:${clr};"></div></div>
-      <div class="sb-rr-score" style="color:${clr};">${(t.total_score||0).toLocaleString()}</div>
-    </div>`;
-  }).join('');
-  if(isEndOfGame1)confetti({particleCount:100,spread:100,origin:{y:.4}});
-}
-
-// DEBRIEF 1 / DEBRIEF 2 — functional data-bound stubs (Phase 2/3 Arena
-// design is out of scope for RPC-004; these exist only so applyState()'s
-// existing sub_state routing doesn't throw when an admin reaches them).
-function renderDebrief1(){
-  const el=document.getElementById('db1-grid');if(!el)return;
-  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-  el.innerHTML=sorted.map(t=>{
-    const clr=TC[t.id]||'#fff';
-    return `<div class="db1-card" style="border-color:${clr}33;">
-      <div class="db1-name" style="color:${clr};">${t.leader_name||t.name}</div>
-      <div class="db1-acc" style="color:${clr};">${(t.total_score||0).toLocaleString()}</div>
-      <div class="db1-acc-lbl">TOTAL SCORE</div>
-    </div>`;
-  }).join('');
-}
-function renderDebrief2(){
-  const el=document.getElementById('db2-grid');if(!el)return;
-  const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
-  el.innerHTML=sorted.map(t=>{
-    const clr=TC[t.id]||'#fff';
-    return `<div class="db2-card" style="border-color:${clr}33;">
-      <div class="db2-name" style="color:${clr};">${t.leader_name||t.name}</div>
-      <div class="db2-pts">${(t.pipeline_score||0).toLocaleString()} pts</div>
-    </div>`;
-  }).join('');
-}
 function renderResults(){
   const el=document.getElementById('podium');if(!el)return;
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
