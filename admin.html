@@ -379,6 +379,43 @@ const TIER_CELLS = {A:8,B:30,C:100};
 const {createClient} = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// RPC-008B — trace instrumentation. Every admin action that touches
+// game_state goes through sb.from('game_state').update(...); wrapping it
+// once here traces all ~20 button handlers without editing each one
+// (minimal, no redesign). Identifies the calling function from the stack
+// so the log reads like "Button: launchMission".
+(function instrumentGameStateWrites(){
+  const origFrom = sb.from.bind(sb);
+  sb.from = function(table){
+    const qb = origFrom(table);
+    if(table!=='game_state')return qb;
+    const origUpdate = qb.update.bind(qb);
+    qb.update = function(payload){
+      let caller='(unknown)';
+      try{
+        const stackLine=(new Error().stack||'').split('\n')[2]||'';
+        const m=stackLine.match(/at (async )?(\w+)/);
+        if(m)caller=m[2];
+      }catch(e){}
+      console.log(`[ADMIN] Button: ${caller}`);
+      console.log(`  Writing: ${JSON.stringify(payload)}`);
+      const builder=origUpdate(payload);
+      const origEq=builder.eq.bind(builder);
+      builder.eq=function(...args){
+        const p=origEq(...args);
+        p.then(res=>{
+          console.log(res&&res.error
+            ? `  Supabase: FAILED — ${JSON.stringify(res.error)}`
+            : '  Supabase: SUCCESS');
+        });
+        return p;
+      };
+      return builder;
+    };
+    return qb;
+  };
+})();
+
 let gs = null, teams = [], factQs = [];
 let currentDemoPhase = 1;
 
@@ -541,8 +578,17 @@ function renderPrimaryWorkflow(){
       html+=wfBtn('Show Mission Result',`showMissionResultStage(${p})`,'secondary');
       html+=wfBtn('Tournament Standings',`showTournamentStandingsAdmin(${p})`,'primary');
     } else if(stage==='standings'){
-      if(p<3){
+      // RPC-008A: event is now Frostbite → Blitz → Champion, no Gambit.
+      // Mission 1 standings still hands off to Mission 2. Mission 2
+      // standings must hand off straight to Champion — previously this
+      // always called proceedToNextMission(), which advances phase+1 and
+      // sent Blitz's standings into a Gambit background dead-end with no
+      // way back into the workflow (Gambit's controls only exist under
+      // phase 3 + stage 'live', which nothing here ever launches).
+      if(p===1){
         html+=wfBtn('Proceed to Next Mission','proceedToNextMission()','primary');
+      } else if(p===2){
+        html+=wfBtn('Crown Champion','showChampion()','primary');
       } else {
         html+=`<div class="mc-empty-hint">Gambit does not use a standings stage — proceed via reveal controls below.</div>`;
       }
@@ -660,7 +706,9 @@ async function launchMission(p){
 async function showMissionBackground(p){
   // sub_state reset prevents a leftover 'champion' / 'p3reveal:...' / 'launch:...'
   // value from a prior mission hijacking Arena/Player routing (both check
-  // sub_state before mission_stage).
+  // sub_state before mission_stage). Also reset this mission's points-awarded
+  // flag — a fresh mission cycle hasn't had its points confirmed yet.
+  pointsAwarded[p]=false;
   await sb.from('game_state').update({phase:p,mission_stage:'background',sub_state:'active'}).eq('id',1);
   toast(`🖼️ Mission ${p} background shown`);
 }
@@ -684,6 +732,13 @@ async function showMissionResultStage(p){
   toast(`🏁 Mission ${p} Result shown`);
 }
 async function showTournamentStandingsAdmin(p){
+  // RPC-009D fix: refuse to proceed to Standings until points for this
+  // mission have actually been confirmed — see pointsAwarded above.
+  if((p===1||p===2)&&!pointsAwarded[p]){
+    toast('⚠️ Award Tournament Points first');
+    openPlacementReview();
+    return;
+  }
   await sb.from('game_state').update({phase:p,mission_stage:'standings',sub_state:'active'}).eq('id',1);
   toast(`🏆 Tournament Standings shown`);
 }
@@ -995,6 +1050,13 @@ async function hideLeaderboard(){
   toast('🙈 Leaderboard hidden');
 }
 let placementOrder=[];
+// RPC-009D fix: tracks whether confirmAwardTournamentPoints() has actually
+// run for the current mission. Previously "Tournament Standings" was a
+// plain always-visible button alongside "Show Mission Result" with nothing
+// stopping the admin from clicking straight through to Standings without
+// ever confirming placements — total_score never got incremented, so every
+// team showed 0 tournament points despite having played. Now gated below.
+let pointsAwarded={};
 function currentMissionScoreField(){
   return gs.phase===1?'trivia_score':gs.phase===2?'pipeline_score':null;
 }
@@ -1044,6 +1106,7 @@ async function confirmAwardTournamentPoints(){
     await sb.from('teams').update(patch).eq('id',id);
   }
   document.getElementById('placement-box').style.display='none';
+  pointsAwarded[gs.phase]=true;
   await loadTeams();renderScores();
   toast(`🏆 Tournament Points awarded for Mission ${gs.phase}`);
 }
