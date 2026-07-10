@@ -7,6 +7,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<!-- RPC-009D: Anuphan — per CompassOS_Mobile.md / Arena_Visual_System.md
+     typography guidance ("modern humanist, excellent Thai readability,
+     English and Thai should feel like one family"). Scoped to
+     Registration/Lobby/Waiting only (via .cos-premium below) — gameplay
+     screens keep Kanit unchanged, out of this RPC's scope. -->
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    COMPASS OS — DESIGN TOKENS (Polaris v2)
@@ -64,7 +70,13 @@
   --bg-frostbite:url('Frostbite_mobile_bg.png');
   --bg-frozen:url('Frostbite_Frozen_mobile_bg.png');
   --bg-signallost:url('Frostbite_SignalLost_mobile_bg.png');
-  --bg-blitz:url('Blitz_mobile_bg.png');
+  /* RPC-009D: swapped in the production Blitz artwork (was a placeholder
+     per RPC-009C's note that a v2 would replace it). Same single point
+     of change — only this line needed editing. */
+  --bg-blitz:url('Blitz_Background_Mobile.png');
+  /* RPC-009D: Lobby/Registration/Waiting background — new this round,
+     no code beyond this line + the mobile-bg-lobby div needed. */
+  --bg-lobby:url('Lobby_Background.png');
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;overflow:hidden;
@@ -91,6 +103,7 @@ body::before{content:'';position:fixed;inset:0;
   opacity:0;transition:opacity var(--dur-md,400ms) ease;}
 .mobile-bg.active{opacity:1;}
 #mobile-bg-frostbite{background-image:var(--bg-frostbite);}
+#mobile-bg-lobby{background-image:var(--bg-lobby);}
 #mobile-bg-frozen{background-image:var(--bg-frozen);}
 #mobile-bg-signallost{background-image:var(--bg-signallost);}
 #mobile-bg-blitz{background-image:var(--bg-blitz);}
@@ -124,6 +137,25 @@ body::before{content:'';position:fixed;inset:0;
   border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;}
 .glass2{background:var(--surf2);backdrop-filter:blur(16px);
   border:1px solid var(--border2);border-radius:var(--r);}
+
+/* ============================================================
+   RPC-009D — Registration / Lobby / Waiting premium polish.
+   Scoped to .cos-premium (applied only to #s-join and #s-wait) so
+   gameplay screens are completely untouched, per this RPC's scope.
+
+   Typography: Anuphan — modern humanist, unified Thai+Latin family,
+   per Arena_Visual_System.md's typography guidance.
+
+   Glass: more translucent than the gameplay cards (which were
+   deliberately made more opaque in an earlier round for text-heavy
+   trivia/tapping readability) — here the artwork itself is the
+   atmosphere, so cards lean toward "blur separates, doesn't hide."
+   ============================================================ */
+.cos-premium{font-family:'Anuphan',sans-serif;}
+.cos-premium .glass{background:rgba(10,18,40,.34);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.cos-premium .glass2{background:rgba(10,18,40,.46);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(96,165,250,.28);box-shadow:0 8px 32px rgba(0,0,0,.3);}
 
 /* LOGO */
 .logo-wrap{display:flex;align-items:center;justify-content:center;gap:.6rem;
@@ -253,7 +285,7 @@ body::before{content:'';position:fixed;inset:0;
    Hero-tier detail (§3: tier = layer/detail set, not raw pixels).
    ============================================================ */
 .mission-hero{position:relative;display:flex;flex-direction:column;
-  align-items:center;padding:.7rem 1.1rem .3rem;gap:.2rem;}
+  align-items:center;padding:.7rem 1.1rem .3rem;padding-top:calc(.7rem + var(--safe-t));gap:.2rem;}
 .mission-glow{position:absolute;top:-24px;left:50%;transform:translateX(-50%);
   width:220px;height:220px;border-radius:50%;
   background:radial-gradient(circle,rgba(139,92,246,.16) 0%,rgba(59,130,246,.07) 45%,transparent 72%);
@@ -286,6 +318,10 @@ body::before{content:'';position:fixed;inset:0;
   font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;
   cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
 .btn:active{transform:scale(.97);}
+/* RPC-009D — tactile hover for pointer-capable devices (tablet/desktop
+   testing); mobile touch relies on :active above, this is additive. */
+@media (hover:hover){.btn:hover{filter:brightness(1.08);transform:translateY(-1px);}}
+.cos-premium .btn{font-family:'Anuphan',sans-serif;}
 .btn-primary{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;
   box-shadow:var(--glow-blue);}
 .btn-gold{background:linear-gradient(135deg,var(--gold),#d97706);color:#000;
@@ -346,7 +382,10 @@ body::before{content:'';position:fixed;inset:0;
   display:flex;flex-direction:column;align-items:center;gap:.15rem;
   text-align:center;transition:all .2s var(--ease-spring,ease);}
 .role-btn:active{transform:scale(.97);}
-.role-icon{font-size:1.3rem;line-height:1;}
+.role-icon{width:1.5rem;height:1.5rem;margin:0 auto;color:var(--blue2);}
+.role-icon svg{width:100%;height:100%;}
+/* RPC-009D — small inline utility icons, inherit color from surrounding text */
+.cos-icon{width:.95em;height:.95em;vertical-align:-0.15em;display:inline-block;}
 .role-title{font-size:.82rem;font-weight:900;}
 .role-desc{font-size:.58rem;color:var(--text3);font-weight:400;line-height:1.3;}
 .role-btn.sel{border-width:2px;transform:translateY(-1px);}
@@ -358,7 +397,7 @@ body::before{content:'';position:fixed;inset:0;
 #role-leader.sel .role-title{color:var(--gold);}
 
 /* LANG TOGGLE */
-.lang-row{display:flex;justify-content:flex-end;gap:.4rem;padding:.6rem 1rem 0;}
+.lang-row{display:flex;justify-content:flex-end;gap:.4rem;padding:.6rem 1rem 0;padding-top:calc(.6rem + var(--safe-t));}
 .lang-btn{padding:.22rem .65rem;border-radius:20px;font-size:.68rem;font-weight:700;
   background:var(--surf);border:1px solid var(--border);color:var(--text3);cursor:pointer;}
 .lang-btn.sel{border-color:var(--blue2);color:var(--blue2);}
@@ -825,6 +864,7 @@ body::before{content:'';position:fixed;inset:0;
      or JS change is required — every other div/class stays fixed.
      ============================================================ -->
 <div id="mobile-bg-layer">
+  <div class="mobile-bg" id="mobile-bg-lobby"></div>
   <div class="mobile-bg" id="mobile-bg-frostbite"></div>
   <div class="mobile-bg" id="mobile-bg-frozen"></div>
   <div class="mobile-bg" id="mobile-bg-signallost"></div>
@@ -840,10 +880,10 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <!-- JOIN -->
-<div id="s-join" class="screen">
+<div id="s-join" class="screen cos-premium">
   <div class="lang-row">
-    <button class="lang-btn sel" id="lb-th" onclick="setLang('th')">🇹🇭 ไทย</button>
-    <button class="lang-btn" id="lb-en" onclick="setLang('en')">🇬🇧 EN</button>
+    <button class="lang-btn sel" id="lb-th" onclick="setLang('th')">ไทย</button>
+    <button class="lang-btn" id="lb-en" onclick="setLang('en')">EN</button>
   </div>
 
   <!-- MISSION HERO -->
@@ -1042,14 +1082,14 @@ body::before{content:'';position:fixed;inset:0;
     <div class="hero-subhead">A CI Compass Game by Protection Studio</div>
     <div class="hero-tagline">Think Together | Play Together | Win Together</div>
     <div class="mission-status" id="join-status-pill">
-      <span>👥 <b id="join-count">0</b> <span id="join-count-lbl">connected</span></span>
+      <span><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18v-3M9 18v-6M14 18v-9M19 18V6"/></svg> <b id="join-count">0</b> <span id="join-count-lbl">connected</span></span>
       <span class="dot-sep">·</span>
-      <span><span class="ready-b" id="join-ready">0/6</span> <span id="join-ready-lbl">teams ready</span></span>
+      <span><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> <span class="ready-b" id="join-ready">0/6</span> <span id="join-ready-lbl">teams ready</span></span>
     </div>
   </div>
 
   <!-- MISSION ENTRY -->
-  <div style="padding:.2rem 1.1rem 0;display:flex;flex-direction:column;gap:.6rem;flex:1;min-height:0;">
+  <div style="padding:.2rem 1.1rem 0;padding-bottom:calc(1rem + var(--safe-b));display:flex;flex-direction:column;gap:.6rem;flex:1;min-height:0;">
     <div class="field-row">
       <div>
         <div class="lbl" id="lbl-name">ชื่อของคุณ</div>
@@ -1086,19 +1126,19 @@ body::before{content:'';position:fixed;inset:0;
       </div>
     </div>
     <div>
-      <div class="section-lbl" id="lbl-team">🧭 เลือกทีมของคุณ</div>
+      <div class="section-lbl" id="lbl-team"><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 4 6v5c0 4.5 3 8 8 10 5-2 8-5.5 8-10V6l-8-3Z"/></svg> เลือกทีมของคุณ</div>
       <div class="team-grid" id="team-grid"></div>
     </div>
     <div>
       <div class="section-lbl" id="lbl-role">เลือกบทบาทของคุณ</div>
       <div class="role-row">
         <div class="role-btn sel" id="role-player" onclick="pickRole('player')">
-          <div class="role-icon">👤</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg></div>
           <div class="role-title" id="role-player-title">ผู้เล่น</div>
           <div class="role-desc" id="role-player-desc">ตอบคำถาม สร้างโอกาสให้ทีม</div>
         </div>
         <div class="role-btn" id="role-leader" onclick="pickRole('leader')">
-          <div class="role-icon">👑</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8Z"/></svg></div>
           <div class="role-title" id="role-leader-title">กัปตัน</div>
           <div class="role-desc" id="role-leader-desc">ตัดสินใจและวางกลยุทธ์ทีม</div>
         </div>
@@ -1110,8 +1150,8 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <!-- WAIT -->
-<div id="s-wait" class="screen">
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;padding:1rem;">
+<div id="s-wait" class="screen cos-premium">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1rem;padding-top:calc(1rem + var(--safe-t));padding-bottom:calc(1rem + var(--safe-b));">
     <div class="wait-ring">
 <svg id="chud-wait" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="idle">
   <!-- RPC-009G: stripped down to just the outer ring + the rotating sweep
@@ -1138,15 +1178,17 @@ body::before{content:'';position:fixed;inset:0;
   </g>
 </svg>
     </div>
-    <div class="wait-team" id="wait-team">ทีม 1</div>
-    <div style="color:var(--text2);font-size:.9rem;" id="wait-name"></div>
-    <div class="wait-pill" id="wait-role">👤 ผู้เล่น</div>
-    <!-- RPC-009A: removed the connected/teams-ready status pill that was
-         here — CompassOS_Mobile.md explicitly excludes player count and
-         connection stats from the Lobby/Waiting screen. Only team, role,
-         and status message remain. -->
-    <div style="color:var(--text3);font-size:.8rem;text-align:center;" id="wait-msg">
-      รอการเริ่มเกม...<br>กรุณาอย่าปิดหน้าจอ
+    <div class="glass" style="width:100%;max-width:340px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.55rem;">
+      <div class="wait-team" id="wait-team">ทีม 1</div>
+      <div style="color:var(--text2);font-size:.9rem;" id="wait-name"></div>
+      <div class="wait-pill" id="wait-role"><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg> ผู้เล่น</div>
+      <!-- RPC-009A: removed the connected/teams-ready status pill that was
+           here — CompassOS_Mobile.md explicitly excludes player count and
+           connection stats from the Lobby/Waiting screen. Only team, role,
+           and status message remain. -->
+      <div style="color:var(--text3);font-size:.8rem;text-align:center;" id="wait-msg">
+        รอการเริ่มเกม...<br>กรุณาอย่าปิดหน้าจอ
+      </div>
     </div>
   </div>
 </div>
@@ -1868,6 +1910,11 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id);
   if(el)el.classList.add('active');
+  // RPC-009D: registration + pre-game waiting share the Lobby background.
+  // Single choke point (every call site goes through showScreen) instead
+  // of adding setMobileBg('lobby') at each of the ~6 places these two
+  // screens get shown.
+  if(id==='s-join'||id==='s-wait')setMobileBg('lobby');
 }
 
 // LOBBY — connected players + teams-ready status (read-only; Compass OS Lobby spec)
@@ -1916,7 +1963,7 @@ async function init(){
 // --bg-* CSS custom property (rather than duplicating filenames in JS),
 // so the single point of change for a future asset swap really is just
 // the :root block above — nothing here needs to know the filenames.
-const MOBILE_BG_KEYS=['frostbite','frozen','signallost','blitz'];
+const MOBILE_BG_KEYS=['lobby','frostbite','frozen','signallost','blitz'];
 function preloadMobileBackgrounds(){
   MOBILE_BG_KEYS.forEach(k=>{
     const raw=getComputedStyle(document.documentElement).getPropertyValue(`--bg-${k}`).trim();
@@ -2036,7 +2083,7 @@ function teamShieldSVG(color){
 function renderTeamGrid(){
   const g=document.getElementById('team-grid');
   if(!teams||!teams.length){
-    g.innerHTML=`<div class="team-grid-empty">⚠️ ไม่พบทีม — กรุณารีเฟรชหน้าจอ<br>No teams found — please refresh</div>`;
+    g.innerHTML=`<div class="team-grid-empty"><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0Z"/></svg> ไม่พบทีม — กรุณารีเฟรชหน้าจอ<br>No teams found — please refresh</div>`;
     return;
   }
   g.innerHTML=teams.map(t=>`<div class="team-btn" id="tb-${t.id}" onclick="pickTeam(${t.id})" style="border-color:${TC[t.id]}33;color:${TC[t.id]}">
@@ -2091,7 +2138,9 @@ function updateWait(msg){
   const t=teams.find(x=>x.id===player.team_id)||{};
   document.getElementById('wait-team').textContent=t.leader_name||t.name||`ทีม ${player.team_id}`;
   document.getElementById('wait-name').textContent=player.name;
-  document.getElementById('wait-role').textContent=player.role==='leader'?'👑 หัวหน้าทีม':'👤 ผู้เล่น';
+  document.getElementById('wait-role').innerHTML=player.role==='leader'
+    ?'<svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8Z"/></svg> หัวหน้าทีม'
+    :'<svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg> ผู้เล่น';
   const m=document.getElementById('wait-msg');
   if(m&&msg)m.innerHTML=msg;
 }
