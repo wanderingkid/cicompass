@@ -323,7 +323,10 @@ body::before{content:'';position:fixed;inset:0;
      UI element and sat directly on top of that artwork text. Pushed down
      with a viewport-relative margin so it (and the team/role selection
      below it, which follows in normal flow) clears that zone instead. */
-  margin:32vh auto 0;padding:.3rem .8rem;border-radius:20px;
+  /* RPC-009I: 32vh was too much — pushed team/role selection below the
+     fold, requiring extra scrolling. Reduced while still clearing the
+     artwork's "Think Together..." tagline zone. */
+  margin:22vh auto 0;padding:.3rem .8rem;border-radius:20px;
   background:rgba(255,255,255,.05);border:1px solid var(--border2);
   font-size:.62rem;color:var(--text2);font-weight:600;flex-wrap:wrap;
   justify-content:center;}
@@ -1211,17 +1214,17 @@ body::before{content:'';position:fixed;inset:0;
     <div style="text-align:center;font-size:1rem;font-weight:900;color:var(--gold);">🧠 วางแผนกลยุทธ์ทีม!</div>
     <div style="text-align:center;font-size:.74rem;color:var(--text3);">แตะ Tier เพื่อเลือกล่วงหน้า และดูเวลาคาดการณ์</div>
     <div class="tier-sel-card A" id="strat-card-A" onclick="selTier('A')">
-      <div class="tier-name" style="color:var(--gold);">🟡 Tier A — <span id="pn-A-s">Run-Rate</span></div>
+      <div class="tier-name" style="color:var(--gold);">🟡 Tier A — <span id="pn-A-s">CI Care</span></div>
       <div class="tier-pts">+500 pts / launch · 8 cells</div>
       <div class="tier-time" style="color:var(--gold);">⏱️ ~0.6 วิ ถ้าทั้งทีมช่วย</div>
     </div>
     <div class="tier-sel-card B" id="strat-card-B" onclick="selTier('B')">
-      <div class="tier-name" style="color:var(--blue2);">🔵 Tier B — <span id="pn-B-s">Mid-Market</span></div>
+      <div class="tier-name" style="color:var(--blue2);">🔵 Tier B — <span id="pn-B-s">CI Plus</span></div>
       <div class="tier-pts">+2,000 pts / launch · 30 cells</div>
       <div class="tier-time" style="color:var(--blue2);">⏱️ ~2 วิ ถ้าทั้งทีมช่วย</div>
     </div>
     <div class="tier-sel-card C" id="strat-card-C" onclick="selTier('C')">
-      <div class="tier-name" style="color:var(--green);">🟢 Tier C — <span id="pn-C-s">Enterprise</span></div>
+      <div class="tier-name" style="color:var(--green);">🟢 Tier C — <span id="pn-C-s">MPCI+</span></div>
       <div class="tier-pts">+6,000 pts / launch · 100 cells</div>
       <div class="tier-time" style="color:var(--green);">⏱️ ~8 วิ ถ้าทั้งทีมช่วย</div>
     </div>
@@ -2079,29 +2082,27 @@ function showDemoScreen(){
 // ---- FROSTBITE (6 cards) ----------------------------------------------
 function demoFrostbiteCard(step,isLeader){
   switch(step){
-    case 0: // PLAYER MISSION — correct answer
-      if(isLeader){demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
-      else{demoRenderTrivia();showScreen('s-trivia');
-        demoSetTimeout(()=>demoAnswerTrivia(DEMO_CORRECT,true),1400);}
+    case 0: // PLAYER MISSION — 3 correct answers in a row, then loop
+      if(isLeader){setMobileBg('frostbite');demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
+      else demoRunCorrectAnswerLoop();
       break;
-    case 1: // SIGNAL LOST
-      if(isLeader){demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
-      else{demoRenderTrivia();showScreen('s-trivia');
-        demoSetTimeout(()=>demoAnswerTrivia('A',false),1200); // 'A' is wrong per DEMO_CORRECT='B'
-        demoSetTimeout(()=>demoShowSignalLost(),2000);}
+    case 1: // SIGNAL LOST — wrong answer, then loop
+      if(isLeader){setMobileBg('frostbite');demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
+      else demoRunSignalLostLoop();
       break;
-    case 2: // LEADER COMMAND — freeze charge to 100%, select team, deploy
+    case 2: // LEADER COMMAND — freeze charge to 100%, select team, deploy, loop
       if(isLeader)demoRunLeaderFreezeSequence();
-      else{demoRenderTrivia();showScreen('s-trivia');}
+      else{setMobileBg('frostbite');demoRenderTrivia();showScreen('s-trivia');}
       break;
-    case 3: // FROZEN EFFECT
-      if(isLeader){demoRenderLeaderP1(100,true);showScreen('s-leader-p1');}
-      else demoShowFrozen();
+    case 3: // FROZEN EFFECT — both Player and Leader see it, per explicit instruction
+      demoRunFrozenLoop();
       break;
     case 4: // MISSION COMPLETE
+      setMobileBg('frostbite');
       showMissionCompleteScreen();
       break;
     case 5: // TOURNAMENT STANDING
+      setMobileBg('frostbite');
       demoShowStanding(1);
       break;
   }
@@ -2110,18 +2111,20 @@ function demoFrostbiteCard(step,isLeader){
 // ---- BLITZ (4 cards) ---------------------------------------------------
 function demoBlitzCard(step,isLeader){
   switch(step){
-    case 0: // PLAYER MISSION — tap to charge
-      if(isLeader){demoRenderLeaderP2(35,false);showScreen('s-leader-p2');}
+    case 0: // PLAYER MISSION — tap to charge, loop
+      if(isLeader){setMobileBg('blitz');demoRenderLeaderP2(35,false);showScreen('s-leader-p2');}
       else demoRunTappingSequence();
       break;
-    case 1: // LEADER COMMAND — charge, deploy, cooldown
+    case 1: // LEADER COMMAND — charge, deploy, cooldown, loop
       if(isLeader)demoRunLeaderDeploySequence();
       else demoRunTappingSequence();
       break;
     case 2: // MISSION COMPLETE
+      setMobileBg('blitz');
       showMissionCompleteScreen();
       break;
     case 3: // TOURNAMENT STANDING
+      setMobileBg('blitz');
       demoShowStanding(2);
       break;
   }
@@ -2142,35 +2145,71 @@ function demoRenderTrivia(){
     `<button class="ans-btn" id="demo-ans-${l}"><span class="ans-badge">${l}</span>${txt}</button>`
   ).join('');
 }
-function demoAnswerTrivia(letter,correct){
-  document.querySelectorAll('#ans-list .ans-btn').forEach(b=>{
-    b.classList.add('disabled');
-    const l=b.querySelector('.ans-badge').textContent;
-    if(l===DEMO_CORRECT)b.classList.add('correct');
-    else if(l===letter&&letter!==DEMO_CORRECT)b.classList.add('wrong');
-  });
-  if(correct){
-    confetti({particleCount:18,spread:40,origin:{y:.8}});
-    document.getElementById('t-pts').textContent='190 pts';
-    document.getElementById('t-stk').textContent='🔥 3';
-    for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<3);
-  }
+// RPC-009I: Player Mission demo now plays 3 correct answers in sequence
+// (matching the spec's "Player taps correct answer" combo build), then
+// pauses briefly and restarts — every demo card loops until the emcee
+// advances, rather than playing once and freezing on the end state.
+function demoRunCorrectAnswerLoop(){
+  const streakStart=2;
+  const runRound=(round)=>{
+    setMobileBg('frostbite');
+    showScreen('s-trivia');
+    demoRenderTrivia();
+    const streak=streakStart+round;
+    document.getElementById('t-stk').textContent=`🔥 ${streak}`;
+    for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<streak);
+    demoSetTimeout(()=>{
+      document.querySelectorAll('#ans-list .ans-btn').forEach(b=>{
+        b.classList.add('disabled');
+        const l=b.querySelector('.ans-badge').textContent;
+        if(l===DEMO_CORRECT)b.classList.add('correct');
+      });
+      confetti({particleCount:16,spread:36,origin:{y:.8}});
+      document.getElementById('t-pts').textContent=`${140+(round+1)*50} pts`;
+      const newStreak=streak+1;
+      document.getElementById('t-stk').textContent=`🔥 ${newStreak}`;
+      for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<newStreak);
+      if(round<2){
+        demoSetTimeout(()=>runRound(round+1),1300);
+      } else {
+        demoSetTimeout(()=>runRound(0),2600); // brief pause, then restart the whole 3-answer loop
+      }
+    },1300);
+  };
+  runRound(0);
 }
-function demoShowSignalLost(){
-  showScreen('s-penalty');
-  let secs=3;
-  const clockEl=document.getElementById('pen-clock');
-  const msgEl=document.getElementById('pen-msg');
-  if(clockEl)clockEl.textContent=secs;
-  if(msgEl)msgEl.textContent=JOKES[0];
-  demoSetInterval(()=>{
-    secs--;
-    if(clockEl)clockEl.textContent=Math.max(0,secs);
-    if(secs<=0){
-      demoRenderTrivia();
-      showScreen('s-trivia');
-    }
-  },1000);
+
+// RPC-009I: Signal Lost demo — only the wrong answer highlights red (the
+// correct one is NOT revealed, per explicit instruction for this card),
+// real Signal Lost artwork/background, loops after the countdown ends.
+function demoRunSignalLostLoop(){
+  const loop=()=>{
+    setMobileBg('frostbite');
+    showScreen('s-trivia');
+    demoRenderTrivia();
+    demoSetTimeout(()=>{
+      const wrongBtn=document.getElementById('demo-ans-A');
+      if(wrongBtn){wrongBtn.classList.add('disabled','wrong');}
+      demoSetTimeout(()=>{
+        setMobileBg('signallost');
+        showScreen('s-penalty');
+        let secs=3;
+        const clockEl=document.getElementById('pen-clock');
+        const msgEl=document.getElementById('pen-msg');
+        if(clockEl)clockEl.textContent=secs;
+        if(msgEl)msgEl.textContent=JOKES[0];
+        const iv=demoSetInterval(()=>{
+          secs--;
+          if(clockEl)clockEl.textContent=Math.max(0,secs);
+          if(secs<=0){
+            clearInterval(iv);
+            demoSetTimeout(loop,1200); // brief pause, then restart
+          }
+        },1000);
+      },900);
+    },1200);
+  };
+  loop();
 }
 
 // ---- FROSTBITE: Leader Command (Freeze) --------------------------------
@@ -2202,63 +2241,101 @@ function demoRenderFreezeTargets(){
     `<div class="freeze-target-btn" id="demo-ft-${t.id}" style="border-color:${TC[t.id]}55;color:${TC[t.id]}">${t.leader_name}</div>`
   ).join('');
 }
+// RPC-009I fix: the charge-animation interval never stopped once it hit
+// 100%, so it kept re-rendering demoRenderLeaderP1(100,true) every 550ms
+// forever — which calls demoRenderFreezeTargets() and rebuilds the target
+// list fresh each time, wiping out the "selected" class and re-disabling
+// the fire button that the one-time setTimeout callbacks below had just
+// set. That's the "bounces back and forth" bug. Now the interval is
+// explicitly cleared the moment it reaches 100%, and the sequence loops
+// by calling itself again after a pause instead of running forever.
+// Confetti removed per instruction.
 function demoRunLeaderFreezeSequence(){
-  showScreen('s-leader-p1');
-  demoRenderLeaderP1(20,false);
-  let pct=20;
-  demoSetInterval(()=>{
-    pct=Math.min(100,pct+16);
-    const ready=pct>=100;
-    demoRenderLeaderP1(pct,ready);
-    if(ready){
-      demoSetTimeout(()=>{
-        const target=document.getElementById(`demo-ft-${DEMO_TEAMS[2].id}`);
-        if(target)target.classList.add('sel');
-      },500);
-      demoSetTimeout(()=>{
-        const fireBtn=document.getElementById('fire-btn');
-        if(fireBtn){fireBtn.disabled=false;}
-        confetti({particleCount:40,spread:70,origin:{y:.5}});
-        const og=document.getElementById('lcmd1-outgoing-freeze');
-        if(og){og.style.display='block';og.innerHTML=`❄️ Freeze active on <b>${DEMO_TEAMS[2].leader_name}</b> · 12s left`;}
-      },1400);
-    }
-  },550);
+  const loop=()=>{
+    setMobileBg('frostbite');
+    showScreen('s-leader-p1');
+    let pct=20;
+    demoRenderLeaderP1(pct,false);
+    const iv=demoSetInterval(()=>{
+      pct=Math.min(100,pct+16);
+      const ready=pct>=100;
+      demoRenderLeaderP1(pct,ready);
+      if(ready){
+        clearInterval(iv);
+        demoSetTimeout(()=>{
+          const target=document.getElementById(`demo-ft-${DEMO_TEAMS[2].id}`);
+          if(target)target.classList.add('sel');
+        },500);
+        demoSetTimeout(()=>{
+          const fireBtn=document.getElementById('fire-btn');
+          if(fireBtn)fireBtn.disabled=false;
+          const og=document.getElementById('lcmd1-outgoing-freeze');
+          if(og){og.style.display='block';og.innerHTML=`❄️ Freeze active on <b>${DEMO_TEAMS[2].leader_name}</b> · 12s left`;}
+          demoSetTimeout(loop,3000); // wait a few seconds, then restart the journey
+        },1400);
+      }
+    },550);
+  };
+  loop();
 }
 
-// ---- FROSTBITE: Frozen effect (Player) ---------------------------------
-function demoShowFrozen(){
-  showScreen('s-frozen');
-  const byEl=document.getElementById('frz-by');
-  if(byEl)byEl.textContent=`โดย ${DEMO_TEAMS[0].leader_name}`;
-  let rem=12;
-  const clockEl=document.getElementById('frz-clock');
-  if(clockEl)clockEl.textContent=rem;
-  demoSetInterval(()=>{
-    rem--;
-    if(clockEl)clockEl.textContent=Math.max(0,rem);
-    if(rem<=0){demoRenderTrivia();showScreen('s-trivia');}
-  },1000);
+// ---- FROSTBITE: Frozen effect (both Player and Leader) ----------------
+function demoRunFrozenLoop(){
+  const loop=()=>{
+    setMobileBg('frozen');
+    showScreen('s-frozen');
+    const byEl=document.getElementById('frz-by');
+    if(byEl)byEl.textContent=`โดย ${DEMO_TEAMS[0].leader_name}`;
+    let rem=12;
+    const clockEl=document.getElementById('frz-clock');
+    if(clockEl)clockEl.textContent=rem;
+    const iv=demoSetInterval(()=>{
+      rem--;
+      if(clockEl)clockEl.textContent=Math.max(0,rem);
+      if(rem<=0){
+        clearInterval(iv);
+        demoSetTimeout(loop,1200); // brief pause, then restart the 12s countdown
+      }
+    },1000);
+  };
+  loop();
 }
 
 // ---- BLITZ: tapping (Player Mission) -----------------------------------
 function demoRunTappingSequence(){
-  showScreen('s-tapping');
-  const my=DEMO_TEAMS[0];
-  document.getElementById('tap-team').textContent=my.leader_name;
-  let taps=0;
-  document.getElementById('tap-count').textContent=taps;
-  demoRenderDemoProductRow(0);
-  demoSetInterval(()=>{
-    taps+=Math.floor(Math.random()*3)+1;
+  const loop=()=>{
+    setMobileBg('blitz');
+    showScreen('s-tapping');
+    const my=DEMO_TEAMS[0];
+    document.getElementById('tap-team').textContent=my.leader_name;
+    let taps=0;
     document.getElementById('tap-count').textContent=taps;
-    demoRenderDemoProductRow(Math.min(100,taps));
-  },350);
+    const tapsLbl=document.getElementById('tap-taps');
+    if(tapsLbl)tapsLbl.textContent='0 taps';
+    demoRenderDemoProductRow(0);
+    const iv=demoSetInterval(()=>{
+      taps+=Math.floor(Math.random()*3)+1;
+      document.getElementById('tap-count').textContent=taps;
+      if(tapsLbl)tapsLbl.textContent=taps+' taps';
+      demoRenderDemoProductRow(Math.min(100,taps));
+      if(taps>=100){
+        clearInterval(iv);
+        demoSetTimeout(loop,2000);
+      }
+    },350);
+  };
+  loop();
 }
+// RPC-009I fix: was using .charge-bar/.charge-fill — styling meant for a
+// different, taller context — instead of the real .product-bar-wrap/
+// .product-bar-fill used inside .product-card (see m2BarHTML). That
+// mismatch is what squeezed the layout and made the selected badge
+// overlap. Now matches the real markup exactly. Product names updated to
+// the actual configured ones.
 function demoRenderDemoProductRow(pct){
   const el=document.getElementById('product-row');
   if(!el)return;
-  const products={A:{name:'Run-Rate',speed:'เร็ว',stars:1},B:{name:'Mid-Market',speed:'กลาง',stars:2},C:{name:'Enterprise',speed:'ช้า',stars:3}};
+  const products={A:{name:'CI Care',speed:'เร็ว',stars:1},B:{name:'CI Plus',speed:'กลาง',stars:2},C:{name:'MPCI+',speed:'ช้า',stars:3}};
   el.innerHTML=Object.entries(products).map(([key,p])=>{
     const sel=key==='A';
     const barPct=sel?pct:0;
@@ -2266,7 +2343,7 @@ function demoRenderDemoProductRow(pct){
       <div class="product-sel-badge">✓ เลือกแล้ว</div>
       <div class="product-name">${p.name}</div>
       <div class="product-meta"><span>${p.speed}</span><span class="product-stars">${'★'.repeat(p.stars)}${'☆'.repeat(3-p.stars)}</span></div>
-      <div class="charge-bar"><div class="charge-fill" style="width:${barPct}%">${barPct>15?Math.round(barPct)+'%':''}</div></div>
+      ${m2BarHTML(key,barPct)}
     </div>`;
   }).join('');
 }
@@ -2278,7 +2355,7 @@ function demoRenderLeaderP2(chargePct,deployed){
   document.getElementById('lcmd2-score').textContent=`${my.pipeline_score.toLocaleString()} pts`;
   const el=document.getElementById('m2-product-list');
   if(el){
-    const products={A:{name:'Run-Rate',pts:500},B:{name:'Mid-Market',pts:2000},C:{name:'Enterprise',pts:6000}};
+    const products={A:{name:'CI Care',pts:500},B:{name:'CI Plus',pts:2000},C:{name:'MPCI+',pts:6000}};
     el.innerHTML=Object.entries(products).map(([key,p])=>{
       const pct=key==='A'?chargePct:(key==='B'?Math.min(100,chargePct*.6):Math.min(100,chargePct*.3));
       const ready=pct>=100;
@@ -2287,7 +2364,7 @@ function demoRenderLeaderP2(chargePct,deployed){
           <div class="m2-product-title">${p.name}</div>
           <div class="m2-product-pts">+${p.pts.toLocaleString()} pts</div>
         </div>
-        <div class="charge-bar"><div class="charge-fill" style="width:${pct}%">${pct>15?Math.round(pct)+'%':''}</div></div>
+        ${m2BarHTML(key,pct)}
         <button class="m2-deploy-btn" ${ready?'':'disabled'}>🚀 Deploy ${p.name}${deployed&&key==='A'?' ✓':''}</button>
         <div class="m2-launch-count">Deployed ×${key==='A'&&deployed?1:0}</div>
       </div>`;
@@ -2307,22 +2384,29 @@ function demoRenderLeaderP2(chargePct,deployed){
     }).join('');
   }
 }
+// RPC-009I fix: same interval-never-stops bug as the Freeze sequence —
+// fixed the same way (clear the interval on reaching 100%, no confetti,
+// loop by re-calling after a pause instead of running forever).
 function demoRunLeaderDeploySequence(){
-  showScreen('s-leader-p2');
-  let pct=30;
-  demoRenderLeaderP2(pct,false);
-  demoSetInterval(()=>{
-    pct=Math.min(100,pct+18);
-    const ready=pct>=100;
+  const loop=()=>{
+    setMobileBg('blitz');
+    showScreen('s-leader-p2');
+    let pct=30;
     demoRenderLeaderP2(pct,false);
-    if(ready){
-      demoSetTimeout(()=>{
-        confetti({particleCount:50,spread:80,origin:{y:.5}});
-        demoRenderLeaderP2(100,true);
-        demoSetTimeout(()=>{pct=10;demoRenderLeaderP2(10,false);},1200); // cooldown -> recharge begins
-      },400);
-    }
-  },500);
+    const iv=demoSetInterval(()=>{
+      pct=Math.min(100,pct+18);
+      const ready=pct>=100;
+      demoRenderLeaderP2(pct,false);
+      if(ready){
+        clearInterval(iv);
+        demoSetTimeout(()=>{
+          demoRenderLeaderP2(100,true); // deployed
+          demoSetTimeout(loop,3000); // wait a few seconds, then restart
+        },400);
+      }
+    },500);
+  };
+  loop();
 }
 
 // ---- TOURNAMENT STANDING (both missions) -------------------------------
@@ -2344,7 +2428,7 @@ function demoShowStanding(missionPhase){
 function updateProductNames(){
   const pn=gameState?.product_names||{};
   const map={A:['pn-A-s','pn-A'],B:['pn-B-s','pn-B'],C:['pn-C-s','pn-C']};
-  const fallback={A:'Run-Rate',B:'Mid-Market',C:'Enterprise'};
+  const fallback={A:'CI Care',B:'CI Plus',C:'MPCI+'};
   Object.entries(map).forEach(([tier,ids])=>{
     ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pn[tier]||fallback[tier]||`Tier ${tier}`;});
   });
@@ -2744,7 +2828,7 @@ function spawnRipple(x,y){
   setTimeout(()=>rip.remove(),650);
 }
 function registerTap(x,y){
-  if(!selTierVal){toast('เลือกสินค้าก่อน!');return;}
+  if(!selTierVal){toast('เลือกผลิตภัณฑ์ก่อน!');return;}
   if(phase!==2||mission2TimeUp)return; // don't gate on sub_state — the transient 'launch:...'
                         // signal used for screen.html's animation shouldn't block tapping
   localTaps++;tapBuffer++;
