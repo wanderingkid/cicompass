@@ -2028,6 +2028,28 @@ function applyState(){
   if(!gameState||!player)return;
   phase=gameState.phase;
   const isLeader=player.role==='leader';
+  // RPC-010B root cause fix: demoClearTimers() used to only ever be
+  // called from inside showDemoScreen() — meaning it only ran while
+  // ENTERING the demo stage, never when LEAVING it. Every demo card's
+  // self-restarting loop (demoRunCorrectAnswerLoop, demoRunSignalLostLoop,
+  // demoRunLeaderFreezeSequence, demoRunFrozenLoop, demoRunTappingSequence,
+  // demoRunLeaderDeploySequence) keeps calling itself forever via internal
+  // setTimeout/setInterval chains once started, with nothing to stop it
+  // when the mission moved on to Live. That orphaned loop then fires
+  // again in the background every few seconds and silently overwrites
+  // whatever real gameplay screen was showing (#trivia-q, #tgt-grid,
+  // #fire-btn, etc.) with fake demo data — exactly the reported "Player
+  // stuck in Demo autoplay after Launch" and "Leader can't select target
+  // / deploy" symptoms (both are the same orphaned-timer bug). Verified
+  // by instrumented trace: real question shows correctly immediately
+  // after Launch, then the demo question silently reappears ~9s later
+  // when the orphaned loop's next cycle fires. Calling this unconditionally
+  // here — on every single applyState() run, regardless of stage — is
+  // what actually guarantees no demo timer can ever survive a transition,
+  // since applyState() is the one function every state change routes
+  // through. Redundant (harmless) on the stage==='demo' path itself,
+  // since showDemoScreen() still calls it too.
+  demoClearTimers();
   if(phase===0){showScreen('s-wait');updateWait();return;}
 
   // RPC-007E.1 fix: this used to route purely off `phase`, checking only
