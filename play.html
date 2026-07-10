@@ -105,7 +105,16 @@ body::before{content:'';position:fixed;inset:0;
   opacity:0;transition:opacity var(--dur-md,400ms) ease;}
 .mobile-bg.active{opacity:1;}
 #mobile-bg-frostbite{background-image:var(--bg-frostbite);}
-#mobile-bg-lobby{background-image:var(--bg-lobby);}
+/* RPC-009J: top-anchored specifically for Lobby, not center — with
+   background-size:cover, center-cropping means how much of the top
+   branding (compass mark, "COMPASS OS", tagline) stays visible depends
+   on the device's aspect ratio vs. the artwork's, so a fixed vh margin
+   below it can never be reliable across devices (this is what "not just
+   a margin adjustment" was pointing at). Anchoring to the top means the
+   full branding zone is always visible at the same position from the top
+   of the viewport on every device — only the BOTTOM of the image gets
+   cropped on narrower screens, which is empty space in this artwork. */
+#mobile-bg-lobby{background-image:var(--bg-lobby);background-position:center top;}
 #mobile-bg-frozen{background-image:var(--bg-frozen);}
 #mobile-bg-signallost{background-image:var(--bg-signallost);}
 #mobile-bg-blitz{background-image:var(--bg-blitz);}
@@ -323,10 +332,10 @@ body::before{content:'';position:fixed;inset:0;
      UI element and sat directly on top of that artwork text. Pushed down
      with a viewport-relative margin so it (and the team/role selection
      below it, which follows in normal flow) clears that zone instead. */
-  /* RPC-009I: 32vh was too much — pushed team/role selection below the
-     fold, requiring extra scrolling. Reduced while still clearing the
-     artwork's "Think Together..." tagline zone. */
-  margin:22vh auto 0;padding:.3rem .8rem;border-radius:20px;
+  /* RPC-009J: with the Lobby background now top-anchored (see .mobile-bg
+     rules), the branding zone's position is predictable across devices,
+     so this can safely come down from the earlier 22vh guess. */
+  margin:17vh auto 0;padding:.3rem .8rem;border-radius:20px;
   background:rgba(255,255,255,.05);border:1px solid var(--border2);
   font-size:.62rem;color:var(--text2);font-weight:600;flex-wrap:wrap;
   justify-content:center;}
@@ -2149,6 +2158,9 @@ function demoRenderTrivia(){
 // (matching the spec's "Player taps correct answer" combo build), then
 // pauses briefly and restarts — every demo card loops until the emcee
 // advances, rather than playing once and freezing on the end state.
+// RPC-009J: added a longer initial read-time before the first answer is
+// selected (was jumping to the answer almost immediately), and removed
+// confetti per instruction.
 function demoRunCorrectAnswerLoop(){
   const streakStart=2;
   const runRound=(round)=>{
@@ -2164,17 +2176,16 @@ function demoRunCorrectAnswerLoop(){
         const l=b.querySelector('.ans-badge').textContent;
         if(l===DEMO_CORRECT)b.classList.add('correct');
       });
-      confetti({particleCount:16,spread:36,origin:{y:.8}});
       document.getElementById('t-pts').textContent=`${140+(round+1)*50} pts`;
       const newStreak=streak+1;
       document.getElementById('t-stk').textContent=`🔥 ${newStreak}`;
       for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<newStreak);
       if(round<2){
-        demoSetTimeout(()=>runRound(round+1),1300);
+        demoSetTimeout(()=>runRound(round+1),2600);
       } else {
-        demoSetTimeout(()=>runRound(0),2600); // brief pause, then restart the whole 3-answer loop
+        demoSetTimeout(()=>runRound(0),3000); // brief pause, then restart the whole 3-answer loop
       }
-    },1300);
+    },2800); // read time before the first (and each) answer is selected
   };
   runRound(0);
 }
@@ -2213,6 +2224,16 @@ function demoRunSignalLostLoop(){
 }
 
 // ---- FROSTBITE: Leader Command (Freeze) --------------------------------
+// RPC-009J fix: this whole section previously used fabricated element IDs
+// and classes (#freeze-targets, .freeze-target-btn, .sel) that don't
+// exist anywhere in the real UI — renderFreezeTargets() actually targets
+// #tgt-grid with .tgt-btn.frz (plus .locked / .selected modifiers). That
+// meant the target list silently never appeared at all during the demo
+// (writing to a null element is a no-op). Now uses the exact real
+// structure: the target list is visible from the start of the card in
+// its "locked" state (matching what Players/Leaders actually see before
+// charge is ready), unlocks once charge reaches 100%, then a team is
+// selected, then Deploy fires — matching the real interaction order.
 function demoRenderLeaderP1(chargePct,ready){
   const my=DEMO_TEAMS[0];
   document.getElementById('lcmd1-team').textContent=my.leader_name;
@@ -2226,53 +2247,48 @@ function demoRenderLeaderP1(chargePct,ready){
   document.getElementById('charge-card')?.classList.toggle('ready',ready);
   const banner=document.getElementById('freeze-ready-banner');
   if(banner)banner.style.display=ready?'block':'none';
-  const fireBtn=document.getElementById('fire-btn');
-  if(fireBtn)fireBtn.disabled=!ready;
   const ogEl=document.getElementById('lcmd1-outgoing-freeze');
   if(ogEl)ogEl.style.display='none';
   const fc=document.getElementById('lcmd1-frozen');
   if(fc)fc.style.display='none';
-  demoRenderFreezeTargets();
+  demoRenderFreezeTargets(ready);
 }
-function demoRenderFreezeTargets(){
-  const el=document.getElementById('freeze-targets');
-  if(!el)return;
-  el.innerHTML=DEMO_TEAMS.slice(1).map(t=>
-    `<div class="freeze-target-btn" id="demo-ft-${t.id}" style="border-color:${TC[t.id]}55;color:${TC[t.id]}">${t.leader_name}</div>`
-  ).join('');
+function demoRenderFreezeTargets(canFire){
+  const tg=document.getElementById('tgt-grid');
+  if(!tg)return;
+  const opponents=DEMO_TEAMS.slice(1); // real renderFreezeTargets() excludes your own team the same way
+  tg.innerHTML=opponents.map(t=>{
+    if(!canFire)return `<div class="tgt-btn frz locked">🎯 ${t.leader_name}</div>`;
+    return `<div class="tgt-btn frz" id="demo-tgt-${t.id}" data-target-id="${t.id}">🎯 ${t.leader_name}</div>`;
+  }).join('');
+  const fireBtn=document.getElementById('fire-btn');
+  if(fireBtn)fireBtn.disabled=true; // nothing selected yet even once unlocked
 }
-// RPC-009I fix: the charge-animation interval never stopped once it hit
-// 100%, so it kept re-rendering demoRenderLeaderP1(100,true) every 550ms
-// forever — which calls demoRenderFreezeTargets() and rebuilds the target
-// list fresh each time, wiping out the "selected" class and re-disabling
-// the fire button that the one-time setTimeout callbacks below had just
-// set. That's the "bounces back and forth" bug. Now the interval is
-// explicitly cleared the moment it reaches 100%, and the sequence loops
-// by calling itself again after a pause instead of running forever.
-// Confetti removed per instruction.
 function demoRunLeaderFreezeSequence(){
   const loop=()=>{
     setMobileBg('frostbite');
     showScreen('s-leader-p1');
     let pct=20;
-    demoRenderLeaderP1(pct,false);
+    demoRenderLeaderP1(pct,false); // target list visible + locked from the very start
     const iv=demoSetInterval(()=>{
       pct=Math.min(100,pct+16);
       const ready=pct>=100;
       demoRenderLeaderP1(pct,ready);
       if(ready){
-        clearInterval(iv);
+        clearInterval(iv); // RPC-009I fix: stop re-rendering once ready — this was the "bounce" bug
         demoSetTimeout(()=>{
-          const target=document.getElementById(`demo-ft-${DEMO_TEAMS[2].id}`);
-          if(target)target.classList.add('sel');
-        },500);
+          const target=document.getElementById(`demo-tgt-${DEMO_TEAMS[2].id}`);
+          if(target){
+            target.classList.add('selected');
+            const fireBtn=document.getElementById('fire-btn');
+            if(fireBtn)fireBtn.disabled=false;
+          }
+        },900);
         demoSetTimeout(()=>{
-          const fireBtn=document.getElementById('fire-btn');
-          if(fireBtn)fireBtn.disabled=false;
           const og=document.getElementById('lcmd1-outgoing-freeze');
           if(og){og.style.display='block';og.innerHTML=`❄️ Freeze active on <b>${DEMO_TEAMS[2].leader_name}</b> · 12s left`;}
           demoSetTimeout(loop,3000); // wait a few seconds, then restart the journey
-        },1400);
+        },1900);
       }
     },550);
   };
