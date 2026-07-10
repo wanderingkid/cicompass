@@ -1869,6 +1869,20 @@ function subscribeAll(){
 
 function onTeamsUpdate(){
   const isLeader=player?.role==='leader';
+  // RPC-010C fix: this dispatched to renderLeaderP1Dashboard()/renderTrivia()/
+  // etc. based purely on `phase` (which mission number), with NO check on
+  // `mission_stage` (which stage of that mission — background/demo/live/
+  // result/standings) at all. That meant ANY teams-table update, for ANY
+  // reason (any other team's score changing anywhere), would fire this and
+  // overwrite whatever was on screen with real gameplay data — including
+  // stomping over an active Demo preview with real (mostly empty, pre-
+  // launch) team data. Only dispatch to the live gameplay renderers when
+  // the mission is actually in its 'live' stage; every other stage is
+  // already fully owned by applyState()'s own dispatch.
+  if(gameState?.mission_stage!=='live'){
+    tracePlay('onTeamsUpdate() skipped — not in live stage',{mission_stage:gameState?.mission_stage,phase});
+    return;
+  }
   if(phase===1){
     // RPC-009G fix: this used to return early for Leaders before ever
     // checking frozen status, so a Leader whose team got frozen via a
@@ -2050,7 +2064,12 @@ function applyState(){
   // through. Redundant (harmless) on the stage==='demo' path itself,
   // since showDemoScreen() still calls it too.
   demoClearTimers();
-  if(phase===0){showScreen('s-wait');updateWait();return;}
+  tracePlay('applyState()',{
+    phase, mission_stage:gameState.mission_stage, sub_state:gameState.sub_state,
+    demo_card:gameState.demo_card, role:isLeader?'leader':'player',
+    demoTimersCleared:true,
+  });
+  if(phase===0){tracePlay('-> s-wait (Lobby)');showScreen('s-wait');updateWait();return;}
 
   // RPC-007E.1 fix: this used to route purely off `phase`, checking only
   // sub_state==='demo' as a special case. It never looked at mission_stage
@@ -2069,12 +2088,13 @@ function applyState(){
     if(phase===1)setMobileBg('frostbite');
     if(phase===2)setMobileBg('blitz');
     const stage=gameState.mission_stage||'background';
-    if(stage==='background'){stopAllMissionTimers();showMissionWaitScreen('background');return;}
-    if(stage==='demo'){stopAllMissionTimers();showDemoScreen();return;}
-    if(stage==='strategy'){stopAllMissionTimers();showStrategyScreen();return;}
-    if(stage==='result'){stopAllMissionTimers();showMissionCompleteScreen();return;}
-    if(stage==='standings'){stopAllMissionTimers();showTournamentStandingScreen();return;}
+    if(stage==='background'){tracePlay('-> s-wait (Mission Background)');stopAllMissionTimers();showMissionWaitScreen('background');return;}
+    if(stage==='demo'){tracePlay('-> showDemoScreen()',{demo_card:gameState.demo_card});stopAllMissionTimers();showDemoScreen();return;}
+    if(stage==='strategy'){tracePlay('-> showStrategyScreen()');stopAllMissionTimers();showStrategyScreen();return;}
+    if(stage==='result'){tracePlay('-> showMissionCompleteScreen()');stopAllMissionTimers();showMissionCompleteScreen();return;}
+    if(stage==='standings'){tracePlay('-> showTournamentStandingScreen()');stopAllMissionTimers();showTournamentStandingScreen();return;}
     // stage==='live' falls through to normal gameplay below
+    tracePlay('-> falling through to LIVE gameplay switch(phase)',{stage});
   }
 
   const my=teams.find(t=>t.id===player.team_id);
@@ -2093,9 +2113,10 @@ function applyState(){
       // Now the frozen check comes first for BOTH roles — Leader and
       // Player see the identical s-frozen screen (background, 12s
       // countdown, "frozen by" attribution) while their team is frozen.
+      tracePlay('case 1 (Frostbite) dispatch',{frozen,isFrozen,isPenalty,isLeader});
       if(frozen&&!isFrozen){startFreeze(my.frozen_until,my.frozen_by_team);}
       else if(isFrozen){/* still frozen — s-frozen is already showing, its own tick handles the countdown */}
-      else if(isLeader){showScreen('s-leader-p1');renderLeaderP1Dashboard();}
+      else if(isLeader){tracePlay('-> s-leader-p1 (renderLeaderP1Dashboard)');showScreen('s-leader-p1');renderLeaderP1Dashboard();}
       else if(!isPenalty){showScreen('s-trivia');renderTrivia();}
       break;
     case 2:
@@ -2717,23 +2738,34 @@ function startFreeze(until,byTeamId){
 }
 
 // LEADER P1
+// RPC-010C — trace instrumentation. Leave this in: it's the only way to
+// see, in the actual live environment, exactly what value each part of
+// the Freeze deployment pipeline sees at each step, instead of guessing.
+function tracePlay(stage,detail){
+  console.log(`[PLAY] ${stage}`+(detail?` — ${JSON.stringify(detail)}`:''));
+}
 function renderLeaderP1Dashboard(){
   if(!player||player.role!=='leader'||phase!==1)return;
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   const myName=my.leader_name||my.name||`ทีม ${player.team_id}`;
   document.getElementById('lcmd1-team').textContent=myName;
   document.getElementById('lcmd1-score').textContent=`${(my.trivia_score||0).toLocaleString()} pts`;
-  // Freeze Charge Threshold = max(activeAnsweringPlayers, g1MinChargePlayers()) × g1ChargePerPlayer()
-  // active_player_count tracks players only (Captain excluded) — see summary.
-  const active=Math.max(my.active_player_count||0,g1MinChargePlayers());
-  const target=active*g1ChargePerPlayer(),pool=my.correct_pool||0,rem=pool%target;
-  const pct=Math.min(100,(rem/target)*100);
+  // RPC-010I: the target is now frozen server-side (teams.frostbite_target,
+  // set once by process_trivia_answer() on the mission's first correct
+  // answer, based on registered non-Leader player count × 5 — see the
+  // RPC-010H SQL). This used to be recomputed client-side from
+  // active_player_count with a hardcoded 15-player floor, which is no
+  // longer how the SQL calculates it at all — reading the real frozen
+  // value directly instead of a second, now-incorrect formula.
+  const target=my.frostbite_target||0,pool=my.correct_pool||0;
+  const rem=target>0?pool%target:0;
+  const pct=target>0?Math.min(100,(rem/target)*100):0;
   const maxCharges=g1MaxCharges();
   const charges=my.weapon_charges||0;
   const atMax=maxCharges!==null&&charges>=maxCharges;
   document.getElementById('lc-fill').style.width=pct+'%';
   document.getElementById('lc-fill').textContent=pct>20?Math.round(pct)+'%':'';
-  document.getElementById('lc-pool').textContent=atMax?'MAX CHARGES':`${rem} / ${target} correct`;
+  document.getElementById('lc-pool').textContent=atMax?'MAX CHARGES':(target>0?`${rem} / ${target} correct`:'รอเริ่มภารกิจ...');
   document.getElementById('lc-charges').textContent=`${charges}${maxCharges!==null?'/'+maxCharges:''} charges`;
 
   // Captain cannot deploy another Freeze while one of their own Freeze effects
@@ -2742,6 +2774,14 @@ function renderLeaderP1Dashboard(){
   const canFire=charges>0&&!myOutgoingFreeze;
   renderFreezeTargets(canFire);
   document.getElementById('fire-btn').disabled=!(canFire&&selFreezeTarget!=null);
+  tracePlay('renderLeaderP1Dashboard()',{
+    mission_stage:gameState?.mission_stage, phase, sub_state:gameState?.sub_state,
+    weaponCharges:charges, chargePercent:Math.round(pct), canDeploy:canFire,
+    selectedTarget:selFreezeTarget, myOutgoingFreeze:myOutgoingFreeze?myOutgoingFreeze.id:null,
+    fireButtonDisabled:document.getElementById('fire-btn').disabled,
+    activeScreen:document.querySelector('.screen.active')?.id,
+    demoTimersRunning:demoTimers.length,
+  });
   const ogEl=document.getElementById('lcmd1-outgoing-freeze');
   if(myOutgoingFreeze&&charges>0){
     const rem3=Math.max(0,Math.ceil((new Date(myOutgoingFreeze.frozen_until).getTime()-Date.now())/1000));
@@ -2828,27 +2868,38 @@ function selectFreezeTarget(targetId){
   const my=teams.find(t=>t.id===player.team_id);
   const charges=my?.weapon_charges||0;
   document.getElementById('fire-btn').disabled=!(charges>0&&selFreezeTarget!=null);
+  tracePlay('selectFreezeTarget()',{
+    targetId, selectedTarget:selFreezeTarget, weaponCharges:charges,
+    fireButtonDisabled:document.getElementById('fire-btn').disabled,
+  });
 }
 async function fireFreeze(){
   const targetId=selFreezeTarget;
-  if(targetId==null){toast('กรุณาเลือกทีมเป้าหมายก่อน');return;}
+  tracePlay('fireFreeze() called',{
+    selectedTarget:targetId, mission_stage:gameState?.mission_stage,
+    phase, sub_state:gameState?.sub_state,
+    fireButtonDisabled:document.getElementById('fire-btn')?.disabled,
+  });
+  if(targetId==null){toast('กรุณาเลือกทีมเป้าหมายก่อน');tracePlay('fireFreeze() blocked — no target selected');return;}
   const my=teams.find(t=>t.id===player.team_id);
-  if(!my||(my.weapon_charges||0)<=0){toast('ยังไม่มี Charge!');return;}
+  if(!my||(my.weapon_charges||0)<=0){toast('ยังไม่มี Charge!');tracePlay('fireFreeze() blocked — no charge',{weaponCharges:my?.weapon_charges});return;}
   // Fast-fail UI guards only (immediate feedback on stale/obviously-invalid
   // taps) — execute_freeze() below is the sole source of truth and re-checks
   // charge availability, shield immunity, and frozen state atomically server-side.
   const myOutgoingFreeze=teams.find(t=>t.frozen_by_team===player.team_id&&t.frozen_until&&new Date(t.frozen_until)>new Date());
-  if(myOutgoingFreeze){toast('Freeze ของคุณยังทำงานอยู่ — รอให้หมดเวลาก่อน');return;}
+  if(myOutgoingFreeze){toast('Freeze ของคุณยังทำงานอยู่ — รอให้หมดเวลาก่อน');tracePlay('fireFreeze() blocked — outgoing freeze still active',{outgoingFreezeTargetId:myOutgoingFreeze.id});return;}
   const targetTeam=teams.find(t=>t.id===targetId);
   if(targetTeam&&targetTeam.frozen_until&&new Date(targetTeam.frozen_until)>new Date()){
-    toast('ทีมนี้ถูก Freeze อยู่แล้ว!');return;
+    toast('ทีมนี้ถูก Freeze อยู่แล้ว!');tracePlay('fireFreeze() blocked — target already frozen');return;
   }
   document.getElementById('fire-btn').disabled=true;
+  tracePlay('fireFreeze() calling execute_freeze RPC',{attacker:player.team_id,target:targetId});
   const{data,error}=await sb.rpc('execute_freeze',{
     p_attacker_team_id:player.team_id,
     p_target_team_id:targetId
   });
-  if(error){toast('❌ '+error.message);console.error(error);document.getElementById('fire-btn').disabled=false;return;}
+  if(error){toast('❌ '+error.message);console.error(error);tracePlay('fireFreeze() RPC returned error',{message:error.message});document.getElementById('fire-btn').disabled=false;return;}
+  tracePlay('fireFreeze() RPC succeeded',{data});
   selFreezeTarget=null;
   toast(`❄️ Freeze ยิงแล้ว!`);
   await loadTeams();renderLeaderP1Dashboard();
@@ -3192,4 +3243,4 @@ function renderResults(){
 init();
 </script>
 </body>
-</html>\
+</html>
