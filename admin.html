@@ -1128,9 +1128,19 @@ async function confirmAwardTournamentPoints(){
       if(!tied)rank=i+1; // skip ahead to this team's true 1-indexed position
     }
     const award=tp[String(rank)]||tp[rank]||0;
+    // RPC-011 fix: this used to also reset [field]:0 ("discard the
+    // mission's live score now that it's converted to Tournament
+    // Points") — but Mission Result reads from that exact same field
+    // (trivia_score / pipeline_score). If the admin confirmed placements
+    // before clicking "Show Mission Result" — very plausible, since the
+    // placement review auto-opens right after "End Mission" — Mission
+    // Result would then show all zeros, which is exactly what was
+    // reported. Neither field is ever reused by a later mission (each is
+    // mission-specific), so there's no actual need to reset it — leaving
+    // it intact means Mission Result shows correct data regardless of
+    // what order the admin does things in.
     const patch={
       total_score:(t?.total_score||0)+award,
-      [field]:0 // discard the mission's live score now that it's converted to Tournament Points
     };
     if(missionPointsField)patch[missionPointsField]=award;
     await sb.from('teams').update(patch).eq('id',id);
@@ -1289,8 +1299,8 @@ async function saveTournamentPoints(){
 }
 async function saveProductNames(){
   const product_names={
-    A:document.getElementById('cfg-prod-A').value.trim()||'CI Care',
-    B:document.getElementById('cfg-prod-B').value.trim()||'CI Plus',
+    A:document.getElementById('cfg-prod-A').value.trim()||'CI Plus/Care',
+    B:document.getElementById('cfg-prod-B').value.trim()||'BT Care',
     C:document.getElementById('cfg-prod-C').value.trim()||'MPCI+'
   };
   await sb.from('game_state').update({product_names}).eq('id',1);
