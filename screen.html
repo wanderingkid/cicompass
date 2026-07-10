@@ -690,20 +690,23 @@ body::before{content:'';position:fixed;inset:0;
   display:flex;flex-direction:column;gap:1.2vh;z-index:1;}
 
 /* MOBILE MOCKUP DEMO */
-.demo-phone-wrap{flex:1;display:flex;flex-direction:column;align-items:center;
+.demo-phone-wrap{flex:1.6;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:1.4vh;min-height:0;}
-.demo-phone{width:min(15vw,220px);aspect-ratio:9/18;border-radius:22px;
+/* RPC-011: was capped at min(15vw,220px) — far too small for the right
+   panel's hero element on an event-hall display. Nearly doubled, and the
+   wrapper above got more flex share so it actually uses the room. */
+.demo-phone{width:min(26vw,400px);aspect-ratio:9/18;border-radius:28px;
   background:linear-gradient(160deg,rgba(255,255,255,0.09),rgba(255,255,255,0.02));
-  backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.18);
-  padding:.9rem .7rem;display:flex;flex-direction:column;gap:.5rem;
-  box-shadow:0 0 40px rgba(0,0,0,.4);flex-shrink:0;}
-.demo-phone-notch{width:30%;height:5px;border-radius:4px;background:rgba(255,255,255,.2);
+  backdrop-filter:blur(10px);border:3px solid rgba(255,255,255,0.18);
+  padding:1.6rem 1.2rem;display:flex;flex-direction:column;gap:.9rem;
+  box-shadow:0 0 60px rgba(0,0,0,.45);flex-shrink:0;}
+.demo-phone-notch{width:30%;height:7px;border-radius:5px;background:rgba(255,255,255,.2);
   align-self:center;}
-.demo-phone-role{font-size:9px;letter-spacing:1px;color:var(--gold2);
+.demo-phone-role{font-size:15px;letter-spacing:2px;color:var(--gold2);
   text-transform:uppercase;font-weight:700;text-align:center;}
-.demo-phone-body{flex:1;display:flex;flex-direction:column;gap:.4rem;justify-content:center;}
-.demo-phone-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
-  border-radius:8px;padding:.4rem;font-size:8px;text-align:center;color:#fff;}
+.demo-phone-body{flex:1;display:flex;flex-direction:column;gap:.7rem;justify-content:center;}
+.demo-phone-btn{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);
+  border-radius:12px;padding:.8rem;font-size:14px;text-align:center;color:#fff;font-weight:600;}
 .demo-phone-btn.hl{background:rgba(245,158,11,.25);border-color:var(--gold2);color:var(--gold2);font-weight:700;}
 .demo-text-panel{background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
   backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);border-radius:14px;
@@ -853,6 +856,25 @@ const LOGO_URL = ''; // paste logo URL when ready
 const PHASE_DUR={1:150,2:90};
 const TC={1:'#60a5fa',2:'#a78bfa',3:'#fbbf24',4:'#34d399',5:'#fb7185',6:'#67e8f9'};
 const MEDALS=['🥇','🥈','🥉','4th','5th','6th'];
+// RPC-011 — tie-aware ranking. The tournament POINTS were already made
+// tie-aware in RPC-009H (confirmAwardTournamentPoints), but every
+// leaderboard's DISPLAYED rank/medal was still just array index (i+1) —
+// meaning three teams tied for 1st would show 🥇🥈🥉 instead of 🥇🥇🥇,
+// and the real 4th-place team would incorrectly show as "3rd". This
+// computes standard competition ranking (1224 style: ties share the
+// higher rank, the next distinct score jumps to its true position) from
+// a SORTED array + the score field it was sorted by, so every caller
+// gets a real rank number instead of just its position in the list.
+function computeRanks(sortedArr,scoreField){
+  const ranks=[];
+  let rank=1;
+  for(let i=0;i<sortedArr.length;i++){
+    if(i>0&&(sortedArr[i][scoreField]||0)!==(sortedArr[i-1][scoreField]||0))rank=i+1;
+    ranks.push(rank);
+  }
+  return ranks;
+}
+function rankIcon(rank){ return MEDALS[rank-1]||`${rank}th`; }
 const TIER_CELLS={A:8,B:30,C:100};
 const GRID_COLS=40,GRID_ROWS=20;
 const EDGE_SEEDS={1:[1,3],2:[1,16],3:[38,3],4:[38,16],5:[20,1],6:[20,18]};
@@ -1418,6 +1440,7 @@ function renderRankList(){
   const maxScore=Math.max(1,...teams.map(t=>t.trivia_score||0));
   const poolLbl=document.getElementById('p1-pool-lbl');
   if(poolLbl)poolLbl.textContent=triviaQs.length?`${triviaQs.length} QUESTIONS IN PLAY`:'';
+  const ranks=computeRanks(sorted,'trivia_score');
   flipReorder('p1-lb',sorted,(row,t,rank)=>{
     row.id=`rr-${t.id}`;
     const clr=TC[t.id]||'#fff';
@@ -1432,7 +1455,7 @@ function renderRankList(){
     const byClr=byTeam?TC[byTeam.id]||'#fff':'#fff';
     const frozenRem=frozen?Math.max(0,Math.ceil((new Date(t.frozen_until).getTime()-Date.now())/1000)):0;
     row.innerHTML=`
-      <div class="rank-num" style="color:${clr};">${MEDALS[rank]||rank+1}</div>
+      <div class="rank-num" style="color:${clr};">${rankIcon(ranks[rank])}</div>
       <div style="flex:1.4;min-width:0;">
         <div class="rank-name" style="color:${clr};">${nm}</div>
         ${frozen?`<div class="frozen-tag">Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${frozenRem}s</div>`:''}
@@ -1494,6 +1517,7 @@ function renderMission2Leaderboard(){
   // matching the Leader's own Product Standings panel in play.html.
   const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
   const maxScore=Math.max(1,...teams.map(t=>t.pipeline_score||0));
+  const ranks=computeRanks(sorted,'pipeline_score');
   flipReorder('p2-lb',sorted,(row,t,i)=>{
     row.id=`m2rr-${t.id}`;
     const clr=TC[t.id]||'#fff';
@@ -1504,7 +1528,7 @@ function renderMission2Leaderboard(){
     row.style.background=`rgba(${hexRgb(clr)},.04)`;
     row.style.borderColor=`rgba(${hexRgb(clr)},.12)`;
     row.innerHTML=`
-      <div class="rank-num" style="color:${clr};">${MEDALS[i]||i+1}</div>
+      <div class="rank-num" style="color:${clr};">${rankIcon(ranks[i])}</div>
       <div style="flex:1.4;min-width:0;">
         <div class="rank-name" style="color:${clr};">${nm}</div>
         <div class="rank-code">${code}</div>
@@ -1631,38 +1655,68 @@ function renderMissionDemo(p){
 // will elaborate verbally" per Arena_Demo_System.md, so the callout here
 // stays to the two required lines.
 function demoRenderMissionResult(p,el){
+  // RPC-011: this was still using the old pre-RPC-010 .result-row style,
+  // which never got updated when the real Mission Result leaderboard was
+  // unified onto the larger .rank-row architecture — meaning the demo
+  // and real gameplay had visibly diverged. Fixed so both use the exact
+  // same markup; per the Demo system's own design principle, demo should
+  // always match real gameplay exactly, not the other way around.
   const field=p===1?'trivia_score':'pipeline_score';
   const sorted=[...DEMO_ARENA_TEAMS].sort((a,b)=>b[field]-a[field]);
-  const medals=['🥇','🥈','🥉','4th','5th','6th'];
+  const maxScore=Math.max(1,...DEMO_ARENA_TEAMS.map(t=>t[field]));
+  const ranks=computeRanks(sorted,field);
   el.innerHTML=`
     <div class="demo-text-panel" style="margin-bottom:.5rem;">
       <div class="demo-section-title">MISSION COMPLETE</div>
       <div class="demo-section-body">Finish 1st.</div>
       <div class="demo-section-body">Mission Ranking determines Tournament Points.</div>
     </div>
-    ${sorted.map((t,i)=>`<div class="result-row">
-      <div class="result-medal">${medals[i]}</div>
-      <div class="result-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name}</div>
-      <div class="result-award">${t[field].toLocaleString()}</div>
-    </div>`).join('')}`;
+    ${sorted.map((t,i)=>{
+      const clr=TC[t.id]||'#fff';
+      const pct=Math.max(4,(t[field]/maxScore)*86);
+      return `<div class="rank-row" style="background:rgba(${hexRgb(clr)},.04);border-color:rgba(${hexRgb(clr)},.12);">
+        <div class="rank-num" style="color:${clr};">${rankIcon(ranks[i])}</div>
+        <div class="rank-name" style="flex:1.4;color:${clr};">${t.leader_name}</div>
+        <div class="rank-bar-wrap">
+          <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
+        </div>
+        <div class="rank-score" style="color:${clr};">${t[field].toLocaleString()}</div>
+      </div>`;
+    }).join('')}`;
 }
 // RPC-009F — CHAMPIONSHIP POINTS demo card: real Tournament Standing
 // layout, sample data, showing Mission Points + running Tournament Total.
+// RPC-011 fix: total_score used to be a hardcoded value with no
+// relationship to m1_points/m2_points at all (e.g. "Mission: 1,000" next
+// to "Total: 2,600" after only one mission, which is nonsensical — after
+// Mission 1 alone, Total must equal Mission 1's points exactly). Total is
+// now computed fresh from the actual mission points for whichever
+// mission is being demoed, and this uses the same unified .rank-row
+// style + tie-aware ranking as the real screen and the Mission Result
+// demo card above.
 function demoRenderTournamentStanding(p,el){
   const mField=p===1?'m1_points':'m2_points';
-  const sorted=[...DEMO_ARENA_TEAMS].sort((a,b)=>b.total_score-a.total_score);
+  const withTotal=DEMO_ARENA_TEAMS.map(t=>({
+    ...t,
+    total_score: p===1 ? t.m1_points : (t.m1_points+t.m2_points),
+  }));
+  const sorted=[...withTotal].sort((a,b)=>b.total_score-a.total_score);
+  const ranks=computeRanks(sorted,'total_score');
   el.innerHTML=`
     <div class="demo-text-panel" style="margin-bottom:.5rem;">
       <div class="demo-section-title">CHAMPIONSHIP POINTS</div>
       <div class="demo-section-body">Every rank earns Championship Points.</div>
     </div>
-    <div class="ts-header-row"><span style="min-width:1.4rem;"></span><span style="flex:1;">Team</span><span class="ts-col">Mission</span><span class="ts-col total">Total</span></div>
-    ${sorted.map((t,i)=>`<div class="ts-table-row">
-      <div class="ts-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-      <div class="ts-name">${t.leader_name}</div>
-      <div class="ts-col">${t[mField].toLocaleString()}</div>
-      <div class="ts-col total">${t.total_score.toLocaleString()}</div>
-    </div>`).join('')}`;
+    <div class="ts-header-row"><span style="min-width:2.6rem;"></span><span style="flex:1.4;">Team</span><span class="ts-col">Mission</span><span class="ts-col total">Total</span></div>
+    ${sorted.map((t,i)=>{
+      const clr=TC[t.id]||'#fff';
+      return `<div class="rank-row" style="background:rgba(${hexRgb(clr)},.04);border-color:rgba(${hexRgb(clr)},.12);">
+        <div class="rank-num" style="color:${clr};min-width:2.6rem;">${rankIcon(ranks[i])}</div>
+        <div class="rank-name" style="flex:1.4;color:${clr};">${t.leader_name}</div>
+        <div class="ts-col" style="color:${clr};font-weight:700;">+${t[mField].toLocaleString()}</div>
+        <div class="ts-col total" style="color:${clr};">${t.total_score.toLocaleString()}</div>
+      </div>`;
+    }).join('')}`;
 }
 
 /* ============================================================
@@ -1698,6 +1752,7 @@ function renderMissionResultStage(p){
       <div id="mr-body-${p}"></div>
     </div>`;
   }
+  const ranks=computeRanks(sorted,field);
   flipReorder(`mr-body-${p}`,sorted,(row,t,i)=>{
     row.id=`mr-${p}-${t.id}`;
     const clr=TC[t.id]||'#fff';
@@ -1707,7 +1762,7 @@ function renderMissionResultStage(p){
     row.style.background=`rgba(${hexRgb(clr)},.04)`;
     row.style.borderColor=`rgba(${hexRgb(clr)},.12)`;
     row.innerHTML=`
-      <div class="rank-num" style="color:${clr};">${MEDALS[i]||i+1}</div>
+      <div class="rank-num" style="color:${clr};">${rankIcon(ranks[i])}</div>
       <div class="rank-name" style="flex:1.4;color:${clr};">${nm}</div>
       <div class="rank-bar-wrap">
         <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
@@ -1751,6 +1806,7 @@ function renderTournamentStandingsStage(p){
       <div id="${bodyId}"></div>
     </div>`;
   }
+  const ranks=computeRanks(sorted,'total_score');
   flipReorder(bodyId,sorted,(row,t,i)=>{
     const clr=TC[t.id]||'#fff';
     const nm=t.leader_name||t.name;
@@ -1760,7 +1816,7 @@ function renderTournamentStandingsStage(p){
     row.style.background=`rgba(${hexRgb(clr)},.04)`;
     row.style.borderColor=`rgba(${hexRgb(clr)},.12)`;
     row.innerHTML=`
-      <div class="rank-num" style="color:${clr};min-width:2.6rem;">${MEDALS[i]||i+1}</div>
+      <div class="rank-num" style="color:${clr};min-width:2.6rem;">${rankIcon(ranks[i])}</div>
       <div class="rank-name" style="flex:1.4;color:${clr};">${nm}</div>
       <div class="ts-col" style="color:${clr};font-weight:700;">+${(t[mField]||0).toLocaleString()}</div>
       <div class="ts-col total" id="ts-total-${p}-${t.id}" style="color:${clr};">${prevTotal.toLocaleString()}</div>`;
@@ -1805,11 +1861,12 @@ function renderChampion(){
   // compact supporting list instead of putting scores back on the hero.
   const boardEl=document.getElementById('champ-final-board');
   if(boardEl){
+    const champRanks=computeRanks(sorted,'total_score');
     boardEl.innerHTML=sorted.map((t,i)=>{
       const isChamp=(t.total_score||0)===topScore;
       const clr=TC[t.id]||'#fff';
       return `<div class="champ-row${isChamp?' winner':''}">
-        <div class="cr-rank" style="color:${clr}">${MEDALS[i]||i+1}</div>
+        <div class="cr-rank" style="color:${clr}">${rankIcon(champRanks[i])}</div>
         <div class="cr-name" style="color:${clr}">${t.leader_name||t.name}</div>
         <div class="cr-score" style="color:${clr}">${(t.total_score||0).toLocaleString()}</div>
       </div>`;
@@ -1885,7 +1942,7 @@ function showLaunchFlash(teamId,tier){
   const clr=TC[teamId]||'#fff';
   const pn=gs?.product_names||{};
   const nm=tName(teamId);
-  const prodName=pn[tier]||{A:'CI Care',B:'CI Plus',C:'MPCI+'}[tier]||`Product ${tier}`;
+  const prodName=pn[tier]||{A:'CI Plus/Care',B:'BT Care',C:'MPCI+'}[tier]||`Product ${tier}`;
   const pts={A:500,B:2000,C:6000}[tier]||0;
   const el=document.createElement('div');el.className='launch-flash';
   el.innerHTML=`<div class="launch-txt" style="color:${clr};">${nm}<br>${prodName} DEPLOYED!<br><span style="font-size:.45em;color:var(--green)">+${pts.toLocaleString()} pts</span></div>`;
@@ -2024,4 +2081,3 @@ init();
 </script>
 </body>
 </html>
- 
