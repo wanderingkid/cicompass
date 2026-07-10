@@ -317,7 +317,13 @@ body::before{content:'';position:fixed;inset:0;
 .hero-tagline{font-size:.56rem;color:var(--text3);text-align:center;
   letter-spacing:.5px;margin-top:.05rem;}
 .mission-status{display:inline-flex;align-items:center;gap:.4rem;
-  margin:.4rem auto 0;padding:.3rem .8rem;border-radius:20px;
+  /* RPC-009F: the artwork itself (Lobby_Background.png) has "COMPASS OS"
+     and the "Think Together..." tagline baked in around its upper third.
+     With the overlaid duplicate text removed, this chip was the highest
+     UI element and sat directly on top of that artwork text. Pushed down
+     with a viewport-relative margin so it (and the team/role selection
+     below it, which follows in normal flow) clears that zone instead. */
+  margin:32vh auto 0;padding:.3rem .8rem;border-radius:20px;
   background:rgba(255,255,255,.05);border:1px solid var(--border2);
   font-size:.62rem;color:var(--text2);font-weight:600;flex-wrap:wrap;
   justify-content:center;}
@@ -1072,7 +1078,6 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-complete" class="screen">
   <div class="logo-wrap">
     <img id="logo-img-complete" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-complete">COMPASS OS</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;">
     <div class="status-chip sc-complete"><span class="status-dot"></span>Mission Complete</div>
@@ -1090,7 +1095,6 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-standing" class="screen">
   <div class="logo-wrap">
     <img id="logo-img-standing" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-standing">COMPASS OS</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;">
     <div class="status-chip sc-standing"><span class="status-dot"></span>Tournament Standing</div>
@@ -1441,7 +1445,6 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-results" class="screen">
   <div class="logo-wrap">
     <img id="logo-img-results" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-results">COMPASS OS</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:1rem;padding:1.5rem;overflow-y:auto;">
@@ -1785,10 +1788,14 @@ function showScreen(id){
   const el=document.getElementById(id);
   if(el)el.classList.add('active');
   // RPC-009D: registration + pre-game waiting share the Lobby background.
-  // Single choke point (every call site goes through showScreen) instead
-  // of adding setMobileBg('lobby') at each of the ~6 places these two
-  // screens get shown.
-  if(id==='s-join'||id==='s-wait')setMobileBg('lobby');
+  // RPC-009F fix: this used to fire for EVERY s-wait call unconditionally
+  // — but s-wait is also reused for the "Mission X Background" waiting
+  // stage once a mission has started (phase>=1), which had *just* had
+  // its correct mission background (Frostbite/Blitz) set by applyState()
+  // a moment earlier. Forcing 'lobby' here silently stomped it back,
+  // which is exactly why "Show Mission 1 Background" appeared to do
+  // nothing for Player/Leader. Now only applies in true Lobby (phase 0).
+  if((id==='s-join'||id==='s-wait')&&phase===0)setMobileBg('lobby');
 }
 
 // LOBBY — connected players + teams-ready status (read-only; Compass OS Lobby spec)
