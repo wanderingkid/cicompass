@@ -1914,13 +1914,22 @@ function enterFreezeEventView(attackerId,targetId){
     if(shown>=ANNOUNCEMENT_SECS){
       clearInterval(freezeEventInt);freezeEventInt=null;
       freezeShowing=false;
-      // RPC-008B fix: this called showView('v-phase1') — a pre-RPC-007E
-      // element id that no longer exists (the view is now v-mission1).
-      // showView() unconditionally clears .active from every view first,
-      // so when the target lookup returned null NOTHING got .active back —
-      // the entire Arena went blank the instant any Freeze event resolved,
-      // and stayed blank until the next realtime update happened to arrive.
-      if(gs?.phase===1)showView('v-mission1');
+      // RPC-010I fix: this only called showView('v-mission1'), which makes
+      // the CONTAINER visible again but does nothing to the overlay panel
+      // inside it — it just assumed whatever was last rendered into
+      // #m1-overlay was still correct. That's only true if NOTHING else
+      // touched it during the 5-second announcement window, which isn't
+      // guaranteed — a realtime update, the fallback poll, or any other
+      // applyState() trigger firing during that window can leave the
+      // overlay showing something else entirely once the freeze
+      // completes (matches the reported "lands on Champion" symptom).
+      // Freeze events only ever fire during live Frostbite gameplay, so
+      // the correct restoration target is always the Frostbite mission
+      // view with its overlay explicitly rebuilt from the current real
+      // mission_stage — not wherever sub_state happens to currently
+      // point, since a stray/stale sub_state is plausibly the very thing
+      // that caused the wrong screen to begin with.
+      if(gs?.phase===1){showView('v-mission1');renderMissionOverlay();}
       const feed=document.getElementById('atk-feed');
       if(feed)feed.style.display='';
       processFreezeQueue(); // play next queued freeze, if any
