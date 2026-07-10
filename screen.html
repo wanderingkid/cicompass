@@ -1001,19 +1001,12 @@ function addFeed(msg){
   }
 }
 async function updateLobbyTeams(){
+  // RPC-009F: removed the team name/player-count/leader-icon overlay
+  // entirely — the Lobby background artwork is being replaced with one
+  // that shows team names directly, so this per-shield text overlay is
+  // no longer needed (and would double up once that artwork lands).
   const el=document.getElementById('lobby-teams');
-  if(!el||!teams.length)return;
-  const{data:players}=await sb.from('players').select('team_id,role');
-  el.innerHTML=teams.map(t=>{
-    const clr=TC[t.id]||'#fff';
-    const cnt=(players||[]).filter(p=>p.team_id===t.id).length;
-    const hasLeader=(players||[]).some(p=>p.team_id===t.id&&p.role==='leader');
-    const nm=t.leader_name||t.name||`ทีม ${t.id}`;
-    return `<div class="lobby-team-shield">
-      <div class="lts-name" style="color:${clr};">${nm}</div>
-      <div class="lts-count">${cnt} ${hasLeader?'👑':'⏳'}</div>
-    </div>`;
-  }).join('');
+  if(el)el.innerHTML='';
 }
 
 // LOGO
