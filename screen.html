@@ -1546,63 +1546,48 @@ function renderGambitReveal(stage){
    ============================================================ */
 const MISSION_DEMO = {
   1:{sections:[
-    {eyebrow:'Player Role & Action',title:'Answer Fast, Answer Right',
-      body:'Read the question and tap your answer. Correct answers score points immediately, and a streak of correct answers earns a growing bonus.',
+    {title:'PLAYER MISSION',callout:['Answer correctly.','Build streaks.'],
       phoneRole:'PLAYER',phoneBtns:['A. Atlantic Ocean','B. Indian Ocean','C. Arctic Ocean','D. Pacific Ocean']},
-    {eyebrow:'Leader Role & Action',title:'Deploy the Freeze',
-      body:'Every correct answer from your team charges your Freeze weapon. Once charged, select an opposing team and deploy — it\'s your call on timing.',
+    {title:'SIGNAL LOST',callout:['Wrong answer.','Recover in 3 seconds.'],
+      phoneRole:'PLAYER',phoneBtns:['SIGNAL LOST — 3']},
+    {title:'LEADER COMMAND',callout:['Build Freeze.','Deploy strategically.'],
       phoneRole:'LEADER',phoneBtns:['❄️ DEPLOY FREEZE']},
-    {eyebrow:'Special Weapon',title:'❄️ Freeze',
-      body:'A frozen team cannot answer for 12 seconds. Use it to slow down a leader, or to protect a lead late in the mission.'},
-    {eyebrow:'Winning Criteria',title:'Highest Score Wins',
-      body:'When the mission timer reaches zero, the team with the most correct-answer points wins Mission 1: Frostbite.'},
+    {title:'FROZEN',callout:['Freeze opponents','for 12 seconds.'],
+      phoneRole:'PLAYER',phoneBtns:['FROZEN — 12']},
   ]},
   2:{sections:[
-    {eyebrow:'Player Role & Action',title:'Tap to Charge',
-      body:'Tap anywhere on your screen to charge a weapon. Switch between weapons anytime — there are no cooldowns.',
-      phoneRole:'PLAYER',phoneBtns:['⚡ TAP TO CHARGE','Small Weapon','Large Weapon']},
-    {eyebrow:'Leader Role & Action',title:'Deploy When Ready',
-      body:'Once your team has charged a weapon, you choose when to deploy it for points. Timing your deployments is the strategy.',
+    {title:'PLAYER MISSION',callout:['Tap fast.','Build Weapon Charge.'],
+      phoneRole:'PLAYER',phoneBtns:['⚡ TAP TO CHARGE']},
+    {title:'LEADER COMMAND',callout:['Deploy weapons','at the right moment.'],
       phoneRole:'LEADER',phoneBtns:['🚀 DEPLOY WEAPON']},
-    {eyebrow:'Special Weapons',title:'Small vs. Large',
-      body:'Smaller weapons charge faster but score less. Larger weapons take longer to charge but score significantly more.'},
-    {eyebrow:'Winning Criteria',title:'Highest Score Wins',
-      body:'When the mission timer reaches zero, the team with the most deployment points wins Mission 2: Blitz.'},
-  ]},
-  3:{sections:[
-    {eyebrow:'Player Role & Action',title:'Vote FACT or FICTION',
-      body:'Read each statement and cast your vote. Your vote feeds your Leader\'s live team consensus — it does not decide the answer by itself.',
-      phoneRole:'PLAYER',phoneBtns:['✅ FACT','❌ FICTION']},
-    {eyebrow:'Leader Role & Action',title:'Wager and Decide',
-      body:'Review your team\'s consensus, choose the official answer, and set your wager from the Tournament Bank.',
-      phoneRole:'LEADER',phoneBtns:['Official Answer','Wager','Submit']},
-    {eyebrow:'Special Weapons',title:'x2 · Steal · Shield',
-      body:'x2 doubles your outcome. Steal takes half of a target\'s wager if you\'re correct. Shield blocks all incoming Steals. One weapon per question.'},
-    {eyebrow:'Winning Criteria',title:'Highest Final Bank Wins',
-      body:'After the final question resolves, the team with the highest Tournament Bank is crowned Champion.'},
   ]},
 };
+// RPC-009F: cards after the phone-demo sections reuse the ACTUAL Mission
+// Result / Tournament Standing leaderboard renderers with representative
+// sample data — no fake mockup for these, per spec ("Show actual Mission
+// Leaderboard... No fake numbers. Use representative sample data.").
+const DEMO_ARENA_TEAMS=[
+  {id:1,leader_name:'ทีมฟีโอม',total_score:2600,trivia_score:1450,pipeline_score:3200,m1_points:1000,m2_points:800},
+  {id:2,leader_name:'ทีมพี่อ้น',total_score:2100,trivia_score:1200,pipeline_score:2600,m1_points:800,m2_points:600},
+  {id:3,leader_name:'ทีมพี่ต้น',total_score:1600,trivia_score:900,pipeline_score:1900,m1_points:600,m2_points:400},
+  {id:4,leader_name:'ทีมพี่พี',total_score:1200,trivia_score:700,pipeline_score:1300,m1_points:400,m2_points:300},
+  {id:5,leader_name:'ทีม 5',total_score:900,trivia_score:500,pipeline_score:900,m1_points:300,m2_points:200},
+  {id:6,leader_name:'ทีม 6',total_score:600,trivia_score:300,pipeline_score:600,m1_points:200,m2_points:100},
+];
 function renderMissionDemo(p){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
-  const sections=[...MISSION_DEMO[p].sections];
+  const sections=MISSION_DEMO[p]?.sections||[];
   const card=gs.demo_card||0;
-  const isLast=card>=sections.length;
-  if(isLast){
-    const tp=gs.tournament_points||{1:1000,2:800,3:600,4:400,5:300,6:200};
-    el.innerHTML=`
-      <div class="demo-text-panel">
-        <div class="demo-section-eyebrow">Tournament Reminder</div>
-        <div class="demo-section-title">This Mission Awards Tournament Points</div>
-        <div class="demo-section-body">Final placement matters — every mission counts toward the Championship.</div>
-      </div>
-      <div class="demo-tp-reminder">
-        ${[1,2,3,4,5,6].map(r=>`<div class="demo-tp-row"><span>${['🥇','🥈','🥉','4th','5th','6th'][r-1]}</span><b>${(tp[r]||tp[String(r)]||0).toLocaleString()} pts</b></div>`).join('')}
-      </div>
-      <div class="demo-nav"><div class="demo-nav-dots">${sections.map((_,i)=>`<div class="intro-dot"></div>`).join('')}<div class="intro-dot on"></div></div></div>`;
-    return;
+  // Cards after the phone-demo sections: Mission Result, then Tournament Standing.
+  if(card===sections.length){
+    demoRenderMissionResult(p,el);return;
+  }
+  if(card===sections.length+1){
+    demoRenderTournamentStanding(p,el);return;
   }
   const s=sections[card];
+  if(!s)return;
   el.innerHTML=`
     <div class="demo-phone-wrap">
       <div class="demo-phone">
@@ -1614,11 +1599,49 @@ function renderMissionDemo(p){
       </div>
     </div>
     <div class="demo-text-panel">
-      <div class="demo-section-eyebrow">${s.eyebrow}</div>
       <div class="demo-section-title">${s.title}</div>
-      <div class="demo-section-body">${s.body}</div>
+      ${(s.callout||[]).map(line=>`<div class="demo-section-body">${line}</div>`).join('')}
     </div>
-    <div class="demo-nav"><div class="demo-nav-dots">${sections.map((_,i)=>`<div class="intro-dot${i===card?' on':''}"></div>`).join('')}<div class="intro-dot"></div></div></div>`;
+    <div class="demo-nav"><div class="demo-nav-dots">${[...Array(sections.length+2)].map((_,i)=>`<div class="intro-dot${i===card?' on':''}"></div>`).join('')}</div></div>`;
+}
+
+// RPC-009F — MISSION RESULT demo card: the real leaderboard renderer,
+// fed representative sample data instead of live team scores. "The Emcee
+// will elaborate verbally" per Arena_Demo_System.md, so the callout here
+// stays to the two required lines.
+function demoRenderMissionResult(p,el){
+  const field=p===1?'trivia_score':'pipeline_score';
+  const sorted=[...DEMO_ARENA_TEAMS].sort((a,b)=>b[field]-a[field]);
+  const medals=['🥇','🥈','🥉','4th','5th','6th'];
+  el.innerHTML=`
+    <div class="demo-text-panel" style="margin-bottom:.5rem;">
+      <div class="demo-section-title">MISSION COMPLETE</div>
+      <div class="demo-section-body">Finish 1st.</div>
+      <div class="demo-section-body">Mission Ranking determines Tournament Points.</div>
+    </div>
+    ${sorted.map((t,i)=>`<div class="result-row">
+      <div class="result-medal">${medals[i]}</div>
+      <div class="result-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name}</div>
+      <div class="result-award">${t[field].toLocaleString()}</div>
+    </div>`).join('')}`;
+}
+// RPC-009F — CHAMPIONSHIP POINTS demo card: real Tournament Standing
+// layout, sample data, showing Mission Points + running Tournament Total.
+function demoRenderTournamentStanding(p,el){
+  const mField=p===1?'m1_points':'m2_points';
+  const sorted=[...DEMO_ARENA_TEAMS].sort((a,b)=>b.total_score-a.total_score);
+  el.innerHTML=`
+    <div class="demo-text-panel" style="margin-bottom:.5rem;">
+      <div class="demo-section-title">CHAMPIONSHIP POINTS</div>
+      <div class="demo-section-body">Every rank earns Championship Points.</div>
+    </div>
+    <div class="ts-header-row"><span style="min-width:1.4rem;"></span><span style="flex:1;">Team</span><span class="ts-col">Mission</span><span class="ts-col total">Total</span></div>
+    ${sorted.map((t,i)=>`<div class="ts-table-row">
+      <div class="ts-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
+      <div class="ts-name">${t.leader_name}</div>
+      <div class="ts-col">${t[mField].toLocaleString()}</div>
+      <div class="ts-col total">${t.total_score.toLocaleString()}</div>
+    </div>`).join('')}`;
 }
 
 /* ============================================================
