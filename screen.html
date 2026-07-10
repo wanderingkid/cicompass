@@ -162,7 +162,9 @@ body::before{content:'';position:fixed;inset:0;
   font-family:'Anuphan',sans-serif;}
 .rank-name{font-family:'Anuphan',sans-serif;font-size:clamp(.8rem,1.2vw,1.1rem);font-weight:500;flex:1;line-height:1.1;
   letter-spacing:.3px;}
-.rank-bar-wrap{flex:1.4;height:clamp(8px,1.1vw,12px);
+.rank-code{font-family:'Share Tech Mono',monospace;font-size:clamp(.55rem,.8vw,.7rem);
+  color:var(--text2,#94a3b8);margin-top:.1rem;}
+.rank-bar-wrap{flex:1.4;height:clamp(14px,1.8vw,20px);
   background:rgba(0,0,0,0.35);border-radius:20px;overflow:hidden;position:relative;
   border:1px solid rgba(255,255,255,.06);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.4);}
@@ -391,24 +393,12 @@ body::before{content:'';position:fixed;inset:0;
   animation:feedUp .4s ease-out;}
 @keyframes feedUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── FREEZE OVERLAY ── */
-#frz-overlay{position:fixed;inset:0;z-index:160;pointer-events:none;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(30,58,138,0.15);}
-#frz-overlay.show{display:flex;animation:frzAnim 1.5s forwards;}
-@keyframes frzAnim{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
-.frz-big{font-size:clamp(4rem,10vw,11rem);font-weight:900;
-  color:var(--blue3);text-align:center;
-  text-shadow:0 0 80px var(--blue2),0 0 160px rgba(96,165,250,0.5);}
-
-/* ── TAKEOVER OVERLAY ── */
-#tko-overlay{position:fixed;inset:0;z-index:155;pointer-events:none;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(127,29,29,0.12);}
-#tko-overlay.show{display:flex;animation:frzAnim 1.8s forwards;}
-.tko-big{font-size:clamp(2.5rem,6vw,7rem);font-weight:900;
-  color:var(--red);text-align:center;
-  text-shadow:0 0 60px var(--red);}
+/* RPC-010B cleanup: removed the dead FREEZE OVERLAY / TAKEOVER OVERLAY
+   CSS blocks (#frz-overlay, #tko-overlay, .frz-big, .tko-big, @keyframes
+   frzAnim) — verified zero JS anywhere ever adds the .show class that
+   would make them visible. Superseded by the full-screen v-freeze-event
+   takeover. The elements themselves (harmless, inert) are removed below
+   too. */
 
 /* ── BIG MESSAGE ── */
 .big-msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -654,6 +644,21 @@ body::before{content:'';position:fixed;inset:0;
 /* CHAMPION */
 #v-champion{overflow:hidden;align-items:center;justify-content:center;flex-direction:column;gap:1.5vh;}
 .champ-label{font-size:clamp(.9rem,1.6vw,1.4rem);letter-spacing:4px;color:var(--gold2);text-transform:uppercase;}
+/* RPC-010 — Champion final leaderboard: compact, translucent, never
+   blocking the artwork (spec: "glass should never block the artwork").
+   The champion row(s) get a gold highlight; everyone else stays plain. */
+.champ-final-board{width:min(90vw,420px);margin-top:1vh;
+  background:rgba(8,14,32,.42);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.12);border-radius:16px;
+  padding:.6rem .8rem;box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.champ-row{display:flex;align-items:center;gap:.6rem;padding:.35rem .2rem;
+  font-size:clamp(.7rem,1.1vw,.92rem);border-bottom:1px solid rgba(255,255,255,.06);}
+.champ-row:last-child{border-bottom:none;}
+.champ-row.winner{background:linear-gradient(90deg,rgba(245,158,11,.14),transparent);
+  border-radius:8px;font-weight:800;}
+.champ-row .cr-rank{min-width:1.6rem;text-align:center;font-weight:800;}
+.champ-row .cr-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.champ-row .cr-score{font-weight:700;}
 .champ-team-name{font-size:clamp(2.2rem,5.5vw,5.5rem);font-weight:900;color:#fff;
   text-shadow:0 0 60px rgba(245,158,11,.7);}
 /* RPC-009E — tie support: multiple teams can share first place. Each name
@@ -728,10 +733,10 @@ body::before{content:'';position:fixed;inset:0;
 .ts-table-row{display:flex;align-items:center;gap:.5rem;font-size:.72rem;padding:.35rem .5rem;}
 .ts-rank{min-width:1.4rem;font-weight:900;}
 .ts-name{flex:1;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ts-col{min-width:3.4rem;text-align:right;color:var(--text3);}
-.ts-col.total{color:#fff;font-weight:700;min-width:4rem;}
-.ts-header-row{display:flex;gap:.5rem;padding:.2rem .5rem;font-size:.58rem;
-  color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.2rem;}
+.ts-col{min-width:4.2rem;text-align:right;color:var(--text3);font-size:clamp(.75rem,1.1vw,.95rem);}
+.ts-col.total{color:#fff;font-weight:800;min-width:5.2rem;font-size:clamp(.9rem,1.4vw,1.2rem);}
+.ts-header-row{display:flex;gap:.5rem;padding:.3rem .5rem;font-size:clamp(.6rem,.9vw,.72rem);
+  color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.3rem;}
 
 /* MISSION 3 — question-hero layout */
 .m3-hero-q{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));
@@ -770,9 +775,12 @@ body::before{content:'';position:fixed;inset:0;
   <!-- CHAMPION -->
   <div id="v-champion" class="view">
     <div class="arena-background" id="champion-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
-    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1vh;">
-      <div class="champ-label">👑 CHAMPION</div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:2.2vh;padding:4vh 0;width:100%;height:100%;justify-content:center;">
+      <div class="champ-label">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:1.3em;height:1.3em;vertical-align:-.2em;margin-right:.3em;"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8Z"/></svg>CHAMPION
+      </div>
       <div id="champ-team-name"></div>
+      <div class="champ-final-board" id="champ-final-board"></div>
     </div>
   </div>
 
@@ -824,19 +832,17 @@ body::before{content:'';position:fixed;inset:0;
 
 <canvas id="laser-canvas"></canvas>
 <div id="atk-feed"></div>
-<div id="frz-overlay"><div class="frz-big" id="frz-txt">❄️ FROZEN!</div></div>
 <div id="pause-overlay"><div class="pause-badge">⏸ PAUSED</div></div>
-<div id="tko-overlay"><div class="tko-big" id="tko-txt">💣 HOSTILE TAKEOVER!</div></div>
 
 <!-- PRESENTER -->
 <div id="presenter" class="hidden">
-  <div class="prs-title">⌨️ PRESENTER [P]</div>
+  <div class="prs-title">PRESENTER [P]</div>
   <button class="prs-btn primary" onclick="presenterAct('next')">▶ Next / Advance</button>
-  <button class="prs-btn info" onclick="presenterAct('scoreboard')">📊 Scoreboard</button>
-  <button class="prs-btn success" onclick="presenterAct('reveal_next')">👆 Reveal Next</button>
-  <button class="prs-btn gold" onclick="presenterAct('auto_reveal')">⚡ Auto Reveal All</button>
-  <button class="prs-btn" onclick="toggleLang()">🇹🇭/EN</button>
-  <button class="prs-btn" onclick="toggleMusic()">🎵 Music</button>
+  <button class="prs-btn info" onclick="presenterAct('scoreboard')">Scoreboard</button>
+  <button class="prs-btn success" onclick="presenterAct('reveal_next')">Reveal Next</button>
+  <button class="prs-btn gold" onclick="presenterAct('auto_reveal')">Auto Reveal All</button>
+  <button class="prs-btn" onclick="toggleLang()">TH/EN</button>
+  <button class="prs-btn" onclick="toggleMusic()">Music</button>
 </div>
 
 <script>
@@ -1111,7 +1117,7 @@ function subscribeRT(){
   sb.channel('scr-atk').on('postgres_changes',{event:'INSERT',schema:'public',table:'attack_log'},p=>{
     const r=p.new;
     if(r.action_type==='freeze'){
-      addFeed(`❄️ ${tName(r.attacker_team_id)} → FREEZE → ${tName(r.target_team_id)}!`);
+      addFeed(`${tName(r.attacker_team_id)} → FREEZE → ${tName(r.target_team_id)}!`);
       sfxFreeze();showFreezeOverlay(r.attacker_team_id,r.target_team_id);
     }
     if(r.action_type==='takeover'){
@@ -1268,7 +1274,7 @@ function renderStrategyMinute(p){
   if(!el)return;
   el.innerHTML=`
     <div class="arena-panel" style="flex:1;align-items:center;justify-content:center;text-align:center;gap:1rem;">
-      <div class="arena-panel-lbl">🧠 Strategy Minute</div>
+      <div class="arena-panel-lbl">Strategy Minute</div>
       <div class="arena-timer-big" id="strategy-timer-arena">01:00</div>
       <div style="color:var(--text2, #9fb0c9);font-size:clamp(.7rem,1vw,.9rem);">Leaders are choosing their opening Tier before Blitz launches.</div>
     </div>`;
@@ -1348,11 +1354,11 @@ function renderMissionLive(p){
           <div class="p1-pool-lbl" id="p1-pool-lbl"></div>
         </div>
         <div class="arena-panel" style="flex:0 0 auto;max-height:22vh;overflow-y:auto;">
-          <div class="arena-panel-lbl">❄️ Freeze Deployment Feed</div>
+          <div class="arena-panel-lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.3em;"><path d="M12 2v20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07M2 12h20"/></svg>Freeze Deployment Feed</div>
           <div id="p1-feed"></div>
         </div>
         <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
-          <div class="arena-panel-lbl">🏆 Mission Leaderboard</div>
+          <div class="arena-panel-lbl"><svg viewBox="0 0 24 24" fill="currentColor" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.3em;"><path d="M5 4h14v2a5 5 0 0 1-4 4.9V13a3 3 0 0 0 3 3h1v2H5v-2h1a3 3 0 0 0 3-3v-2.1A5 5 0 0 1 5 6V4Zm2 2v0a3 3 0 0 0 2.5 2.96V6H7Zm8 0h-2.5v2.96A3 3 0 0 0 15 6Z"/></svg>Mission Leaderboard</div>
           <div id="p1-lb"></div>
         </div>`;
       el.dataset.built='1';
@@ -1367,11 +1373,11 @@ function renderMissionLive(p){
           <div class="arena-timer-big" id="p2-timer">01:30</div>
         </div>
         <div class="arena-panel" style="flex:1;min-height:0;overflow-y:auto;">
-          <div class="arena-panel-lbl">📡 Weapon Deployment Feed</div>
+          <div class="arena-panel-lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.3em;"><path d="M2 12a10 10 0 0 1 20 0M6 12a6 6 0 0 1 12 0M10 12a2 2 0 0 1 4 0"/></svg>Weapon Deployment Feed</div>
           <div id="p2-feed"></div>
         </div>
         <div class="arena-panel">
-          <div class="arena-panel-lbl">🏆 Mission Leaderboard</div>
+          <div class="arena-panel-lbl"><svg viewBox="0 0 24 24" fill="currentColor" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.3em;"><path d="M5 4h14v2a5 5 0 0 1-4 4.9V13a3 3 0 0 0 3 3h1v2H5v-2h1a3 3 0 0 0 3-3v-2.1A5 5 0 0 1 5 6V4Zm2 2v0a3 3 0 0 0 2.5 2.96V6H7Zm8 0h-2.5v2.96A3 3 0 0 0 15 6Z"/></svg>Mission Leaderboard</div>
           <div id="p2-lb"></div>
         </div>`;
       el.dataset.built='1';
@@ -1429,8 +1435,8 @@ function renderRankList(){
       <div class="rank-num" style="color:${clr};">${MEDALS[rank]||rank+1}</div>
       <div style="flex:1.4;min-width:0;">
         <div class="rank-name" style="color:${clr};">${nm}</div>
-        ${frozen?`<div class="frozen-tag">❄️ Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${frozenRem}s</div>`:''}
-        ${t.weapon_charges>0&&!frozen?`<div class="rr-freeze-ready">⚡ FREEZE READY ×${t.weapon_charges}</div>`:''}
+        ${frozen?`<div class="frozen-tag">Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${frozenRem}s</div>`:''}
+        ${t.weapon_charges>0&&!frozen?`<div class="rr-freeze-ready">FREEZE READY ×${t.weapon_charges}</div>`:''}
       </div>
       <div class="rank-bar-wrap">
         <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
@@ -1452,7 +1458,7 @@ function startFrozenCountdowns(){
           const byTeam=teams.find(x=>x.id===t.frozen_by_team);
           const byName=byTeam?(byTeam.leader_name||byTeam.name):'';
           const byClr=byTeam?TC[byTeam.id]||'#fff':'#fff';
-          tag.innerHTML=`❄️ Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${rem}s`;
+          tag.innerHTML=`Frozen by <span class="frozen-by-clr" style="color:${byClr}">${byName}</span> · ${rem}s`;
         }
         if(rem<=0){
           clearInterval(iv);
@@ -1482,16 +1488,31 @@ function renderMission2Leaderboard(){
   // RPC-009D fix: same class of bug as Frostbite's leaderboard — total_score
   // doesn't move during live Blitz gameplay; pipeline_score is what SQL
   // actually increments on every weapon launch.
-  // RPC-009E: added the A#B#C# tier-launch code, matching the format
-  // already shown on the Leader's own Product Standings panel in play.html.
+  // RPC-010: rebuilt on the same .rank-row architecture Frostbite uses
+  // (was the much smaller, bar-less .arena-lb-row) — every mission now
+  // shares one common leaderboard look, per spec. Tier-launch code kept,
+  // matching the Leader's own Product Standings panel in play.html.
   const sorted=[...teams].sort((a,b)=>(b.pipeline_score||0)-(a.pipeline_score||0));
+  const maxScore=Math.max(1,...teams.map(t=>t.pipeline_score||0));
   flipReorder('p2-lb',sorted,(row,t,i)=>{
-    row.className='arena-lb-row';
+    row.id=`m2rr-${t.id}`;
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name;
+    const pct=Math.max(4,((t.pipeline_score||0)/maxScore)*86);
     const code=`A${t.tier_a_launches||0}B${t.tier_b_launches||0}C${t.tier_c_launches||0}`;
-    row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-      <div class="arena-lb-name">${t.leader_name||t.name}</div>
-      <div class="arena-lb-score">${(t.pipeline_score||0).toLocaleString()}</div>
-      <div class="arena-lb-code">${code}</div>`;
+    row.className='rank-row';
+    row.style.background=`rgba(${hexRgb(clr)},.04)`;
+    row.style.borderColor=`rgba(${hexRgb(clr)},.12)`;
+    row.innerHTML=`
+      <div class="rank-num" style="color:${clr};">${MEDALS[i]||i+1}</div>
+      <div style="flex:1.4;min-width:0;">
+        <div class="rank-name" style="color:${clr};">${nm}</div>
+        <div class="rank-code">${code}</div>
+      </div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
+      </div>
+      <div class="rank-score" style="color:${clr};">${(t.pipeline_score||0).toLocaleString()}</div>`;
   });
 }
 function addBlitzFeed(msg){
@@ -1551,15 +1572,15 @@ const MISSION_DEMO = {
     {title:'SIGNAL LOST',callout:['Wrong answer.','Recover in 3 seconds.'],
       phoneRole:'PLAYER',phoneBtns:['SIGNAL LOST — 3']},
     {title:'LEADER COMMAND',callout:['Build Freeze.','Deploy strategically.'],
-      phoneRole:'LEADER',phoneBtns:['❄️ DEPLOY FREEZE']},
+      phoneRole:'LEADER',phoneBtns:['DEPLOY FREEZE']},
     {title:'FROZEN',callout:['Freeze opponents','for 12 seconds.'],
       phoneRole:'PLAYER',phoneBtns:['FROZEN — 12']},
   ]},
   2:{sections:[
     {title:'PLAYER MISSION',callout:['Tap fast.','Build Weapon Charge.'],
-      phoneRole:'PLAYER',phoneBtns:['⚡ TAP TO CHARGE']},
+      phoneRole:'PLAYER',phoneBtns:['TAP TO CHARGE']},
     {title:'LEADER COMMAND',callout:['Deploy weapons','at the right moment.'],
-      phoneRole:'LEADER',phoneBtns:['🚀 DEPLOY WEAPON']},
+      phoneRole:'LEADER',phoneBtns:['DEPLOY WEAPON']},
   ]},
 };
 // RPC-009F: cards after the phone-demo sections reuse the ACTUAL Mission
@@ -1657,15 +1678,42 @@ function renderMissionResultStage(p){
   // team's raw in-mission performance, which lives in trivia_score /
   // pipeline_score instead.
   const field=p===1?'trivia_score':p===2?'pipeline_score':null;
-  const sorted=field?[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0)):[];
-  const medals=['🥇','🥈','🥉','4th','5th','6th'];
-  el.innerHTML=`
-    <div class="result-title-banner">🏁 MISSION RESULT</div>
-    ${sorted.map((t,i)=>`<div class="result-row">
-      <div class="result-medal">${medals[i]||i+1}</div>
-      <div class="result-name" style="color:${TC[t.id]||'#fff'}">${t.leader_name||t.name}</div>
-      <div class="result-award">${(t[field]||0).toLocaleString()}</div>
-    </div>`).join('')}`;
+  if(!field)return;
+  const sorted=[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0));
+  const maxScore=Math.max(1,...teams.map(t=>t[field]||0));
+  // RPC-010: rebuilt on the shared .rank-row architecture (was a plain
+  // static list with no bars, no FLIP animation) — Mission Result now
+  // animates score updates and rank movement the same way the live
+  // leaderboard does, per spec. The wrapper only gets (re)created if its
+  // body element isn't actually present — checking the real DOM rather
+  // than a dataset flag, since this overlay div is shared across every
+  // stage and gets innerHTML='' on 'background', which would leave a
+  // stale flag pointing at children that no longer exist. Keeping the
+  // wrapper across repeated calls (rather than rebuilding it every time)
+  // is what lets flipReorder animate row movement instead of just
+  // popping rows into their new position with nothing to animate from.
+  if(!document.getElementById(`mr-body-${p}`)){
+    el.innerHTML=`<div class="arena-panel" style="flex:1;">
+      <div class="arena-panel-lbl">Mission Result</div>
+      <div id="mr-body-${p}"></div>
+    </div>`;
+  }
+  flipReorder(`mr-body-${p}`,sorted,(row,t,i)=>{
+    row.id=`mr-${p}-${t.id}`;
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name;
+    const pct=Math.max(4,((t[field]||0)/maxScore)*86);
+    row.className='rank-row';
+    row.style.background=`rgba(${hexRgb(clr)},.04)`;
+    row.style.borderColor=`rgba(${hexRgb(clr)},.12)`;
+    row.innerHTML=`
+      <div class="rank-num" style="color:${clr};">${MEDALS[i]||i+1}</div>
+      <div class="rank-name" style="flex:1.4;color:${clr};">${nm}</div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
+      </div>
+      <div class="rank-score" style="color:${clr};">${(t[field]||0).toLocaleString()}</div>`;
+  });
 }
 
 /* ============================================================
@@ -1685,35 +1733,55 @@ function renderTournamentStandingsStage(p){
   // time, leaving the actually-visible Mission 2 panel empty. Namespacing
   // the id per mission fixes it.
   const bodyId=`ts-body-${p}`;
-  if(p===2){
-    // RPC-009D: reverted to Mission-2-only standings — showing the
-    // cumulative Total here spoiled the Champion reveal that's supposed
-    // to happen after this. Only M2's own tournament points are shown;
-    // the M1+M2 running total stays hidden until Champion.
-    const sorted=[...teams].sort((a,b)=>(b.m2_points||0)-(a.m2_points||0));
+  // RPC-010: Tournament Standing rebuilt as "one of the most important
+  // screens" — now shows Mission Points AND running Tournament Total
+  // together (both missions, same layout), with the Total counting up on
+  // first reveal and rows animating into rank order via flipReorder.
+  // NOTE: this intentionally reverses RPC-009D's "hide the cumulative
+  // Total for Mission 2 to preserve the Champion reveal" — this RPC
+  // explicitly asks for Total to be shown here, so that suspense-
+  // preserving behavior is gone. Flagging this since it's a direct
+  // reversal of a previous deliberate decision, not an oversight.
+  const mField=p===1?'m1_points':'m2_points';
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  if(!document.getElementById(bodyId)){
     el.innerHTML=`<div class="arena-panel" style="flex:1;">
-      <div class="arena-panel-lbl">🏆 Tournament Standings — Mission 2</div>
+      <div class="arena-panel-lbl">Tournament Standings</div>
+      <div class="ts-header-row"><span style="min-width:2.6rem;"></span><span style="flex:1.4;">Team</span><span class="ts-col">Mission</span><span class="ts-col total">Total</span></div>
       <div id="${bodyId}"></div>
     </div>`;
-    flipReorder(bodyId,sorted,(row,t,i)=>{
-      row.className='arena-lb-row';
-      row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-        <div class="arena-lb-name">${t.leader_name||t.name}</div>
-        <div class="arena-lb-score">${(t.m2_points||0).toLocaleString()}</div>`;
-    });
-  } else {
-    const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
-    el.innerHTML=`<div class="arena-panel" style="flex:1;">
-      <div class="arena-panel-lbl">🏆 Tournament Standings</div>
-      <div id="${bodyId}"></div>
-    </div>`;
-    flipReorder(bodyId,sorted,(row,t,i)=>{
-      row.className='arena-lb-row';
-      row.innerHTML=`<div class="arena-lb-rank" style="color:${TC[t.id]||'#fff'}">${i+1}</div>
-        <div class="arena-lb-name">${t.leader_name||t.name}</div>
-        <div class="arena-lb-score">${(t.total_score||0).toLocaleString()}</div>`;
-    });
   }
+  flipReorder(bodyId,sorted,(row,t,i)=>{
+    const clr=TC[t.id]||'#fff';
+    const nm=t.leader_name||t.name;
+    const prevTotal=parseInt(row.dataset.totalShown||'0',10);
+    const newTotal=t.total_score||0;
+    row.className='rank-row';
+    row.style.background=`rgba(${hexRgb(clr)},.04)`;
+    row.style.borderColor=`rgba(${hexRgb(clr)},.12)`;
+    row.innerHTML=`
+      <div class="rank-num" style="color:${clr};min-width:2.6rem;">${MEDALS[i]||i+1}</div>
+      <div class="rank-name" style="flex:1.4;color:${clr};">${nm}</div>
+      <div class="ts-col" style="color:${clr};font-weight:700;">+${(t[mField]||0).toLocaleString()}</div>
+      <div class="ts-col total" id="ts-total-${p}-${t.id}" style="color:${clr};">${prevTotal.toLocaleString()}</div>`;
+    animateCountUp(`ts-total-${p}-${t.id}`,prevTotal,newTotal,900);
+    row.dataset.totalShown=newTotal;
+  });
+}
+// RPC-010 — lightweight count-up used for the Tournament Total reveal.
+function animateCountUp(elId,from,to,duration){
+  if(from===to)return;
+  const el=document.getElementById(elId);
+  if(!el)return;
+  const start=performance.now();
+  const tick=(now)=>{
+    const t=Math.min(1,(now-start)/duration);
+    const eased=1-Math.pow(1-t,3); // ease-out cubic
+    const val=Math.round(from+(to-from)*eased);
+    el.textContent=val.toLocaleString();
+    if(t<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 // CHAMPION
@@ -1732,6 +1800,21 @@ function renderChampion(){
     const prefix=(champs.length>1&&i===champs.length-1)?'และ ':'';
     return `<div class="champ-name-line" style="color:${TC[t.id]||'#fff'}">${prefix}${nm}</div>`;
   }).join('');
+  // RPC-010 — Final Tournament Leaderboard, champion row(s) highlighted.
+  // Kept the big title above free of numbers (per RPC-009E), added this
+  // compact supporting list instead of putting scores back on the hero.
+  const boardEl=document.getElementById('champ-final-board');
+  if(boardEl){
+    boardEl.innerHTML=sorted.map((t,i)=>{
+      const isChamp=(t.total_score||0)===topScore;
+      const clr=TC[t.id]||'#fff';
+      return `<div class="champ-row${isChamp?' winner':''}">
+        <div class="cr-rank" style="color:${clr}">${MEDALS[i]||i+1}</div>
+        <div class="cr-name" style="color:${clr}">${t.leader_name||t.name}</div>
+        <div class="cr-score" style="color:${clr}">${(t.total_score||0).toLocaleString()}</div>
+      </div>`;
+    }).join('');
+  }
   confetti({particleCount:150,spread:120,origin:{y:.4}});
 }
 
@@ -1805,9 +1888,9 @@ function showLaunchFlash(teamId,tier){
   const prodName=pn[tier]||{A:'CI Care',B:'CI Plus',C:'MPCI+'}[tier]||`Product ${tier}`;
   const pts={A:500,B:2000,C:6000}[tier]||0;
   const el=document.createElement('div');el.className='launch-flash';
-  el.innerHTML=`<div class="launch-txt" style="color:${clr};">🚀 ${nm}<br>${prodName} DEPLOYED!<br><span style="font-size:.45em;color:var(--green)">+${pts.toLocaleString()} pts</span></div>`;
+  el.innerHTML=`<div class="launch-txt" style="color:${clr};">${nm}<br>${prodName} DEPLOYED!<br><span style="font-size:.45em;color:var(--green)">+${pts.toLocaleString()} pts</span></div>`;
   document.body.appendChild(el);
-  addFeed(`🚀 ${nm} → ${prodName}! +${pts.toLocaleString()} pts`);
+  addFeed(`${nm} → ${prodName}! +${pts.toLocaleString()} pts`);
   addBlitzFeed(`${nm} deployed ${prodName}`);
   setTimeout(()=>el.remove(),1100);
 }
@@ -1941,3 +2024,4 @@ init();
 </script>
 </body>
 </html>
+ 
