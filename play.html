@@ -6,7 +6,15 @@
 <title>CI Compass — Portfolio Race</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<!-- RPC-009E: Anuphan is now the primary font throughout Compass OS
+     (previously scoped only to Registration/Waiting in RPC-009D) —
+     superseded the Kanit import entirely. -->
+<!-- RPC-009D: Anuphan — per CompassOS_Mobile.md / Arena_Visual_System.md
+     typography guidance ("modern humanist, excellent Thai readability,
+     English and Thai should feel like one family"). RPC-009E promoted
+     this to the primary font everywhere in Compass OS — no longer
+     scoped to just Registration/Waiting. -->
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    COMPASS OS — DESIGN TOKENS (Polaris v2)
@@ -64,12 +72,18 @@
   --bg-frostbite:url('Frostbite_mobile_bg.png');
   --bg-frozen:url('Frostbite_Frozen_mobile_bg.png');
   --bg-signallost:url('Frostbite_SignalLost_mobile_bg.png');
-  --bg-blitz:url('Blitz_mobile_bg.png');
+  /* RPC-009D: swapped in the production Blitz artwork (was a placeholder
+     per RPC-009C's note that a v2 would replace it). Same single point
+     of change — only this line needed editing. */
+  --bg-blitz:url('Blitz_Background_Mobile.png');
+  /* RPC-009D: Lobby/Registration/Waiting background — new this round,
+     no code beyond this line + the mobile-bg-lobby div needed. */
+  --bg-lobby:url('Lobby_Background.png');
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;overflow:hidden;
   background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
-  color:var(--text);font-family:'Kanit',sans-serif;}
+  color:var(--text);font-family:'Anuphan',sans-serif;}
 body::before{content:'';position:fixed;inset:0;
   background:radial-gradient(ellipse at 30% 20%,rgba(59,130,246,0.08) 0%,transparent 60%),
              radial-gradient(ellipse at 70% 80%,rgba(139,92,246,0.06) 0%,transparent 60%);
@@ -91,6 +105,16 @@ body::before{content:'';position:fixed;inset:0;
   opacity:0;transition:opacity var(--dur-md,400ms) ease;}
 .mobile-bg.active{opacity:1;}
 #mobile-bg-frostbite{background-image:var(--bg-frostbite);}
+/* RPC-009J: top-anchored specifically for Lobby, not center — with
+   background-size:cover, center-cropping means how much of the top
+   branding (compass mark, "COMPASS OS", tagline) stays visible depends
+   on the device's aspect ratio vs. the artwork's, so a fixed vh margin
+   below it can never be reliable across devices (this is what "not just
+   a margin adjustment" was pointing at). Anchoring to the top means the
+   full branding zone is always visible at the same position from the top
+   of the viewport on every device — only the BOTTOM of the image gets
+   cropped on narrower screens, which is empty space in this artwork. */
+#mobile-bg-lobby{background-image:var(--bg-lobby);background-position:center top;}
 #mobile-bg-frozen{background-image:var(--bg-frozen);}
 #mobile-bg-signallost{background-image:var(--bg-signallost);}
 #mobile-bg-blitz{background-image:var(--bg-blitz);}
@@ -120,10 +144,44 @@ body::before{content:'';position:fixed;inset:0;
    RPC-009C yet. */
 
 /* GLASS CARD */
-.glass{background:var(--surf);backdrop-filter:blur(12px);
-  border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;}
-.glass2{background:var(--surf2);backdrop-filter:blur(16px);
-  border:1px solid var(--border2);border-radius:var(--r);}
+/* ============================================================
+   COMPASS GLASS SYSTEM — RPC-009E consolidation. Exactly two variants
+   project-wide: Glass Light (Registration/Lobby/Waiting/Demo) and Glass
+   Strong (Gameplay/Arena/Admin/Tournament Standing/Champion). Both share
+   identical blur, radius, shadow, and border width — ONLY background/
+   border opacity differs. .glass/.glass2 stay as the class names so the
+   many existing call sites across the file don't need touching; the
+   .cos-premium scope (Registration/Waiting) gets the Light opacity via
+   the same shared tokens below. --- */
+:root{
+  --glass-blur:20px;
+  --glass-shadow:0 8px 32px rgba(0,0,0,.25);
+  --glass-border-w:1.5px;
+}
+.glass{background:rgba(8,14,32,.62);
+  backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));
+  border:var(--glass-border-w) solid rgba(255,255,255,.16);border-radius:var(--r);
+  box-shadow:var(--glass-shadow);padding:1.1rem;}
+.glass2{background:rgba(8,14,32,.74);
+  backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));
+  border:var(--glass-border-w) solid rgba(96,165,250,.3);border-radius:var(--r);
+  box-shadow:var(--glass-shadow);}
+
+/* ============================================================
+   RPC-009D/E — Registration / Lobby / Waiting premium polish.
+   Scoped to .cos-premium (applied only to #s-join and #s-wait) so
+   gameplay screens are completely untouched, per RPC-009D's scope.
+   This is "Glass Light" in the RPC-009E Compass Glass system — same
+   blur/shadow/border-width as the base .glass/.glass2 ("Glass Strong"),
+   only the background/border opacity is lower, since the artwork itself
+   is the atmosphere here and cards should stay closer to "blur
+   separates, doesn't hide" than the text-dense gameplay cards.
+   ============================================================ */
+.cos-premium{font-family:'Anuphan',sans-serif;}
+.cos-premium .glass{background:rgba(10,18,40,.32);
+  border-color:rgba(255,255,255,.14);}
+.cos-premium .glass2{background:rgba(10,18,40,.44);
+  border-color:rgba(96,165,250,.26);}
 
 /* LOGO */
 .logo-wrap{display:flex;align-items:center;justify-content:center;gap:.6rem;
@@ -253,7 +311,7 @@ body::before{content:'';position:fixed;inset:0;
    Hero-tier detail (§3: tier = layer/detail set, not raw pixels).
    ============================================================ */
 .mission-hero{position:relative;display:flex;flex-direction:column;
-  align-items:center;padding:.7rem 1.1rem .3rem;gap:.2rem;}
+  align-items:center;padding:.7rem 1.1rem .3rem;padding-top:calc(.7rem + var(--safe-t));gap:.2rem;}
 .mission-glow{position:absolute;top:-24px;left:50%;transform:translateX(-50%);
   width:220px;height:220px;border-radius:50%;
   background:radial-gradient(circle,rgba(139,92,246,.16) 0%,rgba(59,130,246,.07) 45%,transparent 72%);
@@ -268,7 +326,16 @@ body::before{content:'';position:fixed;inset:0;
 .hero-tagline{font-size:.56rem;color:var(--text3);text-align:center;
   letter-spacing:.5px;margin-top:.05rem;}
 .mission-status{display:inline-flex;align-items:center;gap:.4rem;
-  margin:.4rem auto 0;padding:.3rem .8rem;border-radius:20px;
+  /* RPC-009F: the artwork itself (Lobby_Background.png) has "COMPASS OS"
+     and the "Think Together..." tagline baked in around its upper third.
+     With the overlaid duplicate text removed, this chip was the highest
+     UI element and sat directly on top of that artwork text. Pushed down
+     with a viewport-relative margin so it (and the team/role selection
+     below it, which follows in normal flow) clears that zone instead. */
+  /* RPC-009J: with the Lobby background now top-anchored (see .mobile-bg
+     rules), the branding zone's position is predictable across devices,
+     so this can safely come down from the earlier 22vh guess. */
+  margin:17vh auto 0;padding:.3rem .8rem;border-radius:20px;
   background:rgba(255,255,255,.05);border:1px solid var(--border2);
   font-size:.62rem;color:var(--text2);font-weight:600;flex-wrap:wrap;
   justify-content:center;}
@@ -283,9 +350,13 @@ body::before{content:'';position:fixed;inset:0;
 
 /* BUTTONS */
 .btn{width:100%;padding:.9rem 1rem;border:none;border-radius:var(--r2);
-  font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;
+  font-family:'Anuphan',sans-serif;font-size:1rem;font-weight:700;
   cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
 .btn:active{transform:scale(.97);}
+/* RPC-009D — tactile hover for pointer-capable devices (tablet/desktop
+   testing); mobile touch relies on :active above, this is additive. */
+@media (hover:hover){.btn:hover{filter:brightness(1.08);transform:translateY(-1px);}}
+.cos-premium .btn{font-family:'Anuphan',sans-serif;}
 .btn-primary{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;
   box-shadow:var(--glow-blue);}
 .btn-gold{background:linear-gradient(135deg,var(--gold),#d97706);color:#000;
@@ -300,7 +371,7 @@ body::before{content:'';position:fixed;inset:0;
 .field{width:100%;padding:.62rem .8rem;
   background:var(--surf);border:1.5px solid var(--border);
   border-radius:var(--r2);color:var(--text);
-  font-family:'Kanit',sans-serif;font-size:.82rem;outline:none;
+  font-family:'Anuphan',sans-serif;font-size:.82rem;outline:none;
   transition:border .2s;}
 .field:focus{border-color:var(--blue2);}
 .field::placeholder{color:var(--text3);}
@@ -312,7 +383,7 @@ body::before{content:'';position:fixed;inset:0;
 .field-select{width:100%;padding:.62rem 2.2rem .62rem .8rem;
   background:var(--surf);border:1.5px solid var(--border);
   border-radius:var(--r2);color:var(--text);
-  font-family:'Kanit',sans-serif;font-size:.82rem;outline:none;
+  font-family:'Anuphan',sans-serif;font-size:.82rem;outline:none;
   appearance:none;-webkit-appearance:none;-moz-appearance:none;
   transition:border .2s;cursor:pointer;}
 .field-select:focus{border-color:var(--blue2);}
@@ -325,16 +396,29 @@ body::before{content:'';position:fixed;inset:0;
 
 /* TEAM GRID — larger visual tiles with Compass OS shield badge */
 .team-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;}
-.team-btn{padding:.5rem .4rem;border-radius:var(--r2);
+.team-btn{padding:.5rem .4rem;border-radius:var(--r2);position:relative;
   background:var(--surf);border:1.5px solid var(--border);
-  color:var(--text2);font-family:'Kanit',sans-serif;
+  color:var(--text2);font-family:'Anuphan',sans-serif;
   font-size:.76rem;font-weight:700;cursor:pointer;
   display:flex;flex-direction:row;align-items:center;gap:.5rem;
   text-align:left;transition:all .2s var(--ease-spring,ease);}
 .team-btn:active{transform:scale(.96);}
-.team-btn .tb-shield{width:26px;height:26px;flex-shrink:0;}
-.team-btn.sel{border-width:2px;background:rgba(255,255,255,0.07);
-  transform:translateY(-1px);box-shadow:0 0 16px rgba(96,165,250,.22);}
+.team-btn .tb-shield{width:26px;height:26px;flex-shrink:0;
+  transition:filter .2s,opacity .2s;}
+/* RPC-009E — team chip interaction states: inactive chips are visibly
+   lower-saturation/faded (still legible); selected snaps to full vibrant
+   color plus an integrated checkmark badge, per spec. */
+.team-btn:not(.sel) .tb-shield{filter:saturate(.35) brightness(.8);opacity:.72;}
+.team-btn:not(.sel){opacity:.62;}
+.team-btn.sel{border-width:2px;background:rgba(255,255,255,0.08);
+  transform:translateY(-1px);box-shadow:0 0 18px rgba(96,165,250,.25);
+  padding-right:2.1rem;}
+.tb-check{position:absolute;right:.5rem;top:50%;transform:translateY(-50%) scale(0);
+  width:1.15rem;height:1.15rem;border-radius:50%;
+  background:currentColor;display:flex;align-items:center;justify-content:center;
+  transition:transform .22s var(--ease-spring,cubic-bezier(.34,1.56,.64,1));}
+.tb-check svg{width:.75rem;height:.75rem;color:#04101f;}
+.team-btn.sel .tb-check{transform:translateY(-50%) scale(1);}
 .team-grid-empty{grid-column:1/-1;text-align:center;color:var(--text3);
   font-size:.72rem;padding:.6rem;}
 
@@ -342,11 +426,14 @@ body::before{content:'';position:fixed;inset:0;
 .role-row{display:flex;gap:.5rem;}
 .role-btn{flex:1;padding:.6rem .5rem;border-radius:var(--r2);
   background:var(--surf);border:1.5px solid var(--border);
-  color:var(--text2);font-family:'Kanit',sans-serif;cursor:pointer;
+  color:var(--text2);font-family:'Anuphan',sans-serif;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:.15rem;
   text-align:center;transition:all .2s var(--ease-spring,ease);}
 .role-btn:active{transform:scale(.97);}
-.role-icon{font-size:1.3rem;line-height:1;}
+.role-icon{width:1.5rem;height:1.5rem;margin:0 auto;color:var(--blue2);}
+.role-icon svg{width:100%;height:100%;}
+/* RPC-009D — small inline utility icons, inherit color from surrounding text */
+.cos-icon{width:.95em;height:.95em;vertical-align:-0.15em;display:inline-block;}
 .role-title{font-size:.82rem;font-weight:900;}
 .role-desc{font-size:.58rem;color:var(--text3);font-weight:400;line-height:1.3;}
 .role-btn.sel{border-width:2px;transform:translateY(-1px);}
@@ -358,7 +445,7 @@ body::before{content:'';position:fixed;inset:0;
 #role-leader.sel .role-title{color:var(--gold);}
 
 /* LANG TOGGLE */
-.lang-row{display:flex;justify-content:flex-end;gap:.4rem;padding:.6rem 1rem 0;}
+.lang-row{display:flex;justify-content:flex-end;gap:.4rem;padding:.6rem 1rem 0;padding-top:calc(.6rem + var(--safe-t));}
 .lang-btn{padding:.22rem .65rem;border-radius:20px;font-size:.68rem;font-weight:700;
   background:var(--surf);border:1px solid var(--border);color:var(--text3);cursor:pointer;}
 .lang-btn.sel{border-color:var(--blue2);color:var(--blue2);}
@@ -467,13 +554,13 @@ body::before{content:'';position:fixed;inset:0;
 #s-trivia .hud{gap:.5rem;}
 .t-hud-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
 .t-hud-icon{width:30px;height:30px;flex-shrink:0;}
-.t-timer{font-family:'Kanit',sans-serif;font-size:1.5rem;font-weight:900;
+.t-timer{font-family:'Anuphan',sans-serif;font-size:1.5rem;font-weight:900;
   color:var(--blue2);letter-spacing:1px;text-align:center;line-height:1;
   transition:color .3s;}
 .t-timer.urgent{color:var(--red);animation:tUrgentPulse .6s infinite;}
 @keyframes tUrgentPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .hero-score-wrap{text-align:right;}
-.hero-score{font-family:'Kanit',sans-serif;font-size:1.4rem;font-weight:900;line-height:1;
+.hero-score{font-family:'Anuphan',sans-serif;font-size:1.4rem;font-weight:900;line-height:1;
   background:linear-gradient(135deg,var(--gold),var(--gold2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .streak-wrap{display:flex;gap:.25rem;justify-content:center;padding:.1rem;}
@@ -490,7 +577,7 @@ body::before{content:'';position:fixed;inset:0;
 .ans-btn{display:flex;align-items:center;gap:.7rem;
   padding:.85rem .9rem;border-radius:var(--r2);
   background:var(--surf);border:1.5px solid var(--border);
-  color:var(--text);font-family:'Kanit',sans-serif;
+  color:var(--text);font-family:'Anuphan',sans-serif;
   font-size:.92rem;font-weight:600;cursor:pointer;
   transition:all .2s;text-align:left;}
 .ans-btn:active{transform:scale(.98);}
@@ -548,16 +635,20 @@ body::before{content:'';position:fixed;inset:0;
 #s-tapping .hud{gap:.5rem;}
 /* Mission 2 HUD row: compass icon + team score + countdown */
 .m2-hud-icon{width:26px;height:26px;flex-shrink:0;}
-.m2-timer{font-family:'Kanit',sans-serif;font-size:1.05rem;font-weight:700;
+.m2-timer{font-family:'Anuphan',sans-serif;font-size:1.05rem;font-weight:700;
   color:var(--blue2);letter-spacing:.5px;}
 .m2-timer.urgent{color:var(--red);animation:tUrgentPulse .6s infinite;}
 
 /* TAP ZONE — ~70% of screen, no visible button, tap anywhere */
-.tap-zone{flex:1;border-radius:var(--r);
+/* RPC-011: was flex:1 (grew to fill nearly the whole screen), which let
+   someone use 4-5 fingers across the huge area to spam-tap far faster
+   than intended. Capped to a fixed, smaller height — naturally limits
+   simultaneous touch points to roughly 2-3 fingers. */
+.tap-zone{flex:0 0 auto;height:min(26vh,210px);border-radius:var(--r);
   background:var(--surf);border:1.5px solid var(--border2);
   display:flex;flex-direction:column;align-items:center;
   justify-content:center;cursor:pointer;
-  position:relative;overflow:hidden;min-height:0;
+  position:relative;overflow:hidden;
   transition:border-color .25s,box-shadow .25s;}
 .tap-zone.A{border-color:rgba(251,191,36,0.45);box-shadow:0 0 24px rgba(251,191,36,0.08) inset;}
 .tap-zone.B{border-color:rgba(96,165,250,0.45);box-shadow:0 0 24px rgba(96,165,250,0.08) inset;}
@@ -580,7 +671,12 @@ body::before{content:'';position:fixed;inset:0;
   cursor:pointer;text-align:center;transition:all .2s;
   display:flex;flex-direction:column;align-items:center;gap:.15rem;position:relative;}
 .product-card:active{transform:scale(.97);}
-.product-name{font-family:'Kanit',sans-serif;font-size:.92rem;font-weight:700;
+/* RPC-011 — explicit active/inactive states: unselected weapons are
+   visibly dimmed/desaturated (not just lacking a highlight), selected
+   snaps to full vibrant color. Matches the same interaction language as
+   the Registration team chips. */
+.product-card:not(.sel){opacity:.55;filter:saturate(.5);}
+.product-name{font-family:'Anuphan',sans-serif;font-size:.92rem;font-weight:700;
   line-height:1.15;color:var(--text);}
 .product-meta{display:flex;justify-content:center;gap:.5rem;font-size:.6rem;
   color:var(--text3);font-weight:400;}
@@ -595,14 +691,17 @@ body::before{content:'';position:fixed;inset:0;
 .product-bar-fill.A{background:linear-gradient(90deg,var(--gold),var(--gold2));}
 .product-bar-fill.B{background:linear-gradient(90deg,var(--blue),var(--blue2));}
 .product-bar-fill.C{background:linear-gradient(90deg,#059669,var(--green));}
-/* Selection indicator — never relies on color alone (explicit badge + border) */
+/* Selection indicator — never relies on color alone (explicit checkmark badge + border) */
 .product-card.A.sel{border-color:var(--gold);background:rgba(251,191,36,0.08);}
 .product-card.B.sel{border-color:var(--blue2);background:rgba(96,165,250,0.08);}
 .product-card.C.sel{border-color:var(--green);background:rgba(52,211,153,0.08);}
-.product-sel-badge{display:none;position:absolute;top:.3rem;right:.4rem;
-  font-size:.6rem;color:var(--text);background:rgba(255,255,255,.12);
-  border-radius:8px;padding:.05rem .35rem;font-weight:700;}
-.product-card.sel .product-sel-badge{display:block;}
+/* RPC-011: replaced the "เลือกแล้ว" text badge with a plain checkmark
+   icon — cleaner, and reads instantly without needing to parse text. */
+.product-sel-badge{display:none;position:absolute;top:.35rem;right:.35rem;
+  width:1.1rem;height:1.1rem;border-radius:50%;background:currentColor;
+  align-items:center;justify-content:center;}
+.product-sel-badge svg{width:.68rem;height:.68rem;color:#04101f;}
+.product-card.sel .product-sel-badge{display:flex;}
 
 /* LEADER — product deploy bars */
 .m2-product-list{display:flex;flex-direction:column;gap:.5rem;}
@@ -610,11 +709,11 @@ body::before{content:'';position:fixed;inset:0;
   border-radius:var(--r2);padding:.6rem .75rem;}
 .m2-product-item.ready{border-color:var(--gold);background:rgba(251,191,36,.06);}
 .m2-product-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;}
-.m2-product-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:.95rem;}
+.m2-product-title{font-family:'Anuphan',sans-serif;font-weight:700;font-size:.95rem;}
 .m2-product-pts{font-size:.65rem;color:var(--text3);font-weight:400;}
 .m2-deploy-btn{display:none;width:100%;margin-top:.5rem;padding:.55rem;
   border:none;border-radius:var(--r3);background:linear-gradient(135deg,var(--gold),#d97706);
-  color:#000;font-family:'Kanit',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
+  color:#000;font-family:'Anuphan',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
 .m2-product-item.ready .m2-deploy-btn{display:block;}
 .m2-launch-count{font-size:.6rem;color:var(--text3);text-align:right;margin-top:.2rem;}
 
@@ -635,7 +734,7 @@ body::before{content:'';position:fixed;inset:0;
 .fact-meta-val{font-size:1rem;font-weight:700;color:var(--gold);}
 .vote-row{display:flex;gap:.6rem;flex:1;}
 .vote-btn{flex:1;border-radius:var(--r);border:2px solid var(--border);
-  background:var(--surf);font-family:'Kanit',sans-serif;
+  background:var(--surf);font-family:'Anuphan',sans-serif;
   font-size:1.3rem;font-weight:700;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;
   transition:all .2s;color:var(--text2);}
@@ -685,7 +784,7 @@ body::before{content:'';position:fixed;inset:0;
 .s-ico{font-size:.75rem;min-width:1.2rem;text-align:center;}
 .fire-btn{width:100%;padding:.8rem;border-radius:var(--r2);border:none;
   background:linear-gradient(135deg,#7f1d1d,var(--red));color:#fff;
-  font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:900;
+  font-family:'Anuphan',sans-serif;font-size:.9rem;font-weight:900;
   cursor:pointer;transition:opacity .2s,box-shadow .2s;
   animation:glow-red 2s infinite;}
 @keyframes glow-red{0%,100%{box-shadow:0 0 10px rgba(244,63,94,0.4)}
@@ -695,7 +794,7 @@ body::before{content:'';position:fixed;inset:0;
 .tgt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;}
 .tgt-btn{padding:.55rem .3rem;background:var(--surf);
   border:1.5px solid var(--border);border-radius:var(--r3);
-  color:var(--text);font-family:'Kanit',sans-serif;
+  color:var(--text);font-family:'Anuphan',sans-serif;
   font-size:.7rem;font-weight:700;cursor:pointer;text-align:center;
   transition:all .2s;}
 .tgt-btn:active{transform:scale(.95);}
@@ -740,7 +839,7 @@ body::before{content:'';position:fixed;inset:0;
 .p3-ans-row{display:flex;gap:.4rem;}
 .p3-ans-btn{flex:1;padding:.55rem .2rem;border-radius:var(--r2);
   border:2px solid var(--border);background:var(--surf);
-  font-family:'Kanit',sans-serif;font-size:.82rem;font-weight:700;
+  font-family:'Anuphan',sans-serif;font-size:.82rem;font-weight:700;
   cursor:pointer;text-align:center;transition:all .2s;color:var(--text2);}
 .p3-ans-btn:active{transform:scale(.96);}
 .p3-ans-btn.fact-a{border-color:rgba(16,185,129,0.4);color:var(--green);}
@@ -750,7 +849,7 @@ body::before{content:'';position:fixed;inset:0;
 .p3-wager-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.3rem;}
 .p3-wager-btn{padding:.5rem .15rem;border-radius:var(--r3);
   border:1.5px solid var(--border);background:var(--surf);
-  color:var(--text2);font-family:'Kanit',sans-serif;
+  color:var(--text2);font-family:'Anuphan',sans-serif;
   font-size:.68rem;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
 .p3-wager-btn.sel{border-color:var(--gold);background:rgba(245,158,11,0.12);color:var(--gold);}
 .p3-wager-btn:disabled{opacity:.25;pointer-events:none;}
@@ -765,7 +864,7 @@ body::before{content:'';position:fixed;inset:0;
 .p3-wpn-row{display:flex;gap:.35rem;}
 .p3-wpn-btn{flex:1;padding:.5rem .2rem;border-radius:var(--r2);
   border:1.5px solid var(--border);background:var(--surf);
-  font-family:'Kanit',sans-serif;font-size:.66rem;font-weight:700;
+  font-family:'Anuphan',sans-serif;font-size:.66rem;font-weight:700;
   cursor:pointer;text-align:center;color:var(--text2);transition:all .2s;}
 .p3-wpn-btn.sel{box-shadow:0 0 14px currentColor;transform:scale(1.03);}
 .p3-wpn-btn.none-w.sel{border-color:var(--text2);color:var(--text);}
@@ -776,7 +875,7 @@ body::before{content:'';position:fixed;inset:0;
 .p3-weapons-locked-note{font-size:.6rem;color:var(--text3);text-align:center;padding:.3rem;}
 .p3-submit-btn{padding:.75rem;border-radius:var(--r2);border:none;
   background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;
-  font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:900;
+  font-family:'Anuphan',sans-serif;font-size:.9rem;font-weight:900;
   cursor:pointer;box-shadow:var(--glow-blue);flex-shrink:0;}
 .p3-submit-btn:active{transform:scale(.97);}
 .p3-submit-btn:disabled{opacity:.3;pointer-events:none;box-shadow:none;}
@@ -825,6 +924,7 @@ body::before{content:'';position:fixed;inset:0;
      or JS change is required — every other div/class stays fixed.
      ============================================================ -->
 <div id="mobile-bg-layer">
+  <div class="mobile-bg" id="mobile-bg-lobby"></div>
   <div class="mobile-bg" id="mobile-bg-frostbite"></div>
   <div class="mobile-bg" id="mobile-bg-frozen"></div>
   <div class="mobile-bg" id="mobile-bg-signallost"></div>
@@ -840,10 +940,10 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <!-- JOIN -->
-<div id="s-join" class="screen">
+<div id="s-join" class="screen cos-premium">
   <div class="lang-row">
-    <button class="lang-btn sel" id="lb-th" onclick="setLang('th')">🇹🇭 ไทย</button>
-    <button class="lang-btn" id="lb-en" onclick="setLang('en')">🇬🇧 EN</button>
+    <button class="lang-btn sel" id="lb-th" onclick="setLang('th')">ไทย</button>
+    <button class="lang-btn" id="lb-en" onclick="setLang('en')">EN</button>
   </div>
 
   <!-- MISSION HERO -->
@@ -852,32 +952,14 @@ body::before{content:'';position:fixed;inset:0;
     <img id="logo-img-join" class="logo-img" alt="Compass OS">
     <div class="mission-radar">
 <svg id="chud-join" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="chud-svg" data-component="compass-hud" data-tier="hero" data-state="idle">
-  <defs>
-    <path id="chud-needle-blade-def" d="M 0 -54 L -0.7 4.95 L -3.8 8.16 L 0 14 L 3.8 8.16 L 0.7 4.95 Z"/>
-    <line id="chud-tick-major-def" x1="0" y1="-78" x2="0" y2="-66"/>
-    <line id="chud-tick-minor-def" x1="0" y1="-78" x2="0" y2="-74.5"/>
-    <line id="chud-microscale-def" x1="0" y1="-57" x2="0" y2="-55.5"/>
-    <radialGradient id="chud-glass-gradient" cx="30%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#f8fafc" stop-opacity="0.10"/>
-      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
+  <!-- RPC-009E: removed the legacy Compass HUD graphic entirely per spec
+       (compass circle, rings, dial, ticks, needle, core, calibration
+       marks, particles, glass reflection, polaris mark, fx groups) —
+       the Registration artwork itself is now the hero and already
+       carries this visual language. Kept ONLY the animated sweep ("light
+       rays"), which is explicitly called out to remain as atmosphere. -->
   <g id="compass-hud" transform="translate(100,100)">
-    <g id="chud-particles" class="chud-layer chud-particles" aria-hidden="true">
-      <circle class="chud-particle" cx="27.95" cy="-104.32" r="0.8"/>
-      <circle class="chud-particle" cx="83.23" cy="-74.94" r="0.8"/>
-      <circle class="chud-particle" cx="94.57" cy="38.21" r="0.8"/>
-      <circle class="chud-particle" cx="57" cy="98.73" r="0.8"/>
-      <circle class="chud-particle" cx="-33.52" cy="92.09" r="0.8"/>
-      <circle class="chud-particle" cx="-108.33" cy="19.1" r="0.8"/>
-      <circle class="chud-particle" cx="-90.07" cy="-52" r="0.8"/>
-      <circle class="chud-particle" cx="-39.33" cy="-108.06" r="0.8"/>
-    </g>
-    <g id="chud-glass" class="chud-layer chud-glass" aria-hidden="true">
-      <ellipse cx="-28" cy="-28" rx="50" ry="28" fill="url(#chud-glass-gradient)" transform="rotate(-35)"/>
-    </g>
     <g id="chud-outer-ring" class="chud-layer chud-outer-ring">
-      <circle id="chud-outer-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="88"/>
       <g id="chud-sweep" class="chud-sweep">
         <path class="chud-sweep-seg" style="--seg-op:0.90" d="M 0 -88 A 88 88 0 0 0 -6.14 -87.79"/>
         <path class="chud-sweep-seg" style="--seg-op:0.83" d="M -8.43 -87.59 A 88 88 0 0 0 -14.52 -86.79"/>
@@ -893,163 +975,25 @@ body::before{content:'';position:fixed;inset:0;
         <path class="chud-sweep-seg" style="--seg-op:0.08" d="M -76.59 -43.33 A 88 88 0 0 0 -79.43 -37.88"/>
       </g>
     </g>
-    <line id="chud-service-mark" class="chud-layer chud-static-mark" x1="-78.75" y1="39.27" x2="-80.7" y2="35.09"/>
-    <g id="chud-ticks" class="chud-layer chud-ticks">
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(0)" style="--tick-index:0"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(15)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(30)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(45)" style="--tick-index:1"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(60)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(75)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(90)" style="--tick-index:2"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(105)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(120)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(135)" style="--tick-index:3"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(150)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(165)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(180)" style="--tick-index:4"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(195)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(210)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(225)" style="--tick-index:5"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(240)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(255)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(270)" style="--tick-index:6"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(285)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(300)"/>
-      <use href="#chud-tick-major-def" class="chud-tick chud-tick-major" transform="rotate(315)" style="--tick-index:7"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(330)"/>
-      <use href="#chud-tick-minor-def" class="chud-tick chud-tick-minor" transform="rotate(345)"/>
-    </g>
-    <g id="chud-calibration-notch" class="chud-layer chud-static-mark">
-      <line x1="70.16" y1="26.51" x2="65.48" y2="24.74"/>
-      <line x1="68.88" y1="29.67" x2="64.29" y2="27.69"/>
-    </g>
-    <g id="chud-microscale" class="chud-layer chud-microscale" aria-hidden="true">
-      <use href="#chud-microscale-def" transform="rotate(0)"/>
-      <use href="#chud-microscale-def" transform="rotate(6)"/>
-      <use href="#chud-microscale-def" transform="rotate(12)"/>
-      <use href="#chud-microscale-def" transform="rotate(18)"/>
-      <use href="#chud-microscale-def" transform="rotate(24)"/>
-      <use href="#chud-microscale-def" transform="rotate(30)"/>
-      <use href="#chud-microscale-def" transform="rotate(36)"/>
-      <use href="#chud-microscale-def" transform="rotate(42)"/>
-      <use href="#chud-microscale-def" transform="rotate(48)"/>
-      <use href="#chud-microscale-def" transform="rotate(54)"/>
-      <use href="#chud-microscale-def" transform="rotate(60)"/>
-      <use href="#chud-microscale-def" transform="rotate(66)"/>
-      <use href="#chud-microscale-def" transform="rotate(72)"/>
-      <use href="#chud-microscale-def" transform="rotate(78)"/>
-      <use href="#chud-microscale-def" transform="rotate(84)"/>
-      <use href="#chud-microscale-def" transform="rotate(90)"/>
-      <use href="#chud-microscale-def" transform="rotate(96)"/>
-      <use href="#chud-microscale-def" transform="rotate(102)"/>
-      <use href="#chud-microscale-def" transform="rotate(108)"/>
-      <use href="#chud-microscale-def" transform="rotate(114)"/>
-      <use href="#chud-microscale-def" transform="rotate(120)"/>
-      <use href="#chud-microscale-def" transform="rotate(126)"/>
-      <use href="#chud-microscale-def" transform="rotate(132)"/>
-      <use href="#chud-microscale-def" transform="rotate(138)"/>
-      <use href="#chud-microscale-def" transform="rotate(144)"/>
-      <use href="#chud-microscale-def" transform="rotate(150)"/>
-      <use href="#chud-microscale-def" transform="rotate(156)"/>
-      <use href="#chud-microscale-def" transform="rotate(162)"/>
-      <use href="#chud-microscale-def" transform="rotate(168)"/>
-      <use href="#chud-microscale-def" transform="rotate(174)"/>
-      <use href="#chud-microscale-def" transform="rotate(180)"/>
-      <use href="#chud-microscale-def" transform="rotate(186)"/>
-      <use href="#chud-microscale-def" transform="rotate(192)"/>
-      <use href="#chud-microscale-def" transform="rotate(198)"/>
-      <use href="#chud-microscale-def" transform="rotate(204)"/>
-      <use href="#chud-microscale-def" transform="rotate(210)"/>
-      <use href="#chud-microscale-def" transform="rotate(216)"/>
-      <use href="#chud-microscale-def" transform="rotate(222)"/>
-      <use href="#chud-microscale-def" transform="rotate(228)"/>
-      <use href="#chud-microscale-def" transform="rotate(234)"/>
-      <use href="#chud-microscale-def" transform="rotate(240)"/>
-      <use href="#chud-microscale-def" transform="rotate(246)"/>
-      <use href="#chud-microscale-def" transform="rotate(252)"/>
-      <use href="#chud-microscale-def" transform="rotate(258)"/>
-      <use href="#chud-microscale-def" transform="rotate(264)"/>
-      <use href="#chud-microscale-def" transform="rotate(270)"/>
-      <use href="#chud-microscale-def" transform="rotate(276)"/>
-      <use href="#chud-microscale-def" transform="rotate(282)"/>
-      <use href="#chud-microscale-def" transform="rotate(288)"/>
-      <use href="#chud-microscale-def" transform="rotate(294)"/>
-      <use href="#chud-microscale-def" transform="rotate(300)"/>
-      <use href="#chud-microscale-def" transform="rotate(306)"/>
-      <use href="#chud-microscale-def" transform="rotate(312)"/>
-      <use href="#chud-microscale-def" transform="rotate(318)"/>
-      <use href="#chud-microscale-def" transform="rotate(324)"/>
-      <use href="#chud-microscale-def" transform="rotate(330)"/>
-      <use href="#chud-microscale-def" transform="rotate(336)"/>
-      <use href="#chud-microscale-def" transform="rotate(342)"/>
-      <use href="#chud-microscale-def" transform="rotate(348)"/>
-      <use href="#chud-microscale-def" transform="rotate(354)"/>
-    </g>
-    <g id="chud-inner-ring" class="chud-layer">
-      <circle id="chud-inner-ring-circle" class="chud-ring-stroke" cx="0" cy="0" r="60"/>
-      <path id="chud-team-arc" class="chud-team-arc" d="M 20.52 56.38 A 60 60 0 0 1 -20.52 56.38"/>
-    </g>
-    <g id="chud-needle" class="chud-layer">
-      <g id="chud-needle-reticle" class="chud-needle-reticle" aria-hidden="true">
-        <line x1="0" y1="0" x2="24.75" y2="-24.75"/>
-        <line x1="0" y1="0" x2="24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="24.75"/>
-        <line x1="0" y1="0" x2="-24.75" y2="-24.75"/>
-      </g>
-      <use id="chud-needle-blade" href="#chud-needle-blade-def" class="chud-needle-blade"/>
-      <path id="chud-needle-facet" class="chud-needle-facet" d="M 0 -54 L 0 14"/>
-    </g>
-    <g id="chud-core" class="chud-layer">
-      <circle id="chud-core-ring-outer" class="chud-core-ring-outer" cx="0" cy="0" r="9"/>
-      <circle id="chud-core-iris" class="chud-core-iris" cx="0" cy="0" r="7.5"/>
-      <circle id="chud-core-halo" class="chud-core-halo" cx="0" cy="0" r="5"/>
-      <circle id="chud-core-dot" class="chud-core-dot" cx="0" cy="0" r="3.5"/>
-    </g>
-    <path id="chud-polaris-mark" class="chud-layer chud-polaris-mark" d="M 0 -100 L 12.8 -91.1 L 0 -86 L -12.8 -91.1 Z"/>
-    <g id="chud-fx" class="chud-fx" aria-hidden="true">
-      <g id="chud-freeze-fx" class="chud-freeze-fx">
-        <path class="chud-freeze-crystal" d="M23.81 -88.87 L36.55 -95.23 M23.81 -88.87 L15.64 -98.77"/>
-        <path class="chud-freeze-crystal" d="M75.36 -52.77 L89.21 -49.45 M75.36 -52.77 L75.47 -65.61"/>
-        <path class="chud-freeze-crystal" d="M91.65 8.02 L100.13 19.46 M91.65 8.02 L99.98 -1.75"/>
-        <path class="chud-freeze-crystal" d="M-38.88 83.38 L-52.53 87.43 M-38.88 83.38 L-32.56 94.55"/>
-        <path class="chud-freeze-crystal" d="M-86.45 31.47 L-98.97 24.68 M-86.45 31.47 L-89.88 43.84"/>
-        <path class="chud-freeze-crystal" d="M-79.67 -46 L-82.52 -59.95 M-79.67 -46 L-91.35 -40.67"/>
-        <circle id="chud-freeze-countdown" class="chud-freeze-countdown" cx="0" cy="0" r="60"/>
-      </g>
-      <g id="chud-deploy-fx" class="chud-deploy-fx">
-        <circle class="chud-deploy-ring chud-deploy-ring-1" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-2" cx="0" cy="0" r="20"/>
-        <circle class="chud-deploy-ring chud-deploy-ring-3" cx="0" cy="0" r="20"/>
-      </g>
-      <circle id="chud-ready-pulse" class="chud-ready-pulse" cx="0" cy="0" r="60"/>
-      <g id="chud-champion-fx" class="chud-champion-fx">
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="-16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="-11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="0" y2="16"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="11.31"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-16" y2="0"/>
-        <line class="chud-champion-ray" x1="0" y1="0" x2="-11.31" y2="-11.31"/>
-        <circle id="chud-champion-bloom" class="chud-champion-bloom" cx="0" cy="0" r="130"/>
-      </g>
-    </g>
   </g>
 </svg>
     </div>
-    <div class="logo-text hero-headline" id="logo-text-join">COMPASS OS</div>
-    <div class="hero-subhead">A CI Compass Game by Protection Studio</div>
-    <div class="hero-tagline">Think Together | Play Together | Win Together</div>
+    <!-- RPC-009E: removed the "COMPASS OS" logo text, subhead, and
+         tagline overlay — the Lobby_Background.png artwork itself
+         already contains this branding (logo mark, "COMPASS OS",
+         "A CI Compass Game by Protection Studio", "Think Together |
+         Play Together | Win Together"). Overlaying it again was
+         duplicate branding competing with the artwork instead of
+         supporting it. -->
     <div class="mission-status" id="join-status-pill">
-      <span>👥 <b id="join-count">0</b> <span id="join-count-lbl">connected</span></span>
+      <span><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18v-3M9 18v-6M14 18v-9M19 18V6"/></svg> <b id="join-count">0</b> <span id="join-count-lbl">connected</span></span>
       <span class="dot-sep">·</span>
-      <span><span class="ready-b" id="join-ready">0/6</span> <span id="join-ready-lbl">teams ready</span></span>
+      <span><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> <span class="ready-b" id="join-ready">0/6</span> <span id="join-ready-lbl">teams ready</span></span>
     </div>
   </div>
 
   <!-- MISSION ENTRY -->
-  <div style="padding:.2rem 1.1rem 0;display:flex;flex-direction:column;gap:.6rem;flex:1;min-height:0;">
+  <div style="padding:.2rem 1.1rem 0;padding-bottom:calc(1rem + var(--safe-b));display:flex;flex-direction:column;gap:.6rem;flex:1;min-height:0;">
     <div class="field-row">
       <div>
         <div class="lbl" id="lbl-name">ชื่อของคุณ</div>
@@ -1086,19 +1030,19 @@ body::before{content:'';position:fixed;inset:0;
       </div>
     </div>
     <div>
-      <div class="section-lbl" id="lbl-team">🧭 เลือกทีมของคุณ</div>
+      <div class="section-lbl" id="lbl-team"><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 4 6v5c0 4.5 3 8 8 10 5-2 8-5.5 8-10V6l-8-3Z"/></svg> เลือกทีมของคุณ</div>
       <div class="team-grid" id="team-grid"></div>
     </div>
     <div>
       <div class="section-lbl" id="lbl-role">เลือกบทบาทของคุณ</div>
       <div class="role-row">
         <div class="role-btn sel" id="role-player" onclick="pickRole('player')">
-          <div class="role-icon">👤</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg></div>
           <div class="role-title" id="role-player-title">ผู้เล่น</div>
           <div class="role-desc" id="role-player-desc">ตอบคำถาม สร้างโอกาสให้ทีม</div>
         </div>
         <div class="role-btn" id="role-leader" onclick="pickRole('leader')">
-          <div class="role-icon">👑</div>
+          <div class="role-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8Z"/></svg></div>
           <div class="role-title" id="role-leader-title">กัปตัน</div>
           <div class="role-desc" id="role-leader-desc">ตัดสินใจและวางกลยุทธ์ทีม</div>
         </div>
@@ -1110,8 +1054,8 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <!-- WAIT -->
-<div id="s-wait" class="screen">
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;padding:1rem;">
+<div id="s-wait" class="screen cos-premium">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1rem;padding-top:calc(1rem + var(--safe-t));padding-bottom:calc(1rem + var(--safe-b));">
     <div class="wait-ring">
 <svg id="chud-wait" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="chud-svg" data-component="compass-hud" data-tier="compact" data-state="idle">
   <!-- RPC-009G: stripped down to just the outer ring + the rotating sweep
@@ -1138,15 +1082,17 @@ body::before{content:'';position:fixed;inset:0;
   </g>
 </svg>
     </div>
-    <div class="wait-team" id="wait-team">ทีม 1</div>
-    <div style="color:var(--text2);font-size:.9rem;" id="wait-name"></div>
-    <div class="wait-pill" id="wait-role">👤 ผู้เล่น</div>
-    <!-- RPC-009A: removed the connected/teams-ready status pill that was
-         here — CompassOS_Mobile.md explicitly excludes player count and
-         connection stats from the Lobby/Waiting screen. Only team, role,
-         and status message remain. -->
-    <div style="color:var(--text3);font-size:.8rem;text-align:center;" id="wait-msg">
-      รอการเริ่มเกม...<br>กรุณาอย่าปิดหน้าจอ
+    <div class="glass" style="width:100%;max-width:340px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.55rem;">
+      <div class="wait-team" id="wait-team">ทีม 1</div>
+      <div style="color:var(--text2);font-size:.9rem;" id="wait-name"></div>
+      <div class="wait-pill" id="wait-role"><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg> ผู้เล่น</div>
+      <!-- RPC-009A: removed the connected/teams-ready status pill that was
+           here — CompassOS_Mobile.md explicitly excludes player count and
+           connection stats from the Lobby/Waiting screen. Only team, role,
+           and status message remain. -->
+      <div style="color:var(--text3);font-size:.8rem;text-align:center;" id="wait-msg">
+        รอการเริ่มเกม...<br>กรุณาอย่าปิดหน้าจอ
+      </div>
     </div>
   </div>
 </div>
@@ -1156,7 +1102,6 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-complete" class="screen">
   <div class="logo-wrap">
     <img id="logo-img-complete" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-complete">COMPASS OS</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;">
     <div class="status-chip sc-complete"><span class="status-dot"></span>Mission Complete</div>
@@ -1174,14 +1119,14 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-standing" class="screen">
   <div class="logo-wrap">
     <img id="logo-img-standing" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-standing">COMPASS OS</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;">
     <div class="status-chip sc-standing"><span class="status-dot"></span>Tournament Standing</div>
     <div class="glass result-card">
       <div class="standing-team" id="standing-team">ทีม 1</div>
+      <div class="result-sub" id="standing-mission-lbl">Mission Points: +0</div>
       <div class="standing-points" id="standing-points">0</div>
-      <div class="result-sub">คะแนนสะสมทัวร์นาเมนต์</div>
+      <div class="result-sub">คะแนนสะสมทัวร์นาเมนต์ (Tournament Total)</div>
       <div class="standing-rank" id="standing-rank">อันดับที่ —</div>
     </div>
   </div>
@@ -1291,17 +1236,17 @@ body::before{content:'';position:fixed;inset:0;
     <div style="text-align:center;font-size:1rem;font-weight:900;color:var(--gold);">🧠 วางแผนกลยุทธ์ทีม!</div>
     <div style="text-align:center;font-size:.74rem;color:var(--text3);">แตะ Tier เพื่อเลือกล่วงหน้า และดูเวลาคาดการณ์</div>
     <div class="tier-sel-card A" id="strat-card-A" onclick="selTier('A')">
-      <div class="tier-name" style="color:var(--gold);">🟡 Tier A — <span id="pn-A-s">Run-Rate</span></div>
+      <div class="tier-name" style="color:var(--gold);">🟡 Tier A — <span id="pn-A-s">CI Plus/Care</span></div>
       <div class="tier-pts">+500 pts / launch · 8 cells</div>
       <div class="tier-time" style="color:var(--gold);">⏱️ ~0.6 วิ ถ้าทั้งทีมช่วย</div>
     </div>
     <div class="tier-sel-card B" id="strat-card-B" onclick="selTier('B')">
-      <div class="tier-name" style="color:var(--blue2);">🔵 Tier B — <span id="pn-B-s">Mid-Market</span></div>
+      <div class="tier-name" style="color:var(--blue2);">🔵 Tier B — <span id="pn-B-s">BT Care</span></div>
       <div class="tier-pts">+2,000 pts / launch · 30 cells</div>
       <div class="tier-time" style="color:var(--blue2);">⏱️ ~2 วิ ถ้าทั้งทีมช่วย</div>
     </div>
     <div class="tier-sel-card C" id="strat-card-C" onclick="selTier('C')">
-      <div class="tier-name" style="color:var(--green);">🟢 Tier C — <span id="pn-C-s">Enterprise</span></div>
+      <div class="tier-name" style="color:var(--green);">🟢 Tier C — <span id="pn-C-s">MPCI+</span></div>
       <div class="tier-pts">+6,000 pts / launch · 100 cells</div>
       <div class="tier-time" style="color:var(--green);">⏱️ ~8 วิ ถ้าทั้งทีมช่วย</div>
     </div>
@@ -1344,12 +1289,14 @@ body::before{content:'';position:fixed;inset:0;
     <div class="m2-timer" id="m2-timer">01:30</div>
     <div class="hud-pts" id="tap-taps">0 taps</div>
   </div>
-  <div class="tap-zone" id="tap-zone" style="margin-top:.5rem;"
-    ontouchstart="doTap(event)" onclick="doTapClick(event)">
-    <div class="tap-count" id="tap-count">0</div>
-    <div class="tap-lbl" id="tap-pipe-lbl">แตะที่ใดก็ได้เพื่อชาร์จ</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.9rem;min-height:0;padding:0 .3rem;">
+    <div class="tap-zone" id="tap-zone"
+      ontouchstart="doTap(event)" onclick="doTapClick(event)">
+      <div class="tap-count" id="tap-count">0</div>
+      <div class="tap-lbl" id="tap-pipe-lbl">แตะที่ใดก็ได้เพื่อชาร์จ</div>
+    </div>
+    <div class="product-row" id="product-row"></div>
   </div>
-  <div class="product-row" id="product-row"></div>
 </div>
 
 <!-- FACT (Player) -->
@@ -1525,7 +1472,6 @@ body::before{content:'';position:fixed;inset:0;
 <div id="s-results" class="screen">
   <div class="logo-wrap">
     <img id="logo-img-results" class="logo-img" alt="Compass OS">
-    <div class="logo-text" id="logo-text-results">COMPASS OS</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:1rem;padding:1.5rem;overflow-y:auto;">
@@ -1568,8 +1514,8 @@ const MISSION2_CONFIG = {
   // changes, since 50×4=200, 50×12=600, 50×40=2000 below.
   effectiveCount: 50,
   products: {
-    A: { name:'CI Care', chargeSpeedLabel:'Fastest', stars:1, points:500,  tapsRequired:200  },
-    B: { name:'CI Plus', chargeSpeedLabel:'Medium',  stars:2, points:2000, tapsRequired:600  },
+    A: { name:'CI Plus/Care', chargeSpeedLabel:'Fastest', stars:1, points:500,  tapsRequired:200  },
+    B: { name:'BT Care', chargeSpeedLabel:'Medium',  stars:2, points:2000, tapsRequired:600  },
     C: { name:'MPCI+',   chargeSpeedLabel:'Slowest', stars:3, points:6000, tapsRequired:2000 },
   },
 };
@@ -1681,129 +1627,55 @@ function g1MaxCharges(){ return (gameState&&gameState.max_charges)||null; } // n
 let game1TimerInt=null, game1TimeUp=false;
 const TC = {1:'var(--tc1)',2:'var(--tc2)',3:'var(--tc3)',4:'var(--tc4)',5:'var(--tc5)',6:'var(--tc6)'};
 const MEDALS = ['🥇','🥈','🥉','4th','5th','6th'];
+// RPC-011 — tie-aware ranking, mirrors the same fix in screen.html.
+// Standard competition ranking: tied teams share the higher rank, the
+// next distinct score jumps to its true position (not just array index).
+function computeRanks(sortedArr,scoreField){
+  const ranks=[];
+  let rank=1;
+  for(let i=0;i<sortedArr.length;i++){
+    if(i>0&&(sortedArr[i][scoreField]||0)!==(sortedArr[i-1][scoreField]||0))rank=i+1;
+    ranks.push(rank);
+  }
+  return ranks;
+}
+function rankIcon(rank){ return MEDALS[rank-1]||`${rank}th`; }
 const JOKES = ['ลองใหม่อีกครั้ง! 💪','อ่านคำถามให้ดี! 📖','เกือบแล้ว! สู้ต่อ! 🔥'];
 
-const DEMO_CONTENT = {
-  1:[
-    {title:'🎯 Solo Sprint',body:'แต่ละคนได้คำถามในลำดับที่ต่างกัน — ตอบในจังหวะของคุณ',
-     buildMock:()=>{
-      return `<div style="width:100%">
-        <div class="mock-q">ผลประโยชน์กรณีเสียชีวิตของประกันชีวิตแบบตลอดชีพ คือข้อใด?</div>
-        <div class="mock-opt correct"><span style="background:var(--green);color:#fff;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0">B</span>จ่ายทุนประกัน ✅</div>
-        <div class="mock-opt wrong"><span style="background:var(--surf2);width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0">A</span>คืนเบี้ยประกัน</div>
-        <div style="text-align:center;margin-top:.4rem;"><span style="color:var(--green);font-weight:900;font-size:1rem;">+50 pts ✅</span></div>
-      </div>`;
-     }},
-    {title:'🔥 Streak Bonus',body:'ตอบถูกติดต่อกัน 3 ครั้งขึ้นไป = โบนัสพิเศษ! ตอบผิด = streak หายหมด',
-     buildMock:()=>{
-      return `<div style="width:100%;text-align:center;">
-        <div class="mock-streak">
-          ${[0,1,2,3,4].map((i)=>`<div class="mock-sd ${i<4?'on':''}"></div>`).join('')}
-        </div>
-        <div style="color:var(--gold);font-weight:900;font-size:1.1rem;margin:.3rem 0;">Streak 4! +25 bonus</div>
-        <div style="display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;font-size:.72rem;">
-          <span style="color:var(--text3)">3🔥=+15</span>
-          <span style="color:var(--gold)">4🔥=+25</span>
-          <span style="color:var(--gold2)">5🔥=+35</span>
-          <span style="color:var(--green)">7🔥=+50 MAX</span>
-        </div>
-      </div>`;
-     }},
-    {title:'❄️ Leader: Freeze Attack',body:'Leader สะสม Charge จากคะแนนทีม → เลือกทีมเป้าหมาย → FIRE! ทีมเป้าถูกล็อก 12 วิ',
-     buildMock:()=>{
-      return `<div style="width:100%">
-        <div style="font-size:.65rem;color:var(--text2);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:1px;">Weapon Charge</div>
-        <div class="charge-bar" style="height:16px;margin-bottom:.3rem;">
-          <div class="charge-fill" style="width:85%">85%</div>
-        </div>
-        <div style="display:flex;gap:.3rem;margin-top:.4rem;">
-          ${[2,4,5].map(tid=>`<div style="flex:1;padding:.35rem;border-radius:8px;background:var(--surf2);font-size:.65rem;font-weight:700;text-align:center;border:1px solid var(--border);">🎯 ทีม ${tid}</div>`).join('')}
-        </div>
-        <div style="text-align:center;margin-top:.3rem;font-size:.72rem;color:#93c5fd;">❄️ ทีม 3 ถูก Freeze! 12s</div>
-      </div>`;
-     }},
-  ],
-  2:[
-    {title:'🧠 Strategy Minute',body:'60 วิ สำหรับหารือกับทีม — A เร็วแต่ได้น้อย · C ช้าแต่ได้มาก · ทีมที่กระจายดีที่สุดชนะ',
-     buildMock:()=>{
-      return `<div style="width:100%">
-        ${[{t:'A',c:'var(--gold)',pts:'+500',time:'~0.6s'},{t:'B',c:'var(--blue2)',pts:'+2,000',time:'~2s'},{t:'C',c:'var(--green)',pts:'+6,000',time:'~8s'}].map(x=>`
-        <div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:8px;background:var(--surf2);margin-bottom:.25rem;border-left:3px solid ${x.c};">
-          <span style="font-size:.85rem;">Tier ${x.t}</span>
-          <span style="flex:1;font-size:.65rem;color:var(--text3);">${x.time} / launch</span>
-          <span style="font-weight:900;color:${x.c};font-size:.75rem;">${x.pts}</span>
-        </div>`).join('')}
-        <div style="text-align:center;font-size:.68rem;color:var(--gold);margin-top:.3rem;">💡 ขายหลาย Product = ครองดินแดนได้มากกว่า</div>
-      </div>`;
-     }},
-    {title:'⚡ Team Blitz — แตะ!',body:'เลือก Tier แล้วแตะหน้าจอให้เร็ว · Leader กด Launch เมื่อชาร์จเต็ม',
-     buildMock:()=>{
-      const cells = Array(40).fill(0).map((_,i)=>{
-        const team = i<8?1:i<15?2:i<20?3:i<25?4:i<30?5:i<35?6:0;
-        const colors = ['#0a0e27','#60a5fa','#a78bfa','#fbbf24','#34d399','#fb7185','#67e8f9'];
-        return `<div class="mock-cell" style="background:${colors[team]};opacity:${team?0.8:0.15};"></div>`;
-      }).join('');
-      return `<div style="width:100%">
-        <div style="font-size:.65rem;color:var(--text2);text-align:center;margin-bottom:.3rem;">⚡ Team Weapon Charge (Live)</div>
-        <div class="mock-terr">${cells}</div>
-        <div style="display:flex;gap:.3rem;justify-content:center;margin-top:.4rem;flex-wrap:wrap;">
-          ${[{c:'#60a5fa',n:'ทีม 1'},{c:'#a78bfa',n:'ทีม 2'},{c:'#fbbf24',n:'ทีม 3'}].map(x=>`<span style="font-size:.6rem;color:${x.c};font-weight:700;">● ${x.n}</span>`).join('')}
-        </div>
-        <div style="text-align:center;margin-top:.3rem;">
-          <span style="font-size:.75rem;color:var(--green);font-weight:900;">🚀 Launch C! +6,000 pts · +100 cells</span>
-        </div>
-      </div>`;
-     }},
-    {title:'🚀 Launch = Score!',body:'Leader กด Launch เมื่อ Tier ชาร์จครบ — คะแนนล็อกทันที ดินแดนขยายบนจอใหญ่',
-     buildMock:()=>{
-      return `<div style="width:100%;text-align:center;">
-        <div style="font-size:2rem;">🚀</div>
-        <div style="font-size:1.1rem;font-weight:900;color:var(--green);margin:.2rem 0;">+6,000 pts!</div>
-        <div style="font-size:.7rem;color:var(--text3);">ดินแดน +100 ช่อง</div>
-        <div style="margin-top:.5rem;display:flex;gap:.3rem;justify-content:center;">
-          ${['A','B','C'].map(t=>`<div style="padding:.3rem .6rem;border-radius:8px;background:var(--surf2);font-size:.65rem;font-weight:700;border:1px solid var(--border);">Tier ${t}: ✅</div>`).join('')}
-        </div>
-      </div>`;
-     }},
-  ],
-  3:[
-    {title:'🧠 Strategic Finale',body:'คำถามปรากฏบนทุกหน้าจอ · ทุกคนหารือ · Leader เท่านั้นที่ส่งคำตอบได้',
-     buildMock:()=>{
-      return `<div style="width:100%">
-        <div class="mock-q" style="margin-bottom:.5rem;">บริษัทประกันชีวิตต้องสำรองเงินตาม พ.ร.บ. ประกันชีวิต<br><span style="font-size:.65rem;color:var(--text3);">🤔 จริงหรือเท็จ?</span></div>
-        <div style="display:flex;gap:.3rem;">
-          <div style="flex:1;padding:.4rem;border-radius:8px;background:rgba(16,185,129,0.15);border:1px solid var(--green);text-align:center;font-size:.75rem;font-weight:700;color:var(--green);">✅ จริง</div>
-          <div style="flex:1;padding:.4rem;border-radius:8px;background:var(--surf2);border:1px solid var(--border);text-align:center;font-size:.75rem;color:var(--text3);">❌ เท็จ</div>
-          <div style="flex:1;padding:.4rem;border-radius:8px;background:var(--surf2);border:1px solid var(--border);text-align:center;font-size:.75rem;color:var(--text3);">🤔 ไม่แน่</div>
-        </div>
-        <div style="text-align:center;margin-top:.35rem;font-size:.7rem;color:var(--gold);">👑 Leader ส่งคำตอบ</div>
-      </div>`;
-     }},
-    {title:'💰 Wager System',body:'ตอบถูก = +Wager · ตอบผิด = −Wager · ไม่แน่ใจ = 0 · แต่ละข้อเป็นอิสระ',
-     buildMock:()=>{
-      return `<div style="width:100%">
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:.25rem;margin-bottom:.4rem;">
-          ${[2,4,6,8,10].map((n,i)=>`<div style="padding:.35rem;border-radius:7px;background:${i===2?'rgba(245,158,11,0.15)':' var(--surf2)'};border:${i===2?'2px solid var(--gold)':'1px solid var(--border)'};text-align:center;font-size:.62rem;font-weight:700;color:${i===2?'var(--gold)':'var(--text3)'};">${n}k</div>`).join('')}
-        </div>
-        <div style="display:flex;gap:.3rem;justify-content:center;">
-          <div style="padding:.3rem .6rem;border-radius:8px;background:rgba(16,185,129,0.15);border:1px solid var(--green);font-size:.7rem;font-weight:900;color:var(--green);">+6,000 ✅</div>
-          <div style="padding:.3rem .6rem;border-radius:8px;background:rgba(244,63,94,0.1);border:1px solid var(--red);font-size:.7rem;font-weight:900;color:var(--red);">−6,000 ❌</div>
-          <div style="padding:.3rem .6rem;border-radius:8px;background:var(--surf2);border:1px solid var(--border);font-size:.7rem;font-weight:900;color:var(--text3);">0 🤔</div>
-        </div>
-      </div>`;
-     }},
-    {title:'⚔️ อาวุธพิเศษ',body:'🛡️ Shield: ตอบถูก = ×2 · 💣 Takeover (Q2/Q3): ขโมย 3,000 pts · ใช้ได้คนละ 1 ครั้ง',
-     buildMock:()=>{
-      return `<div style="width:100%;text-align:center;">
-        <div style="display:flex;gap:.4rem;margin-bottom:.4rem;">
-          <div style="flex:1;padding:.5rem;border-radius:10px;background:rgba(139,92,246,0.15);border:2px solid var(--purple);font-size:.72rem;font-weight:700;color:var(--purple);">🛡️ Multiplier Shield<br><span style="font-size:.62rem;">ตอบถูก = ×2!</span></div>
-          <div style="flex:1;padding:.5rem;border-radius:10px;background:rgba(244,63,94,0.12);border:2px solid var(--red);font-size:.72rem;font-weight:700;color:var(--red);">💣 Takeover<br><span style="font-size:.62rem;">ขโมย 3,000 pts</span></div>
-        </div>
-        <div style="font-size:.68rem;color:var(--text3);">Q4 = Shield เท่านั้น · Takeover ได้ผลเฉพาะตอนตอบถูก</div>
-      </div>`;
-     }},
-  ],
-};
+// ============================================================
+// DEMO SYSTEM — RPC-009F rebuild.
+//
+// Design: the Demo is a live rehearsal, not a slideshow of mockups. Every
+// card shows the ACTUAL gameplay screen (#s-trivia, #s-penalty, #s-frozen,
+// #s-leader-p1/p2, #s-tapping, #s-complete, #s-standing) — same DOM, same
+// CSS, same classes as real gameplay — populated with an isolated set of
+// synthetic demo data (DEMO_TEAMS below) instead of the live `teams` /
+// `player` globals. This is deliberate: reusing the exact real render
+// functions would mean routing live-state-dependent helpers (m2Product,
+// renderFreezeTargets, the real process_trivia_answer RPC, etc.) through
+// fake data, which risks bleeding demo state into live gameplay if a real
+// update arrives mid-demo. Writing directly to the same elements gets an
+// identical visual result with zero risk to live state, and demo timers
+// are fully separate from the real game1TimerInt/frozenTimer/penaltyTimer
+// (which must never run during demo) and from isFrozen/isPenalty (which
+// must never be set true by a demo — that would incorrectly block real
+// answering if the demo ends and gameplay starts while those are stuck).
+// ============================================================
+const DEMO_TEAMS=[
+  {id:1,name:'ทีมฟีโอม',leader_name:'ทีมฟีโอม',total_score:2600,trivia_score:1450,pipeline_score:3200,m1_points:1000,m2_points:800,tier_a_launches:2,tier_b_launches:1,tier_c_launches:0,weapon_charges:1},
+  {id:2,name:'ทีมพี่อ้น',leader_name:'ทีมพี่อ้น',total_score:2100,trivia_score:1200,pipeline_score:2600,m1_points:800,m2_points:600,tier_a_launches:1,tier_b_launches:1,tier_c_launches:0},
+  {id:3,name:'ทีมพี่ต้น',leader_name:'ทีมพี่ต้น',total_score:1600,trivia_score:900,pipeline_score:1900,m1_points:600,m2_points:400,tier_a_launches:1,tier_b_launches:0,tier_c_launches:0},
+  {id:4,name:'ทีมพี่พี',leader_name:'ทีมพี่พี',total_score:1200,trivia_score:700,pipeline_score:1300,m1_points:400,m2_points:300,tier_a_launches:0,tier_b_launches:1,tier_c_launches:0},
+  {id:5,name:'ทีม 5',leader_name:'ทีม 5',total_score:900,trivia_score:500,pipeline_score:900,m1_points:300,m2_points:200,tier_a_launches:0,tier_b_launches:0,tier_c_launches:1},
+  {id:6,name:'ทีม 6',leader_name:'ทีม 6',total_score:600,trivia_score:300,pipeline_score:600,m1_points:200,m2_points:100,tier_a_launches:0,tier_b_launches:0,tier_c_launches:0},
+];
+const DEMO_Q_TH='ผลประโยชน์กรณีเสียชีวิตของประกันชีวิตแบบตลอดชีพ คือข้อใด?';
+const DEMO_OPTS=[['A','คืนเบี้ยประกัน'],['B','จ่ายทุนประกัน'],['C','ผ่อนชำระเบี้ยได้'],['D','ไม่มีความคุ้มครอง']];
+const DEMO_CORRECT='B';
+let demoTimers=[]; // every setTimeout/Interval a demo card starts, so switching cards can't leave stragglers running
+function demoClearTimers(){demoTimers.forEach(t=>{clearTimeout(t);clearInterval(t);});demoTimers=[];}
+function demoSetTimeout(fn,ms){const t=setTimeout(fn,ms);demoTimers.push(t);return t;}
+function demoSetInterval(fn,ms){const t=setInterval(fn,ms);demoTimers.push(t);return t;}
 
 const {createClient} = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1868,6 +1740,15 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id);
   if(el)el.classList.add('active');
+  // RPC-009D: registration + pre-game waiting share the Lobby background.
+  // RPC-009F fix: this used to fire for EVERY s-wait call unconditionally
+  // — but s-wait is also reused for the "Mission X Background" waiting
+  // stage once a mission has started (phase>=1), which had *just* had
+  // its correct mission background (Frostbite/Blitz) set by applyState()
+  // a moment earlier. Forcing 'lobby' here silently stomped it back,
+  // which is exactly why "Show Mission 1 Background" appeared to do
+  // nothing for Player/Leader. Now only applies in true Lobby (phase 0).
+  if((id==='s-join'||id==='s-wait')&&phase===0)setMobileBg('lobby');
 }
 
 // LOBBY — connected players + teams-ready status (read-only; Compass OS Lobby spec)
@@ -1916,7 +1797,7 @@ async function init(){
 // --bg-* CSS custom property (rather than duplicating filenames in JS),
 // so the single point of change for a future asset swap really is just
 // the :root block above — nothing here needs to know the filenames.
-const MOBILE_BG_KEYS=['frostbite','frozen','signallost','blitz'];
+const MOBILE_BG_KEYS=['lobby','frostbite','frozen','signallost','blitz'];
 function preloadMobileBackgrounds(){
   MOBILE_BG_KEYS.forEach(k=>{
     const raw=getComputedStyle(document.documentElement).getPropertyValue(`--bg-${k}`).trim();
@@ -2036,12 +1917,13 @@ function teamShieldSVG(color){
 function renderTeamGrid(){
   const g=document.getElementById('team-grid');
   if(!teams||!teams.length){
-    g.innerHTML=`<div class="team-grid-empty">⚠️ ไม่พบทีม — กรุณารีเฟรชหน้าจอ<br>No teams found — please refresh</div>`;
+    g.innerHTML=`<div class="team-grid-empty"><svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0Z"/></svg> ไม่พบทีม — กรุณารีเฟรชหน้าจอ<br>No teams found — please refresh</div>`;
     return;
   }
   g.innerHTML=teams.map(t=>`<div class="team-btn" id="tb-${t.id}" onclick="pickTeam(${t.id})" style="border-color:${TC[t.id]}33;color:${TC[t.id]}">
     ${teamShieldSVG(TC[t.id])}
     <div>${t.leader_name||t.name||`ทีม ${t.id}`}</div>
+    <div class="tb-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
   </div>`).join('');
 }
 function pickTeam(id){
@@ -2091,7 +1973,9 @@ function updateWait(msg){
   const t=teams.find(x=>x.id===player.team_id)||{};
   document.getElementById('wait-team').textContent=t.leader_name||t.name||`ทีม ${player.team_id}`;
   document.getElementById('wait-name').textContent=player.name;
-  document.getElementById('wait-role').textContent=player.role==='leader'?'👑 หัวหน้าทีม':'👤 ผู้เล่น';
+  document.getElementById('wait-role').innerHTML=player.role==='leader'
+    ?'<svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8Z"/></svg> หัวหน้าทีม'
+    :'<svg class="cos-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg> ผู้เล่น';
   const m=document.getElementById('wait-msg');
   if(m&&msg)m.innerHTML=msg;
 }
@@ -2119,20 +2003,24 @@ function showMissionCompleteScreen(){
 }
 function showTournamentStandingScreen(){
   showScreen('s-standing');
-  // RPC-009D: mirrors the same change on screen.html — for Blitz (phase 2)
-  // this must show only Mission 2's own points, not the cumulative Total,
-  // or it spoils the Champion reveal that follows. Mission 1 standings
-  // still show total_score (equivalent to M1 points at that point anyway).
-  const field=gameState?.phase===2?'m2_points':'total_score';
+  // RPC-011: aligned with screen.html's current design (RPC-010 reversed
+  // the earlier "hide cumulative Total for Blitz" decision — Total is
+  // shown for both missions now) and fixed the rank number to be
+  // tie-aware instead of just array position.
+  const mField=gameState?.phase===2?'m2_points':'m1_points';
   const my=teams.find(t=>t.id===player?.team_id);
-  const sorted=[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0));
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const ranks=computeRanks(sorted,'total_score');
   const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
   const teamEl=document.getElementById('standing-team');
   const ptsEl=document.getElementById('standing-points');
   const rankEl=document.getElementById('standing-rank');
   if(teamEl)teamEl.textContent=my?.leader_name||my?.name||'';
-  if(ptsEl)ptsEl.textContent=(my?.[field]||0).toLocaleString();
-  if(rankEl)rankEl.textContent=rankIdx>=0?`${MEDALS[rankIdx]||''} อันดับที่ ${rankIdx+1}`.trim():'อันดับที่ —';
+  const mLblEl=document.getElementById('standing-mission-lbl');
+  if(mLblEl)mLblEl.textContent=`Mission Points: +${(my?.[mField]||0).toLocaleString()}`;
+  if(ptsEl)ptsEl.textContent=(my?.total_score||0).toLocaleString();
+  const rankNum=rankIdx>=0?ranks[rankIdx]:null;
+  if(rankEl)rankEl.textContent=rankNum?`${rankIcon(rankNum)} อันดับที่ ${rankNum}`.trim():'อันดับที่ —';
 }
 
 // APPLY STATE
@@ -2140,6 +2028,28 @@ function applyState(){
   if(!gameState||!player)return;
   phase=gameState.phase;
   const isLeader=player.role==='leader';
+  // RPC-010B root cause fix: demoClearTimers() used to only ever be
+  // called from inside showDemoScreen() — meaning it only ran while
+  // ENTERING the demo stage, never when LEAVING it. Every demo card's
+  // self-restarting loop (demoRunCorrectAnswerLoop, demoRunSignalLostLoop,
+  // demoRunLeaderFreezeSequence, demoRunFrozenLoop, demoRunTappingSequence,
+  // demoRunLeaderDeploySequence) keeps calling itself forever via internal
+  // setTimeout/setInterval chains once started, with nothing to stop it
+  // when the mission moved on to Live. That orphaned loop then fires
+  // again in the background every few seconds and silently overwrites
+  // whatever real gameplay screen was showing (#trivia-q, #tgt-grid,
+  // #fire-btn, etc.) with fake demo data — exactly the reported "Player
+  // stuck in Demo autoplay after Launch" and "Leader can't select target
+  // / deploy" symptoms (both are the same orphaned-timer bug). Verified
+  // by instrumented trace: real question shows correctly immediately
+  // after Launch, then the demo question silently reappears ~9s later
+  // when the orphaned loop's next cycle fires. Calling this unconditionally
+  // here — on every single applyState() run, regardless of stage — is
+  // what actually guarantees no demo timer can ever survive a transition,
+  // since applyState() is the one function every state change routes
+  // through. Redundant (harmless) on the stage==='demo' path itself,
+  // since showDemoScreen() still calls it too.
+  demoClearTimers();
   if(phase===0){showScreen('s-wait');updateWait();return;}
 
   // RPC-007E.1 fix: this used to route purely off `phase`, checking only
@@ -2225,42 +2135,370 @@ function stopAllMissionTimers(){
   if(p3VotesChannel){sb.removeChannel(p3VotesChannel);p3VotesChannel=null;}
 }
 // DEMO
-let demoAutoInt=null,demoProgInt=null,demoProgVal=0;
 function showDemoScreen(){
-  const my=teams.find(t=>t.id===player?.team_id)||{};
-  document.getElementById('demo-team-lbl').textContent=my.leader_name||my.name||`ทีม ${player?.team_id}`;
-  renderDemoSlide();
-  showScreen('s-demo');
+  demoClearTimers();
+  const p=gameState.phase, step=gameState.demo_card||0, isLeader=player?.role==='leader';
+  if(p===1)demoFrostbiteCard(step,isLeader);
+  else if(p===2)demoBlitzCard(step,isLeader);
 }
-function renderDemoSlide(){
-  // RPC-007E.1 fix: admin.html's demo navigator writes to demo_card, not
-  // demo_step (a legacy field no longer written anywhere) — this was
-  // silently stuck on card 1 regardless of Mission Control's nav clicks.
-  const step=gameState.demo_card||0;
-  const content=DEMO_CONTENT[gameState.phase]||[];
-  const c=content[Math.min(step,content.length-1)]||{};
-  document.getElementById('demo-phase-lbl').textContent=`PHASE ${gameState.phase} — DEMO`;
-  document.getElementById('demo-title').textContent=c.title||'';
-  document.getElementById('demo-mockup').innerHTML=c.buildMock?c.buildMock():'';
-  document.getElementById('demo-body').textContent=c.body||'';
-  const dots=document.getElementById('demo-dots');
-  dots.innerHTML=content.map((_,i)=>`<div class="demo-dot ${i===step?'on':''}"></div>`).join('');
-  if(demoAutoInt)clearInterval(demoAutoInt);
-  if(demoProgInt)clearInterval(demoProgInt);
-  demoProgVal=0;
-  document.getElementById('demo-prog-fill').style.width='0%';
-  demoProgInt=setInterval(()=>{
-    demoProgVal+=100/(DEMO_AUTO_SECS*20);
-    document.getElementById('demo-prog-fill').style.width=Math.min(100,demoProgVal)+'%';
-    if(demoProgVal>=100)clearInterval(demoProgInt);
-  },50);
+
+// ---- FROSTBITE (6 cards) ----------------------------------------------
+function demoFrostbiteCard(step,isLeader){
+  switch(step){
+    case 0: // PLAYER MISSION — 3 correct answers in a row, then loop
+      if(isLeader){setMobileBg('frostbite');demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
+      else demoRunCorrectAnswerLoop();
+      break;
+    case 1: // SIGNAL LOST — wrong answer, then loop
+      if(isLeader){setMobileBg('frostbite');demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
+      else demoRunSignalLostLoop();
+      break;
+    case 2: // LEADER COMMAND — freeze charge to 100%, select team, deploy, loop
+      if(isLeader)demoRunLeaderFreezeSequence();
+      else{setMobileBg('frostbite');demoRenderTrivia();showScreen('s-trivia');}
+      break;
+    case 3: // FROZEN EFFECT — both Player and Leader see it, per explicit instruction
+      demoRunFrozenLoop();
+      break;
+    case 4: // MISSION COMPLETE
+      setMobileBg('frostbite');
+      showMissionCompleteScreen();
+      break;
+    case 5: // TOURNAMENT STANDING
+      setMobileBg('frostbite');
+      demoShowStanding(1);
+      break;
+  }
+}
+
+// ---- BLITZ (4 cards) ---------------------------------------------------
+function demoBlitzCard(step,isLeader){
+  switch(step){
+    case 0: // PLAYER MISSION — tap to charge, loop
+      if(isLeader){setMobileBg('blitz');demoRenderLeaderP2(35,false);showScreen('s-leader-p2');}
+      else demoRunTappingSequence();
+      break;
+    case 1: // LEADER COMMAND — charge, deploy, cooldown, loop
+      if(isLeader)demoRunLeaderDeploySequence();
+      else demoRunTappingSequence();
+      break;
+    case 2: // MISSION COMPLETE
+      setMobileBg('blitz');
+      showMissionCompleteScreen();
+      break;
+    case 3: // TOURNAMENT STANDING
+      setMobileBg('blitz');
+      demoShowStanding(2);
+      break;
+  }
+}
+
+// ---- FROSTBITE: trivia (Player Mission / Signal Lost) -----------------
+function demoRenderTrivia(){
+  const my=DEMO_TEAMS[0];
+  document.getElementById('t-team').textContent=my.leader_name;
+  document.getElementById('t-pts').textContent='140 pts';
+  document.getElementById('t-prog').textContent='Q 3 / 10';
+  document.getElementById('t-stk').textContent='🔥 2';
+  for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<2);
+  const bonusEl=document.getElementById('streak-bonus');if(bonusEl)bonusEl.textContent='';
+  document.getElementById('timeup-banner').style.display='none';
+  document.getElementById('trivia-q').textContent=DEMO_Q_TH;
+  document.getElementById('ans-list').innerHTML=DEMO_OPTS.map(([l,txt])=>
+    `<button class="ans-btn" id="demo-ans-${l}"><span class="ans-badge">${l}</span>${txt}</button>`
+  ).join('');
+}
+// RPC-009I: Player Mission demo now plays 3 correct answers in sequence
+// (matching the spec's "Player taps correct answer" combo build), then
+// pauses briefly and restarts — every demo card loops until the emcee
+// advances, rather than playing once and freezing on the end state.
+// RPC-009J: added a longer initial read-time before the first answer is
+// selected (was jumping to the answer almost immediately), and removed
+// confetti per instruction.
+function demoRunCorrectAnswerLoop(){
+  const streakStart=2;
+  const runRound=(round)=>{
+    setMobileBg('frostbite');
+    showScreen('s-trivia');
+    demoRenderTrivia();
+    const streak=streakStart+round;
+    document.getElementById('t-stk').textContent=`🔥 ${streak}`;
+    for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<streak);
+    demoSetTimeout(()=>{
+      document.querySelectorAll('#ans-list .ans-btn').forEach(b=>{
+        b.classList.add('disabled');
+        const l=b.querySelector('.ans-badge').textContent;
+        if(l===DEMO_CORRECT)b.classList.add('correct');
+      });
+      document.getElementById('t-pts').textContent=`${140+(round+1)*50} pts`;
+      const newStreak=streak+1;
+      document.getElementById('t-stk').textContent=`🔥 ${newStreak}`;
+      for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<newStreak);
+      if(round<2){
+        demoSetTimeout(()=>runRound(round+1),2600);
+      } else {
+        demoSetTimeout(()=>runRound(0),3000); // brief pause, then restart the whole 3-answer loop
+      }
+    },2800); // read time before the first (and each) answer is selected
+  };
+  runRound(0);
+}
+
+// RPC-009I: Signal Lost demo — only the wrong answer highlights red (the
+// correct one is NOT revealed, per explicit instruction for this card),
+// real Signal Lost artwork/background, loops after the countdown ends.
+function demoRunSignalLostLoop(){
+  const loop=()=>{
+    setMobileBg('frostbite');
+    showScreen('s-trivia');
+    demoRenderTrivia();
+    demoSetTimeout(()=>{
+      const wrongBtn=document.getElementById('demo-ans-A');
+      if(wrongBtn){wrongBtn.classList.add('disabled','wrong');}
+      demoSetTimeout(()=>{
+        setMobileBg('signallost');
+        showScreen('s-penalty');
+        let secs=3;
+        const clockEl=document.getElementById('pen-clock');
+        const msgEl=document.getElementById('pen-msg');
+        if(clockEl)clockEl.textContent=secs;
+        if(msgEl)msgEl.textContent=JOKES[0];
+        const iv=demoSetInterval(()=>{
+          secs--;
+          if(clockEl)clockEl.textContent=Math.max(0,secs);
+          if(secs<=0){
+            clearInterval(iv);
+            demoSetTimeout(loop,1200); // brief pause, then restart
+          }
+        },1000);
+      },900);
+    },1200);
+  };
+  loop();
+}
+
+// ---- FROSTBITE: Leader Command (Freeze) --------------------------------
+// RPC-009J fix: this whole section previously used fabricated element IDs
+// and classes (#freeze-targets, .freeze-target-btn, .sel) that don't
+// exist anywhere in the real UI — renderFreezeTargets() actually targets
+// #tgt-grid with .tgt-btn.frz (plus .locked / .selected modifiers). That
+// meant the target list silently never appeared at all during the demo
+// (writing to a null element is a no-op). Now uses the exact real
+// structure: the target list is visible from the start of the card in
+// its "locked" state (matching what Players/Leaders actually see before
+// charge is ready), unlocks once charge reaches 100%, then a team is
+// selected, then Deploy fires — matching the real interaction order.
+function demoRenderLeaderP1(chargePct,ready){
+  const my=DEMO_TEAMS[0];
+  document.getElementById('lcmd1-team').textContent=my.leader_name;
+  document.getElementById('lcmd1-score').textContent=`${my.trivia_score.toLocaleString()} pts`;
+  const fill=document.getElementById('lc-fill');
+  if(fill){fill.style.width=chargePct+'%';fill.textContent=chargePct>20?Math.round(chargePct)+'%':'';}
+  const poolEl=document.getElementById('lc-pool');
+  if(poolEl)poolEl.textContent=ready?'MAX CHARGES':`${Math.round(chargePct/100*15)} / 15 correct`;
+  const chgEl=document.getElementById('lc-charges');
+  if(chgEl)chgEl.textContent=`${ready?1:0} charges`;
+  document.getElementById('charge-card')?.classList.toggle('ready',ready);
+  const banner=document.getElementById('freeze-ready-banner');
+  if(banner)banner.style.display=ready?'block':'none';
+  const ogEl=document.getElementById('lcmd1-outgoing-freeze');
+  if(ogEl)ogEl.style.display='none';
+  const fc=document.getElementById('lcmd1-frozen');
+  if(fc)fc.style.display='none';
+  demoRenderFreezeTargets(ready);
+}
+function demoRenderFreezeTargets(canFire){
+  const tg=document.getElementById('tgt-grid');
+  if(!tg)return;
+  const opponents=DEMO_TEAMS.slice(1); // real renderFreezeTargets() excludes your own team the same way
+  tg.innerHTML=opponents.map(t=>{
+    if(!canFire)return `<div class="tgt-btn frz locked">🎯 ${t.leader_name}</div>`;
+    return `<div class="tgt-btn frz" id="demo-tgt-${t.id}" data-target-id="${t.id}">🎯 ${t.leader_name}</div>`;
+  }).join('');
+  const fireBtn=document.getElementById('fire-btn');
+  if(fireBtn)fireBtn.disabled=true; // nothing selected yet even once unlocked
+}
+function demoRunLeaderFreezeSequence(){
+  const loop=()=>{
+    setMobileBg('frostbite');
+    showScreen('s-leader-p1');
+    let pct=20;
+    demoRenderLeaderP1(pct,false); // target list visible + locked from the very start
+    const iv=demoSetInterval(()=>{
+      pct=Math.min(100,pct+16);
+      const ready=pct>=100;
+      demoRenderLeaderP1(pct,ready);
+      if(ready){
+        clearInterval(iv); // RPC-009I fix: stop re-rendering once ready — this was the "bounce" bug
+        demoSetTimeout(()=>{
+          const target=document.getElementById(`demo-tgt-${DEMO_TEAMS[2].id}`);
+          if(target){
+            target.classList.add('selected');
+            const fireBtn=document.getElementById('fire-btn');
+            if(fireBtn)fireBtn.disabled=false;
+          }
+        },900);
+        demoSetTimeout(()=>{
+          const og=document.getElementById('lcmd1-outgoing-freeze');
+          if(og){og.style.display='block';og.innerHTML=`❄️ Freeze active on <b>${DEMO_TEAMS[2].leader_name}</b> · 12s left`;}
+          demoSetTimeout(loop,3000); // wait a few seconds, then restart the journey
+        },1900);
+      }
+    },550);
+  };
+  loop();
+}
+
+// ---- FROSTBITE: Frozen effect (both Player and Leader) ----------------
+function demoRunFrozenLoop(){
+  const loop=()=>{
+    setMobileBg('frozen');
+    showScreen('s-frozen');
+    const byEl=document.getElementById('frz-by');
+    if(byEl)byEl.textContent=`โดย ${DEMO_TEAMS[0].leader_name}`;
+    let rem=12;
+    const clockEl=document.getElementById('frz-clock');
+    if(clockEl)clockEl.textContent=rem;
+    const iv=demoSetInterval(()=>{
+      rem--;
+      if(clockEl)clockEl.textContent=Math.max(0,rem);
+      if(rem<=0){
+        clearInterval(iv);
+        demoSetTimeout(loop,1200); // brief pause, then restart the 12s countdown
+      }
+    },1000);
+  };
+  loop();
+}
+
+// ---- BLITZ: tapping (Player Mission) -----------------------------------
+function demoRunTappingSequence(){
+  const loop=()=>{
+    setMobileBg('blitz');
+    showScreen('s-tapping');
+    const my=DEMO_TEAMS[0];
+    document.getElementById('tap-team').textContent=my.leader_name;
+    let taps=0;
+    document.getElementById('tap-count').textContent=taps;
+    const tapsLbl=document.getElementById('tap-taps');
+    if(tapsLbl)tapsLbl.textContent='0 taps';
+    demoRenderDemoProductRow(0);
+    const iv=demoSetInterval(()=>{
+      taps+=Math.floor(Math.random()*3)+1;
+      document.getElementById('tap-count').textContent=taps;
+      if(tapsLbl)tapsLbl.textContent=taps+' taps';
+      demoRenderDemoProductRow(Math.min(100,taps));
+      if(taps>=100){
+        clearInterval(iv);
+        demoSetTimeout(loop,2000);
+      }
+    },350);
+  };
+  loop();
+}
+// RPC-009I fix: was using .charge-bar/.charge-fill — styling meant for a
+// different, taller context — instead of the real .product-bar-wrap/
+// .product-bar-fill used inside .product-card (see m2BarHTML). That
+// mismatch is what squeezed the layout and made the selected badge
+// overlap. Now matches the real markup exactly. Product names updated to
+// the actual configured ones.
+function demoRenderDemoProductRow(pct){
+  const el=document.getElementById('product-row');
+  if(!el)return;
+  const products={A:{name:'CI Plus/Care',speed:'เร็ว',stars:1},B:{name:'BT Care',speed:'กลาง',stars:2},C:{name:'MPCI+',speed:'ช้า',stars:3}};
+  el.innerHTML=Object.entries(products).map(([key,p])=>{
+    const sel=key==='A';
+    const barPct=sel?pct:0;
+    return `<div class="product-card ${key}${sel?' sel':''}">
+      <div class="product-sel-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-meta"><span>${p.speed}</span><span class="product-stars">${'★'.repeat(p.stars)}${'☆'.repeat(3-p.stars)}</span></div>
+      ${m2BarHTML(key,barPct)}
+    </div>`;
+  }).join('');
+}
+
+// ---- BLITZ: Leader Command (deploy weapon) -----------------------------
+function demoRenderLeaderP2(chargePct,deployed){
+  const my=DEMO_TEAMS[0];
+  document.getElementById('lcmd2-team').textContent=my.leader_name;
+  document.getElementById('lcmd2-score').textContent=`${my.pipeline_score.toLocaleString()} pts`;
+  const el=document.getElementById('m2-product-list');
+  if(el){
+    const products={A:{name:'CI Plus/Care',pts:500},B:{name:'BT Care',pts:2000},C:{name:'MPCI+',pts:6000}};
+    el.innerHTML=Object.entries(products).map(([key,p])=>{
+      const pct=key==='A'?chargePct:(key==='B'?Math.min(100,chargePct*.6):Math.min(100,chargePct*.3));
+      const ready=pct>=100;
+      return `<div class="m2-product-item${ready?' ready':''}">
+        <div class="m2-product-head">
+          <div class="m2-product-title">${p.name}</div>
+          <div class="m2-product-pts">+${p.pts.toLocaleString()} pts</div>
+        </div>
+        ${m2BarHTML(key,pct)}
+        <button class="m2-deploy-btn" ${ready?'':'disabled'}>🚀 Deploy ${p.name}${deployed&&key==='A'?' ✓':''}</button>
+        <div class="m2-launch-count">Deployed ×${key==='A'&&deployed?1:0}</div>
+      </div>`;
+    }).join('');
+  }
+  const sorted=[...DEMO_TEAMS].sort((a,b)=>b.pipeline_score-a.pipeline_score);
+  const standingsEl=document.getElementById('lcmd2-standings');
+  if(standingsEl){
+    standingsEl.innerHTML=sorted.map((t,i)=>{
+      const isMe=t.id===1;
+      return `<div class="s-row ${isMe?'me':''}" style="border-left-color:${isMe?'var(--blue2)':'transparent'}">
+        <div class="s-rank" style="color:${TC[t.id]};">${i+1}</div>
+        <div class="s-name" style="color:${TC[t.id]};">${t.leader_name}${isMe?' 👈':''}</div>
+        <div class="s-pts">${t.pipeline_score.toLocaleString()}</div>
+        <div class="s-ico">A${t.tier_a_launches}B${t.tier_b_launches}C${t.tier_c_launches}</div>
+      </div>`;
+    }).join('');
+  }
+}
+// RPC-009I fix: same interval-never-stops bug as the Freeze sequence —
+// fixed the same way (clear the interval on reaching 100%, no confetti,
+// loop by re-calling after a pause instead of running forever).
+function demoRunLeaderDeploySequence(){
+  const loop=()=>{
+    setMobileBg('blitz');
+    showScreen('s-leader-p2');
+    let pct=30;
+    demoRenderLeaderP2(pct,false);
+    const iv=demoSetInterval(()=>{
+      pct=Math.min(100,pct+18);
+      const ready=pct>=100;
+      demoRenderLeaderP2(pct,false);
+      if(ready){
+        clearInterval(iv);
+        demoSetTimeout(()=>{
+          demoRenderLeaderP2(100,true); // deployed
+          demoSetTimeout(loop,3000); // wait a few seconds, then restart
+        },400);
+      }
+    },500);
+  };
+  loop();
+}
+
+// ---- TOURNAMENT STANDING (both missions) -------------------------------
+function demoShowStanding(missionPhase){
+  showScreen('s-standing');
+  const field=missionPhase===2?'m2_points':'total_score';
+  const my=DEMO_TEAMS[0];
+  const sorted=[...DEMO_TEAMS].sort((a,b)=>b[field]-a[field]);
+  const rankIdx=sorted.findIndex(t=>t.id===my.id);
+  const teamEl=document.getElementById('standing-team');
+  const ptsEl=document.getElementById('standing-points');
+  const rankEl=document.getElementById('standing-rank');
+  if(teamEl)teamEl.textContent=my.leader_name;
+  if(ptsEl)ptsEl.textContent=my[field].toLocaleString();
+  if(rankEl)rankEl.textContent=`${MEDALS[rankIdx]||''} อันดับที่ ${rankIdx+1}`.trim();
 }
 
 // PRODUCT NAMES
 function updateProductNames(){
   const pn=gameState?.product_names||{};
   const map={A:['pn-A-s','pn-A'],B:['pn-B-s','pn-B'],C:['pn-C-s','pn-C']};
-  const fallback={A:'Run-Rate',B:'Mid-Market',C:'Enterprise'};
+  const fallback={A:'CI Plus/Care',B:'BT Care',C:'MPCI+'};
   Object.entries(map).forEach(([tier,ids])=>{
     ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pn[tier]||fallback[tier]||`Tier ${tier}`;});
   });
@@ -2635,7 +2873,7 @@ function renderProductRow(){
     const pct=m2Progress(my,key);
     const sel=selTierVal===key;
     return `<div class="product-card ${key}${sel?' sel':''}" onclick="selTier('${key}')">
-      <div class="product-sel-badge">✓ เลือกแล้ว</div>
+      <div class="product-sel-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
       <div class="product-name">${p.name}</div>
       <div class="product-meta"><span>${p.chargeSpeedLabel}</span><span class="product-stars">${m2Stars(p.stars)}</span></div>
       ${m2BarHTML(key,pct)}
@@ -2660,7 +2898,7 @@ function spawnRipple(x,y){
   setTimeout(()=>rip.remove(),650);
 }
 function registerTap(x,y){
-  if(!selTierVal){toast('เลือกสินค้าก่อน!');return;}
+  if(!selTierVal){toast('เลือกผลิตภัณฑ์ก่อน!');return;}
   if(phase!==2||mission2TimeUp)return; // don't gate on sub_state — the transient 'launch:...'
                         // signal used for screen.html's animation shouldn't block tapping
   localTaps++;tapBuffer++;
@@ -2935,13 +3173,15 @@ async function submitLeaderP3(){
 function renderResults(){
   const my=teams.find(t=>t.id===player?.team_id);
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const ranks=computeRanks(sorted,'total_score');
   const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
+  const myRank=rankIdx>=0?ranks[rankIdx]:0;
   document.getElementById('r-score').textContent=(my?.total_score||0).toLocaleString();
-  document.getElementById('r-rank').textContent=`${my?.leader_name||my?.name||''} — อันดับที่ ${rankIdx+1} ${MEDALS[rankIdx]||''}`;
+  document.getElementById('r-rank').textContent=`${my?.leader_name||my?.name||''} — อันดับที่ ${myRank} ${rankIcon(myRank)}`;
   document.getElementById('r-rows').innerHTML=sorted.map((t,i)=>{
     const isMe=t.id===player?.team_id;
     return `<div class="res-row ${isMe?'me':''}">
-      <div style="color:${TC[t.id]};font-weight:900;">${MEDALS[i]||i+1} ${t.leader_name||t.name}</div>
+      <div style="color:${TC[t.id]};font-weight:900;">${rankIcon(ranks[i])} ${t.leader_name||t.name}</div>
       <div style="font-weight:900;color:var(--green);">${(t.total_score||0).toLocaleString()}</div>
     </div>`;
   }).join('');
