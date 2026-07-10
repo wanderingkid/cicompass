@@ -640,11 +640,15 @@ body::before{content:'';position:fixed;inset:0;
 .m2-timer.urgent{color:var(--red);animation:tUrgentPulse .6s infinite;}
 
 /* TAP ZONE — ~70% of screen, no visible button, tap anywhere */
-.tap-zone{flex:1;border-radius:var(--r);
+/* RPC-011: was flex:1 (grew to fill nearly the whole screen), which let
+   someone use 4-5 fingers across the huge area to spam-tap far faster
+   than intended. Capped to a fixed, smaller height — naturally limits
+   simultaneous touch points to roughly 2-3 fingers. */
+.tap-zone{flex:0 0 auto;height:min(26vh,210px);border-radius:var(--r);
   background:var(--surf);border:1.5px solid var(--border2);
   display:flex;flex-direction:column;align-items:center;
   justify-content:center;cursor:pointer;
-  position:relative;overflow:hidden;min-height:0;
+  position:relative;overflow:hidden;
   transition:border-color .25s,box-shadow .25s;}
 .tap-zone.A{border-color:rgba(251,191,36,0.45);box-shadow:0 0 24px rgba(251,191,36,0.08) inset;}
 .tap-zone.B{border-color:rgba(96,165,250,0.45);box-shadow:0 0 24px rgba(96,165,250,0.08) inset;}
@@ -667,6 +671,11 @@ body::before{content:'';position:fixed;inset:0;
   cursor:pointer;text-align:center;transition:all .2s;
   display:flex;flex-direction:column;align-items:center;gap:.15rem;position:relative;}
 .product-card:active{transform:scale(.97);}
+/* RPC-011 — explicit active/inactive states: unselected weapons are
+   visibly dimmed/desaturated (not just lacking a highlight), selected
+   snaps to full vibrant color. Matches the same interaction language as
+   the Registration team chips. */
+.product-card:not(.sel){opacity:.55;filter:saturate(.5);}
 .product-name{font-family:'Anuphan',sans-serif;font-size:.92rem;font-weight:700;
   line-height:1.15;color:var(--text);}
 .product-meta{display:flex;justify-content:center;gap:.5rem;font-size:.6rem;
@@ -682,14 +691,17 @@ body::before{content:'';position:fixed;inset:0;
 .product-bar-fill.A{background:linear-gradient(90deg,var(--gold),var(--gold2));}
 .product-bar-fill.B{background:linear-gradient(90deg,var(--blue),var(--blue2));}
 .product-bar-fill.C{background:linear-gradient(90deg,#059669,var(--green));}
-/* Selection indicator — never relies on color alone (explicit badge + border) */
+/* Selection indicator — never relies on color alone (explicit checkmark badge + border) */
 .product-card.A.sel{border-color:var(--gold);background:rgba(251,191,36,0.08);}
 .product-card.B.sel{border-color:var(--blue2);background:rgba(96,165,250,0.08);}
 .product-card.C.sel{border-color:var(--green);background:rgba(52,211,153,0.08);}
-.product-sel-badge{display:none;position:absolute;top:.3rem;right:.4rem;
-  font-size:.6rem;color:var(--text);background:rgba(255,255,255,.12);
-  border-radius:8px;padding:.05rem .35rem;font-weight:700;}
-.product-card.sel .product-sel-badge{display:block;}
+/* RPC-011: replaced the "เลือกแล้ว" text badge with a plain checkmark
+   icon — cleaner, and reads instantly without needing to parse text. */
+.product-sel-badge{display:none;position:absolute;top:.35rem;right:.35rem;
+  width:1.1rem;height:1.1rem;border-radius:50%;background:currentColor;
+  align-items:center;justify-content:center;}
+.product-sel-badge svg{width:.68rem;height:.68rem;color:#04101f;}
+.product-card.sel .product-sel-badge{display:flex;}
 
 /* LEADER — product deploy bars */
 .m2-product-list{display:flex;flex-direction:column;gap:.5rem;}
@@ -1112,8 +1124,9 @@ body::before{content:'';position:fixed;inset:0;
     <div class="status-chip sc-standing"><span class="status-dot"></span>Tournament Standing</div>
     <div class="glass result-card">
       <div class="standing-team" id="standing-team">ทีม 1</div>
+      <div class="result-sub" id="standing-mission-lbl">Mission Points: +0</div>
       <div class="standing-points" id="standing-points">0</div>
-      <div class="result-sub">คะแนนสะสมทัวร์นาเมนต์</div>
+      <div class="result-sub">คะแนนสะสมทัวร์นาเมนต์ (Tournament Total)</div>
       <div class="standing-rank" id="standing-rank">อันดับที่ —</div>
     </div>
   </div>
@@ -1223,12 +1236,12 @@ body::before{content:'';position:fixed;inset:0;
     <div style="text-align:center;font-size:1rem;font-weight:900;color:var(--gold);">🧠 วางแผนกลยุทธ์ทีม!</div>
     <div style="text-align:center;font-size:.74rem;color:var(--text3);">แตะ Tier เพื่อเลือกล่วงหน้า และดูเวลาคาดการณ์</div>
     <div class="tier-sel-card A" id="strat-card-A" onclick="selTier('A')">
-      <div class="tier-name" style="color:var(--gold);">🟡 Tier A — <span id="pn-A-s">CI Care</span></div>
+      <div class="tier-name" style="color:var(--gold);">🟡 Tier A — <span id="pn-A-s">CI Plus/Care</span></div>
       <div class="tier-pts">+500 pts / launch · 8 cells</div>
       <div class="tier-time" style="color:var(--gold);">⏱️ ~0.6 วิ ถ้าทั้งทีมช่วย</div>
     </div>
     <div class="tier-sel-card B" id="strat-card-B" onclick="selTier('B')">
-      <div class="tier-name" style="color:var(--blue2);">🔵 Tier B — <span id="pn-B-s">CI Plus</span></div>
+      <div class="tier-name" style="color:var(--blue2);">🔵 Tier B — <span id="pn-B-s">BT Care</span></div>
       <div class="tier-pts">+2,000 pts / launch · 30 cells</div>
       <div class="tier-time" style="color:var(--blue2);">⏱️ ~2 วิ ถ้าทั้งทีมช่วย</div>
     </div>
@@ -1276,12 +1289,14 @@ body::before{content:'';position:fixed;inset:0;
     <div class="m2-timer" id="m2-timer">01:30</div>
     <div class="hud-pts" id="tap-taps">0 taps</div>
   </div>
-  <div class="tap-zone" id="tap-zone" style="margin-top:.5rem;"
-    ontouchstart="doTap(event)" onclick="doTapClick(event)">
-    <div class="tap-count" id="tap-count">0</div>
-    <div class="tap-lbl" id="tap-pipe-lbl">แตะที่ใดก็ได้เพื่อชาร์จ</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.9rem;min-height:0;padding:0 .3rem;">
+    <div class="tap-zone" id="tap-zone"
+      ontouchstart="doTap(event)" onclick="doTapClick(event)">
+      <div class="tap-count" id="tap-count">0</div>
+      <div class="tap-lbl" id="tap-pipe-lbl">แตะที่ใดก็ได้เพื่อชาร์จ</div>
+    </div>
+    <div class="product-row" id="product-row"></div>
   </div>
-  <div class="product-row" id="product-row"></div>
 </div>
 
 <!-- FACT (Player) -->
@@ -1499,8 +1514,8 @@ const MISSION2_CONFIG = {
   // changes, since 50×4=200, 50×12=600, 50×40=2000 below.
   effectiveCount: 50,
   products: {
-    A: { name:'CI Care', chargeSpeedLabel:'Fastest', stars:1, points:500,  tapsRequired:200  },
-    B: { name:'CI Plus', chargeSpeedLabel:'Medium',  stars:2, points:2000, tapsRequired:600  },
+    A: { name:'CI Plus/Care', chargeSpeedLabel:'Fastest', stars:1, points:500,  tapsRequired:200  },
+    B: { name:'BT Care', chargeSpeedLabel:'Medium',  stars:2, points:2000, tapsRequired:600  },
     C: { name:'MPCI+',   chargeSpeedLabel:'Slowest', stars:3, points:6000, tapsRequired:2000 },
   },
 };
@@ -1612,6 +1627,19 @@ function g1MaxCharges(){ return (gameState&&gameState.max_charges)||null; } // n
 let game1TimerInt=null, game1TimeUp=false;
 const TC = {1:'var(--tc1)',2:'var(--tc2)',3:'var(--tc3)',4:'var(--tc4)',5:'var(--tc5)',6:'var(--tc6)'};
 const MEDALS = ['🥇','🥈','🥉','4th','5th','6th'];
+// RPC-011 — tie-aware ranking, mirrors the same fix in screen.html.
+// Standard competition ranking: tied teams share the higher rank, the
+// next distinct score jumps to its true position (not just array index).
+function computeRanks(sortedArr,scoreField){
+  const ranks=[];
+  let rank=1;
+  for(let i=0;i<sortedArr.length;i++){
+    if(i>0&&(sortedArr[i][scoreField]||0)!==(sortedArr[i-1][scoreField]||0))rank=i+1;
+    ranks.push(rank);
+  }
+  return ranks;
+}
+function rankIcon(rank){ return MEDALS[rank-1]||`${rank}th`; }
 const JOKES = ['ลองใหม่อีกครั้ง! 💪','อ่านคำถามให้ดี! 📖','เกือบแล้ว! สู้ต่อ! 🔥'];
 
 // ============================================================
@@ -1975,20 +2003,24 @@ function showMissionCompleteScreen(){
 }
 function showTournamentStandingScreen(){
   showScreen('s-standing');
-  // RPC-009D: mirrors the same change on screen.html — for Blitz (phase 2)
-  // this must show only Mission 2's own points, not the cumulative Total,
-  // or it spoils the Champion reveal that follows. Mission 1 standings
-  // still show total_score (equivalent to M1 points at that point anyway).
-  const field=gameState?.phase===2?'m2_points':'total_score';
+  // RPC-011: aligned with screen.html's current design (RPC-010 reversed
+  // the earlier "hide cumulative Total for Blitz" decision — Total is
+  // shown for both missions now) and fixed the rank number to be
+  // tie-aware instead of just array position.
+  const mField=gameState?.phase===2?'m2_points':'m1_points';
   const my=teams.find(t=>t.id===player?.team_id);
-  const sorted=[...teams].sort((a,b)=>(b[field]||0)-(a[field]||0));
+  const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const ranks=computeRanks(sorted,'total_score');
   const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
   const teamEl=document.getElementById('standing-team');
   const ptsEl=document.getElementById('standing-points');
   const rankEl=document.getElementById('standing-rank');
   if(teamEl)teamEl.textContent=my?.leader_name||my?.name||'';
-  if(ptsEl)ptsEl.textContent=(my?.[field]||0).toLocaleString();
-  if(rankEl)rankEl.textContent=rankIdx>=0?`${MEDALS[rankIdx]||''} อันดับที่ ${rankIdx+1}`.trim():'อันดับที่ —';
+  const mLblEl=document.getElementById('standing-mission-lbl');
+  if(mLblEl)mLblEl.textContent=`Mission Points: +${(my?.[mField]||0).toLocaleString()}`;
+  if(ptsEl)ptsEl.textContent=(my?.total_score||0).toLocaleString();
+  const rankNum=rankIdx>=0?ranks[rankIdx]:null;
+  if(rankEl)rankEl.textContent=rankNum?`${rankIcon(rankNum)} อันดับที่ ${rankNum}`.trim():'อันดับที่ —';
 }
 
 // APPLY STATE
@@ -2351,12 +2383,12 @@ function demoRunTappingSequence(){
 function demoRenderDemoProductRow(pct){
   const el=document.getElementById('product-row');
   if(!el)return;
-  const products={A:{name:'CI Care',speed:'เร็ว',stars:1},B:{name:'CI Plus',speed:'กลาง',stars:2},C:{name:'MPCI+',speed:'ช้า',stars:3}};
+  const products={A:{name:'CI Plus/Care',speed:'เร็ว',stars:1},B:{name:'BT Care',speed:'กลาง',stars:2},C:{name:'MPCI+',speed:'ช้า',stars:3}};
   el.innerHTML=Object.entries(products).map(([key,p])=>{
     const sel=key==='A';
     const barPct=sel?pct:0;
     return `<div class="product-card ${key}${sel?' sel':''}">
-      <div class="product-sel-badge">✓ เลือกแล้ว</div>
+      <div class="product-sel-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
       <div class="product-name">${p.name}</div>
       <div class="product-meta"><span>${p.speed}</span><span class="product-stars">${'★'.repeat(p.stars)}${'☆'.repeat(3-p.stars)}</span></div>
       ${m2BarHTML(key,barPct)}
@@ -2371,7 +2403,7 @@ function demoRenderLeaderP2(chargePct,deployed){
   document.getElementById('lcmd2-score').textContent=`${my.pipeline_score.toLocaleString()} pts`;
   const el=document.getElementById('m2-product-list');
   if(el){
-    const products={A:{name:'CI Care',pts:500},B:{name:'CI Plus',pts:2000},C:{name:'MPCI+',pts:6000}};
+    const products={A:{name:'CI Plus/Care',pts:500},B:{name:'BT Care',pts:2000},C:{name:'MPCI+',pts:6000}};
     el.innerHTML=Object.entries(products).map(([key,p])=>{
       const pct=key==='A'?chargePct:(key==='B'?Math.min(100,chargePct*.6):Math.min(100,chargePct*.3));
       const ready=pct>=100;
@@ -2444,7 +2476,7 @@ function demoShowStanding(missionPhase){
 function updateProductNames(){
   const pn=gameState?.product_names||{};
   const map={A:['pn-A-s','pn-A'],B:['pn-B-s','pn-B'],C:['pn-C-s','pn-C']};
-  const fallback={A:'CI Care',B:'CI Plus',C:'MPCI+'};
+  const fallback={A:'CI Plus/Care',B:'BT Care',C:'MPCI+'};
   Object.entries(map).forEach(([tier,ids])=>{
     ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pn[tier]||fallback[tier]||`Tier ${tier}`;});
   });
@@ -2819,7 +2851,7 @@ function renderProductRow(){
     const pct=m2Progress(my,key);
     const sel=selTierVal===key;
     return `<div class="product-card ${key}${sel?' sel':''}" onclick="selTier('${key}')">
-      <div class="product-sel-badge">✓ เลือกแล้ว</div>
+      <div class="product-sel-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
       <div class="product-name">${p.name}</div>
       <div class="product-meta"><span>${p.chargeSpeedLabel}</span><span class="product-stars">${m2Stars(p.stars)}</span></div>
       ${m2BarHTML(key,pct)}
@@ -3119,13 +3151,15 @@ async function submitLeaderP3(){
 function renderResults(){
   const my=teams.find(t=>t.id===player?.team_id);
   const sorted=[...teams].sort((a,b)=>(b.total_score||0)-(a.total_score||0));
+  const ranks=computeRanks(sorted,'total_score');
   const rankIdx=sorted.findIndex(t=>t.id===player?.team_id);
+  const myRank=rankIdx>=0?ranks[rankIdx]:0;
   document.getElementById('r-score').textContent=(my?.total_score||0).toLocaleString();
-  document.getElementById('r-rank').textContent=`${my?.leader_name||my?.name||''} — อันดับที่ ${rankIdx+1} ${MEDALS[rankIdx]||''}`;
+  document.getElementById('r-rank').textContent=`${my?.leader_name||my?.name||''} — อันดับที่ ${myRank} ${rankIcon(myRank)}`;
   document.getElementById('r-rows').innerHTML=sorted.map((t,i)=>{
     const isMe=t.id===player?.team_id;
     return `<div class="res-row ${isMe?'me':''}">
-      <div style="color:${TC[t.id]};font-weight:900;">${MEDALS[i]||i+1} ${t.leader_name||t.name}</div>
+      <div style="color:${TC[t.id]};font-weight:900;">${rankIcon(ranks[i])} ${t.leader_name||t.name}</div>
       <div style="font-weight:900;color:var(--green);">${(t.total_score||0).toLocaleString()}</div>
     </div>`;
   }).join('');
