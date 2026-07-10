@@ -890,7 +890,7 @@ async function resetGame(){
   }).eq('id',1);
   await sb.from('teams').update({
     total_score:0,trivia_score:0,correct_pool:0,active_player_count:0,
-    weapon_charges:0,frozen_until:null,shield_until:null,frozen_by_team:null,
+    weapon_charges:0,frostbite_target:null,frozen_until:null,shield_until:null,frozen_by_team:null,
     tier_a_taps:0,tier_b_taps:0,tier_c_taps:0,
     tier_a_launches:0,tier_b_launches:0,tier_c_launches:0,
     pipeline_score:0,fact_score:0,
@@ -1267,7 +1267,7 @@ async function resetOneTeam(id){
   if(!confirm(`Reset ALL scores for ทีม ${id}? This cannot be undone.`))return;
   await sb.from('teams').update({
     total_score:0,trivia_score:0,correct_pool:0,active_player_count:0,
-    weapon_charges:0,frozen_until:null,shield_until:null,frozen_by_team:null,
+    weapon_charges:0,frostbite_target:null,frozen_until:null,shield_until:null,frozen_by_team:null,
     tier_a_taps:0,tier_b_taps:0,tier_c_taps:0,
     tier_a_launches:0,tier_b_launches:0,tier_c_launches:0,
     pipeline_score:0,fact_score:0,multiplier_used:false,takeover_used:false,shield_used:false
@@ -1317,7 +1317,7 @@ async function saveWagerTiers(){
 async function qaResetMission(){
   if(!confirm(`Reset Mission ${gs.phase} data only? Other missions are untouched.`))return;
   if(gs.phase===1){
-    await sb.from('teams').update({trivia_score:0,correct_pool:0,weapon_charges:0,frozen_until:null,frozen_by_team:null,shield_until:null,active_player_count:0}).gte('id',1);
+    await sb.from('teams').update({trivia_score:0,correct_pool:0,weapon_charges:0,frozen_until:null,frozen_by_team:null,shield_until:null,active_player_count:0,frostbite_target:null}).gte('id',1);
     await sb.from('trivia_answers').delete().gte('id',1);
   } else if(gs.phase===2){
     await sb.from('teams').update({pipeline_score:0,tier_a_taps:0,tier_b_taps:0,tier_c_taps:0,tier_a_launches:0,tier_b_launches:0,tier_c_launches:0}).gte('id',1);
