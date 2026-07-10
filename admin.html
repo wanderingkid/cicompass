@@ -525,7 +525,7 @@ function render(){
     const lbl=document.getElementById(`m${m}-demo-lbl`);
     const active=gs.phase===m&&gs.mission_stage==='demo';
     if(nav)nav.style.display=active?'flex':'none';
-    if(lbl&&active)lbl.textContent=`Card ${(gs.demo_card||0)+1}/5`;
+    if(lbl&&active){const total=gs.phase===1?6:gs.phase===2?4:5;lbl.textContent=`Card ${(gs.demo_card||0)+1}/${total}`;}
   });
 }
 setInterval(()=>{if(gs)render();},500); // keep countdown ticking
@@ -728,7 +728,13 @@ async function showMissionDemo(p){
   toast(`🎬 Mission ${p} demo started`);
 }
 async function demoCardNav(dir){
-  const next=Math.max(0,Math.min(4,(gs.demo_card||0)+dir)); // 4 content cards + 1 tournament reminder
+  // RPC-009F: card counts are now mission-specific — Frostbite has 6
+  // (Player Mission, Signal Lost, Leader Command, Frozen, Mission
+  // Complete, Tournament Standing), Blitz has 4 (Player Mission, Leader
+  // Command, Mission Complete, Tournament Standing). Previously this
+  // capped every mission at the same "4 content + 1 reminder" assumption.
+  const maxCard=gs.phase===1?5:gs.phase===2?3:4;
+  const next=Math.max(0,Math.min(maxCard,(gs.demo_card||0)+dir));
   await sb.from('game_state').update({demo_card:next}).eq('id',1);
 }
 async function startStrategyMinute(){
