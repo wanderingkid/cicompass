@@ -680,21 +680,22 @@ body::before{content:'';position:fixed;inset:0;
   line-height:1.15;color:var(--text);}
 .product-meta{display:flex;justify-content:center;gap:.5rem;font-size:.6rem;
   color:var(--text3);font-weight:400;}
+.product-req{text-align:center;font-size:.62rem;color:var(--text2);font-weight:600;margin-top:.15rem;}
 .product-stars{color:var(--gold);letter-spacing:1px;}
 .product-bar-wrap{width:100%;height:5px;background:var(--surf2);border-radius:3px;overflow:hidden;}
 .product-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
-.product-card.A .product-bar-fill{background:linear-gradient(90deg,var(--gold),var(--gold2));}
-.product-card.B .product-bar-fill{background:linear-gradient(90deg,var(--blue),var(--blue2));}
-.product-card.C .product-bar-fill{background:linear-gradient(90deg,#059669,var(--green));}
+.product-card.A .product-bar-fill{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+.product-card.B .product-bar-fill{background:linear-gradient(90deg,var(--text3),var(--text2));}
+.product-card.C .product-bar-fill{background:linear-gradient(90deg,var(--gold),var(--gold2));}
 /* Standalone versions — usable outside a .product-card parent (Leader dashboard),
    same color source as above so Player/Leader never visually diverge. */
-.product-bar-fill.A{background:linear-gradient(90deg,var(--gold),var(--gold2));}
-.product-bar-fill.B{background:linear-gradient(90deg,var(--blue),var(--blue2));}
-.product-bar-fill.C{background:linear-gradient(90deg,#059669,var(--green));}
+.product-bar-fill.A{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+.product-bar-fill.B{background:linear-gradient(90deg,var(--text3),var(--text2));}
+.product-bar-fill.C{background:linear-gradient(90deg,var(--gold),var(--gold2));}
 /* Selection indicator — never relies on color alone (explicit checkmark badge + border) */
-.product-card.A.sel{border-color:var(--gold);background:rgba(251,191,36,0.08);}
-.product-card.B.sel{border-color:var(--blue2);background:rgba(96,165,250,0.08);}
-.product-card.C.sel{border-color:var(--green);background:rgba(52,211,153,0.08);}
+.product-card.A.sel{border-color:var(--blue2);background:rgba(96,165,250,0.08);}
+.product-card.B.sel{border-color:var(--text2);background:rgba(148,163,184,0.08);}
+.product-card.C.sel{border-color:var(--gold);background:rgba(251,191,36,0.08);}
 /* RPC-011: replaced the "เลือกแล้ว" text badge with a plain checkmark
    icon — cleaner, and reads instantly without needing to parse text. */
 .product-sel-badge{display:none;position:absolute;top:.35rem;right:.35rem;
@@ -1506,17 +1507,15 @@ const STREAK_BONUS = [0,0,0,0,15,15,15,15];
    ============================================================ */
 const MISSION2_CONFIG = {
   durationSec: 90,
-  // Fixed p_effective_count passed to the existing process_phase2_launch RPC.
-  // That RPC computes required taps as p_effective_count × (4|12|40) for
-  // A/B/C. Using a constant here (instead of the old active-player-scaled
-  // value) makes the threshold a fixed, predictable number per product,
-  // matching this spec's "Taps Required Per Product" — with ZERO SQL
-  // changes, since 50×4=200, 50×12=600, 50×40=2000 below.
-  effectiveCount: 50,
+  // RPC-012 — product matrix. reqPerPlayer × (live, server-verified) Active
+  // Non-Leader Players = Required Taps for that product (see m2Required()
+  // below). points are what process_phase2_launch() actually awards —
+  // kept in sync manually since the RPC is the source of truth for scoring,
+  // this is only used for the pre-deploy toast/label text.
   products: {
-    A: { name:'CI Plus/Care', chargeSpeedLabel:'Fastest', stars:1, points:500,  tapsRequired:200  },
-    B: { name:'BT Care', chargeSpeedLabel:'Medium',  stars:2, points:2000, tapsRequired:600  },
-    C: { name:'MPCI+',   chargeSpeedLabel:'Slowest', stars:3, points:6000, tapsRequired:2000 },
+    A: { name:'CI Plus/Care', chargeSpeedLabel:'Fastest', stars:1, points:300, reqPerPlayer:50 },
+    B: { name:'BT Care',      chargeSpeedLabel:'Medium',  stars:2, points:60,  reqPerPlayer:40 }, // intentionally low-value — do not rebalance
+    C: { name:'MPCI+',        chargeSpeedLabel:'Slowest', stars:3, points:500, reqPerPlayer:70 },
   },
 };
 function m2Product(key){
@@ -1526,11 +1525,42 @@ function m2Product(key){
 }
 function m2Taps(my,key){ return my?.[`tier_${key.toLowerCase()}_taps`]||0; }
 function m2Launches(my,key){ return my?.[`tier_${key.toLowerCase()}_launches`]||0; }
-function m2Progress(my,key){ return Math.min(100,(m2Taps(my,key)/MISSION2_CONFIG.products[key].tapsRequired)*100); }
-function m2Ready(my,key){ return m2Taps(my,key)>=MISSION2_CONFIG.products[key].tapsRequired; }
+// RPC-012 — Required Taps = Active Non-Leader Players × Product
+// Requirement. blitzActiveCount is the player's own team's registered
+// non-Leader player count, fetched server-side (see refreshBlitzActiveCount()
+// below) — never a client-side constant, and never client-supplied to the
+// RPC either, so this can only ever match what process_phase2_launch()
+// itself computes and enforces.
+function m2Required(key){ return blitzActiveCount*MISSION2_CONFIG.products[key].reqPerPlayer; }
+function m2Progress(my,key){ const req=m2Required(key); return req>0?Math.min(100,(m2Taps(my,key)/req)*100):0; }
+function m2Ready(my,key){ const req=m2Required(key); return req>0&&m2Taps(my,key)>=req; }
 function m2Stars(n){ return '★'.repeat(n)+'☆'.repeat(3-n); }
 function m2BarHTML(key,pct){
   return `<div class="product-bar-wrap"><div class="product-bar-fill ${key}" style="width:${pct}%"></div></div>`;
+}
+// RPC-012 — live active-player count for the Required Taps denominator.
+// Fetched from the real roster (role='player', i.e. Leader excluded),
+// refreshed every 10s while Mission 2 is live so a mid-mission roster
+// change (a kick) doesn't leave a stale denominator on screen for the
+// rest of the mission. This is display-only — process_phase2_launch()
+// recomputes the same COUNT(*) itself and is the actual authority on
+// whether a deploy is allowed.
+let blitzActiveCount=0;
+let blitzCountInterval=null;
+async function refreshBlitzActiveCount(){
+  if(!player)return;
+  const{count}=await sb.from('players').select('*',{count:'exact',head:true}).eq('team_id',player.team_id).eq('role','player');
+  if(count==null||count===blitzActiveCount)return;
+  blitzActiveCount=count;
+  if(phase===2){
+    if(player.role==='leader')renderLeaderP2Dashboard();
+    else renderProductRow();
+  }
+}
+function startBlitzCountRefresh(){
+  if(blitzCountInterval)return;
+  refreshBlitzActiveCount();
+  blitzCountInterval=setInterval(refreshBlitzActiveCount,10000);
 }
 function m2Duration(){ return (gameState&&gameState.phase2_duration)||MISSION2_CONFIG.durationSec; }
 // Pause-aware elapsed time (RPC-007A) — Mission Control's Pause shifts
@@ -2149,13 +2179,13 @@ function applyState(){
     case 2:
       startMission2Timer();
       setMobileBg('blitz'); // no Frozen/Signal Lost equivalent in Blitz
-      if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();}
+      if(isLeader){showScreen('s-leader-p2');renderLeaderP2Dashboard();startTapFlushLoop();startBlitzCountRefresh();}
       else{
         const alreadyTapping=document.getElementById('s-tapping').classList.contains('active');
         showScreen('s-tapping');
         if(!alreadyTapping)renderTapping(); // full reset only on first entry into blitz
         else renderProductRow();            // otherwise just refresh progress bars
-        startTapFlushLoop();
+        startTapFlushLoop();startBlitzCountRefresh();
       }
       break;
     case 3:
@@ -2166,6 +2196,7 @@ function applyState(){
     case 4:showScreen('s-results');renderResults();break;
   }
   if(phase!==2&&tapFlushInterval){clearInterval(tapFlushInterval);tapFlushInterval=null;}
+  if(phase!==2&&blitzCountInterval){clearInterval(blitzCountInterval);blitzCountInterval=null;}
   if(phase!==2&&mission2TimerInt){clearInterval(mission2TimerInt);mission2TimerInt=null;}
   if(phase!==1&&game1TimerInt){clearInterval(game1TimerInt);game1TimerInt=null;}
   if(phase!==3&&mission3TimerInt){clearInterval(mission3TimerInt);mission3TimerInt=null;}
@@ -2177,6 +2208,7 @@ function applyState(){
 // has technically moved on.
 function stopAllMissionTimers(){
   if(tapFlushInterval){clearInterval(tapFlushInterval);tapFlushInterval=null;}
+  if(blitzCountInterval){clearInterval(blitzCountInterval);blitzCountInterval=null;}
   if(mission2TimerInt){clearInterval(mission2TimerInt);mission2TimerInt=null;}
   if(game1TimerInt){clearInterval(game1TimerInt);game1TimerInt=null;}
   if(mission3TimerInt){clearInterval(mission3TimerInt);mission3TimerInt=null;}
@@ -2957,6 +2989,7 @@ function renderProductRow(){
       <div class="product-name">${p.name}</div>
       <div class="product-meta"><span>${p.chargeSpeedLabel}</span><span class="product-stars">${m2Stars(p.stars)}</span></div>
       ${m2BarHTML(key,pct)}
+      <div class="product-req">${m2Taps(my,key).toLocaleString()} / ${m2Required(key).toLocaleString()}</div>
     </div>`;
   }).join('');
 }
@@ -3028,6 +3061,7 @@ function renderLeaderP2Dashboard(){
           <div class="m2-product-pts">+${p.points.toLocaleString()} pts</div>
         </div>
         ${m2BarHTML(key,pct)}
+        <div class="product-req">${m2Taps(my,key).toLocaleString()} / ${m2Required(key).toLocaleString()}</div>
         <button class="m2-deploy-btn" onclick="leaderLaunch('${key}')">🚀 Deploy ${p.name}</button>
         <div class="m2-launch-count">Deployed ×${m2Launches(my,key)}</div>
       </div>`;
@@ -3051,8 +3085,7 @@ async function leaderLaunch(tier){
   if(!m2Ready(my,tier)){toast(`${m2Product(tier).name} ยังไม่ชาร์จเต็ม!`);return;}
   const{data,error}=await sb.rpc('process_phase2_launch',{
     p_team_id:player.team_id,
-    p_tier:tier,
-    p_effective_count:MISSION2_CONFIG.effectiveCount
+    p_tier:tier
   });
   if(error){toast('❌ '+error.message);console.error(error);return;}
   await sb.from('game_state').update({sub_state:`launch:${player.team_id}:${tier}`}).eq('id',1);
