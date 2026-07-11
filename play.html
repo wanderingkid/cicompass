@@ -1513,8 +1513,8 @@ const MISSION2_CONFIG = {
   // kept in sync manually since the RPC is the source of truth for scoring,
   // this is only used for the pre-deploy toast/label text.
   products: {
-    A: { name:'CI Plus/Care', chargeSpeedLabel:'Fastest', stars:1, points:300, reqPerPlayer:50 },
-    B: { name:'BT Care',      chargeSpeedLabel:'Medium',  stars:2, points:60,  reqPerPlayer:40 }, // intentionally low-value — do not rebalance
+    A: { name:'CI Plus/Care', chargeSpeedLabel:'Fastest', stars:2, points:300, reqPerPlayer:50 },
+    B: { name:'BT Care',      chargeSpeedLabel:'Medium',  stars:1, points:60,  reqPerPlayer:40 }, // intentionally low-value — do not rebalance
     C: { name:'MPCI+',        chargeSpeedLabel:'Slowest', stars:3, points:500, reqPerPlayer:70 },
   },
 };
@@ -2485,7 +2485,7 @@ function demoRunTappingSequence(){
 function demoRenderDemoProductRow(pct){
   const el=document.getElementById('product-row');
   if(!el)return;
-  const products={A:{name:'CI Plus/Care',speed:'เร็ว',stars:1},B:{name:'BT Care',speed:'กลาง',stars:2},C:{name:'MPCI+',speed:'ช้า',stars:3}};
+  const products={A:{name:'CI Plus/Care',speed:'เร็ว',stars:2},B:{name:'BT Care',speed:'กลาง',stars:1},C:{name:'MPCI+',speed:'ช้า',stars:3}};
   el.innerHTML=Object.entries(products).map(([key,p])=>{
     const sel=key==='A';
     const barPct=sel?pct:0;
