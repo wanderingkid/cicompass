@@ -796,7 +796,7 @@ body::before{content:'';position:fixed;inset:0;
   <!-- MISSION INTRO (RPC-007B) -->
   <!-- CHAMPION -->
   <div id="v-champion" class="view">
-    <div class="arena-background" id="champion-bg" style="background-image:url('Mission3_Gambit_Background.png');"></div>
+    <div class="arena-background" id="champion-bg" style="background-image:url('Champion_Background.png');"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:2.2vh;padding:4vh 0;width:100%;height:100%;justify-content:center;">
       <div class="champ-label">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:1.3em;height:1.3em;vertical-align:-.2em;margin-right:.3em;"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8Z"/></svg>CHAMPION
@@ -1916,7 +1916,7 @@ function showLaunchFlash(teamId,tier){
   const pn=gs?.product_names||{};
   const nm=tName(teamId);
   const prodName=pn[tier]||{A:'CI Plus/Care',B:'BT Care',C:'MPCI+'}[tier]||`Product ${tier}`;
-  const pts={A:500,B:2000,C:6000}[tier]||0;
+  const pts={A:300,B:60,C:500}[tier]||0; // RPC-012 product matrix
   const el=document.createElement('div');el.className='launch-flash';
   el.innerHTML=`<div class="launch-txt" style="color:${clr};">${nm}<br>${prodName} DEPLOYED!<br><span style="font-size:.45em;color:var(--green)">+${pts.toLocaleString()} pts</span></div>`;
   document.body.appendChild(el);
