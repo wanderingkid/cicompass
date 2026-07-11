@@ -1886,9 +1886,10 @@ function subscribeAll(){
   sb.channel('play-gs').on('postgres_changes',{event:'UPDATE',schema:'public',table:'game_state'},p=>{
     gameState=p.new;applyState();
   }).subscribe();
-  sb.channel('play-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},async()=>{
-    const{data}=await sb.from('teams').select('*').order('id');
-    if(data){teams=data;onTeamsUpdate();}
+  sb.channel('play-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},p=>{
+    const idx=teams.findIndex(t=>t.id===p.new.id);
+    if(idx>=0)teams[idx]=p.new;else teams.push(p.new);
+    onTeamsUpdate();
   }).subscribe();
   // RPC-007C — editor.html question changes (add/edit/delete) were never
   // picked up after initial load; trivia_questions and fact_questions had
