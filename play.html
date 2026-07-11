@@ -1680,7 +1680,23 @@ function demoSetInterval(fn,ms){const t=setInterval(fn,ms);demoTimers.push(t);re
 const {createClient} = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// STATE
+// ============================================================
+// RPC-011B — PRESENTER MODE: lets screen.html embed this exact page
+// (<iframe src="play.html?presenter=player"> or "...?presenter=leader">)
+// so the Arena can project the REAL Player/Leader UI during Demo instead
+// of recreating it. This bypasses the join form with a synthetic,
+// non-persisted player object, but otherwise runs completely normally —
+// same loadAll()/subscribeAll()/applyState() as any real tab — so it
+// shows whatever gameState.demo_card actually is, live, using the
+// existing self-contained demo system (demoFrostbiteCard/demoBlitzCard)
+// unchanged. Because a presenter tab is meant to be looked at, not
+// touched, every function that would write to the backend is hard-
+// blocked for the whole page lifetime, independent of mission_stage —
+// see answerTrivia()/fireFreeze()/leaderLaunch()/registerTap() below.
+// ============================================================
+const PRESENTER_ROLE=new URLSearchParams(location.search).get('presenter'); // 'player' | 'leader' | null
+const PRESENTER_MODE=PRESENTER_ROLE==='player'||PRESENTER_ROLE==='leader';
+
 let player=null,gameState=null,teams=[],triviaQs=[],factQs=[];
 let lang='th',selTeam=null,selRoleVal='player';
 let phase=0,answeredTrivia={},answeredFact={};
@@ -1776,6 +1792,17 @@ function pollLobbyCount(){
 async function init(){
   initLogo();
   preloadMobileBackgrounds();
+  if(PRESENTER_MODE){
+    // Synthetic, non-persisted player — never written to localStorage,
+    // never a real players.id row. Runs the exact same applyState() path
+    // real gameplay uses, so whatever gameState.demo_card is set to shows
+    // up immediately, live, via the normal realtime subscription below.
+    player={id:`presenter-${PRESENTER_ROLE}`,team_id:1,role:PRESENTER_ROLE,session_score:0,streak:0,has_answered_first:false};
+    await loadAll();
+    subscribeAll();
+    applyState();
+    return;
+  }
   pollLobbyCount();
   const saved=localStorage.getItem('pr_pid');
   if(saved){
@@ -2664,6 +2691,7 @@ function updateStreakUI(){
   document.getElementById('streak-bonus').textContent=s>=start?`+${bonus} streak bonus!`:'';
 }
 async function answerTrivia(letter,qId,correct){
+  if(PRESENTER_MODE)return; // RPC-011B: a presenter tab is projected, never touched — never let it reach the backend
   if(answeredTrivia[qId]||isFrozen||isPenalty||game1TimeUp)return;
   answeredTrivia[qId]=letter;
   document.querySelectorAll('.ans-btn').forEach(b=>{
@@ -2874,6 +2902,7 @@ function selectFreezeTarget(targetId){
   });
 }
 async function fireFreeze(){
+  if(PRESENTER_MODE)return; // RPC-011B: never let a presenter tab reach execute_freeze
   const targetId=selFreezeTarget;
   tracePlay('fireFreeze() called',{
     selectedTarget:targetId, mission_stage:gameState?.mission_stage,
@@ -2949,6 +2978,7 @@ function spawnRipple(x,y){
   setTimeout(()=>rip.remove(),650);
 }
 function registerTap(x,y){
+  if(PRESENTER_MODE)return; // RPC-011B: don't let a real tap on the projected iframe feed flushTaps() -> log_taps
   if(!selTierVal){toast('เลือกผลิตภัณฑ์ก่อน!');return;}
   if(phase!==2||mission2TimeUp)return; // don't gate on sub_state — the transient 'launch:...'
                         // signal used for screen.html's animation shouldn't block tapping
@@ -3015,6 +3045,7 @@ function renderLeaderP2Dashboard(){
   }).join('');
 }
 async function leaderLaunch(tier){
+  if(PRESENTER_MODE)return; // RPC-011B: never let a presenter tab reach process_phase2_launch
   if(mission2TimeUp){toast('หมดเวลาแล้ว! ไม่สามารถ Deploy ได้');return;}
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   if(!m2Ready(my,tier)){toast(`${m2Product(tier).name} ยังไม่ชาร์จเต็ม!`);return;}
