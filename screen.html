@@ -1129,6 +1129,11 @@ function subscribeRT(){
     }
   });
   sb.channel('scr-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},async()=>{
+    if(demoModeActive){ // RPC-011A: don't clobber the demo-swapped teams array; loadTeams() will run once demo mode exits
+      const{data}=await sb.from('teams').select('*').order('id');
+      if(data)demoPendingTeamsData=data;
+      return;
+    }
     const prev=[...teams];await loadTeams();
     updateHeroStrip(prev);
     if(gs?.phase===1)renderRankList();
@@ -1205,6 +1210,7 @@ let freezeEventInt=null;
 
 function applyState(){
   if(!gs){traceScreen('applyState() aborted — gs is not loaded yet');return;}
+  demoExitMode(); // RPC-011A: restore real teams/phase_start_at on every state change; no-op if demo wasn't active. renderMissionDemo() re-enters.
   const p=gs.phase;
   traceScreen('applyState()',{phase:p,mission_stage:gs.mission_stage,sub_state:gs.sub_state});
   document.getElementById('hero-strip').style.display='none';
@@ -1587,136 +1593,189 @@ function renderGambitReveal(stage){
 }
 
 /* ============================================================
-   MISSION DEMO — mobile-mockup style, 5 fixed sections per mission
+   MISSION DEMO
    ============================================================ */
-const MISSION_DEMO = {
-  1:{sections:[
-    {title:'PLAYER MISSION',callout:['Answer correctly.','Build streaks.'],
-      phoneRole:'PLAYER',phoneBtns:['A. Atlantic Ocean','B. Indian Ocean','C. Arctic Ocean','D. Pacific Ocean']},
-    {title:'SIGNAL LOST',callout:['Wrong answer.','Recover in 3 seconds.'],
-      phoneRole:'PLAYER',phoneBtns:['SIGNAL LOST — 3']},
-    {title:'LEADER COMMAND',callout:['Build Freeze.','Deploy strategically.'],
-      phoneRole:'LEADER',phoneBtns:['DEPLOY FREEZE']},
-    {title:'FROZEN',callout:['Freeze opponents','for 12 seconds.'],
-      phoneRole:'PLAYER',phoneBtns:['FROZEN — 12']},
-  ]},
-  2:{sections:[
-    {title:'PLAYER MISSION',callout:['Tap fast.','Build Weapon Charge.'],
-      phoneRole:'PLAYER',phoneBtns:['TAP TO CHARGE']},
-    {title:'LEADER COMMAND',callout:['Deploy weapons','at the right moment.'],
-      phoneRole:'LEADER',phoneBtns:['DEPLOY WEAPON']},
-  ]},
-};
-// RPC-009F: cards after the phone-demo sections reuse the ACTUAL Mission
-// Result / Tournament Standing leaderboard renderers with representative
-// sample data — no fake mockup for these, per spec ("Show actual Mission
-// Leaderboard... No fake numbers. Use representative sample data.").
 const DEMO_ARENA_TEAMS=[
-  {id:1,leader_name:'ทีมฟีโอม',total_score:2600,trivia_score:1450,pipeline_score:3200,m1_points:1000,m2_points:800},
-  {id:2,leader_name:'ทีมพี่อ้น',total_score:2100,trivia_score:1200,pipeline_score:2600,m1_points:800,m2_points:600},
-  {id:3,leader_name:'ทีมพี่ต้น',total_score:1600,trivia_score:900,pipeline_score:1900,m1_points:600,m2_points:400},
-  {id:4,leader_name:'ทีมพี่พี',total_score:1200,trivia_score:700,pipeline_score:1300,m1_points:400,m2_points:300},
-  {id:5,leader_name:'ทีม 5',total_score:900,trivia_score:500,pipeline_score:900,m1_points:300,m2_points:200},
-  {id:6,leader_name:'ทีม 6',total_score:600,trivia_score:300,pipeline_score:600,m1_points:200,m2_points:100},
+  {id:1,leader_name:'ทีมฟีโอม',total_score:2600,trivia_score:1450,pipeline_score:3200,m1_points:1000,m2_points:1000,tier_a_launches:2,tier_b_launches:1,tier_c_launches:0,weapon_charges:1,frozen_until:null,frozen_by_team:null},
+  {id:2,leader_name:'ทีมพี่อ้น',total_score:2100,trivia_score:1200,pipeline_score:2600,m1_points:800,m2_points:800,tier_a_launches:1,tier_b_launches:1,tier_c_launches:0,weapon_charges:0,frozen_until:null,frozen_by_team:null},
+  {id:3,leader_name:'ทีมพี่ต้น',total_score:1600,trivia_score:900,pipeline_score:1900,m1_points:600,m2_points:600,tier_a_launches:1,tier_b_launches:0,tier_c_launches:0,weapon_charges:0,frozen_until:null,frozen_by_team:null},
+  {id:4,leader_name:'ทีมพี่พี',total_score:1200,trivia_score:700,pipeline_score:1300,m1_points:400,m2_points:400,tier_a_launches:0,tier_b_launches:1,tier_c_launches:0,weapon_charges:0,frozen_until:null,frozen_by_team:null},
+  {id:5,leader_name:'ทีม 5',total_score:900,trivia_score:500,pipeline_score:900,m1_points:300,m2_points:300,tier_a_launches:0,tier_b_launches:0,tier_c_launches:1,weapon_charges:0,frozen_until:null,frozen_by_team:null},
+  {id:6,leader_name:'ทีม 6',total_score:600,trivia_score:300,pipeline_score:600,m1_points:200,m2_points:200,tier_a_launches:0,tier_b_launches:0,tier_c_launches:0,weapon_charges:0,frozen_until:null,frozen_by_team:null},
 ];
+// m1_points/m2_points above are the real placement award values
+// ({1:1000,2:800,3:600,4:400,5:300,6:200}, admin.html's confirmAwardTournamentPoints()
+// default) in rank order, per RPC-011A — not made-up numbers.
+
+// ============================================================
+// RPC-011A — Arena DEMO now reuses the REAL production renderers
+// (renderMissionLive/renderRankList/renderMission2Leaderboard,
+// showFreezeOverlay, renderMissionResultStage, renderTournamentStandingsStage)
+// instead of a parallel phone-mockup UI, everywhere a matching production
+// Arena screen actually exists. Those renderers read straight from the
+// live `teams` global (and startTimer() reads gs.phase_start_at), so
+// entering demo mode swaps `teams` to DEMO_ARENA_TEAMS and gives gs a
+// synthetic phase_start_at so the timer shows a plausible in-progress
+// time; both are restored the moment demo mode exits. screen.html has no
+// click-triggered RPCs (it's a read-only broadcast screen), so unlike
+// play.html there's no backend-mutation hazard here — the only real risk
+// is the 'scr-teams' realtime handler overwriting the swapped `teams`
+// array if a real team updates mid-demo, which is guarded the same way.
+// ============================================================
+let demoModeActive=false;
+let demoSavedTeams=null,demoSavedPhaseStartAt=undefined;
+let demoPendingTeamsData=null;
+let demoTimers=[];
+function demoClearTimers(){demoTimers.forEach(t=>{clearTimeout(t);clearInterval(t);});demoTimers=[];}
+function demoSetTimeout(fn,ms){const t=setTimeout(fn,ms);demoTimers.push(t);return t;}
+function demoSetInterval(fn,ms){const t=setInterval(fn,ms);demoTimers.push(t);return t;}
+function demoEnterMode(){
+  if(!demoModeActive){demoSavedTeams=teams;demoSavedPhaseStartAt=gs?gs.phase_start_at:undefined;}
+  demoModeActive=true;
+  teams=DEMO_ARENA_TEAMS;
+  if(gs)gs.phase_start_at=new Date(Date.now()-15000).toISOString(); // ~15s into the mission, for a plausible-looking timer
+}
+function demoExitMode(){
+  if(!demoModeActive)return;
+  demoModeActive=false;
+  demoClearTimers();
+  demoHideCaption();
+  if(demoSavedTeams){teams=demoSavedTeams;demoSavedTeams=null;}
+  if(gs&&demoSavedPhaseStartAt!==undefined)gs.phase_start_at=demoSavedPhaseStartAt;
+  if(demoPendingTeamsData){teams=demoPendingTeamsData;demoPendingTeamsData=null;}
+}
+// Instructional caption — reuses the existing .demo-text-panel styling
+// (already used by Mission Result/Tournament Standing's title block) as
+// just another flex child stacked below the real arena-panels, instead of
+// a parallel demo-only layout.
+function demoShowCaption(el,eyebrow,title,body){
+  if(!el)return;
+  let cap=document.getElementById('demo-caption');
+  if(!cap||cap.parentElement!==el){
+    cap?.remove();
+    cap=document.createElement('div');
+    cap.id='demo-caption';
+    cap.className='demo-text-panel';
+    cap.style.flex='0 0 auto';
+    el.appendChild(cap);
+  }
+  cap.innerHTML=`<div class="demo-section-eyebrow">${eyebrow}</div><div class="demo-section-title" style="font-size:clamp(.85rem,1.3vw,1.15rem);">${title}</div><div class="demo-section-body">${body}</div>`;
+}
+function demoHideCaption(){document.getElementById('demo-caption')?.remove();}
+// RPC-011A: every card now (1) preps DEMO_ARENA_TEAMS / a synthetic
+// gs.phase_start_at, then (2) calls the real Arena renderer for whatever
+// that card is showing, then (3) adds only the instructional caption text
+// on top — never a parallel layout. Card 3 (Frostbite Frozen) is the one
+// exception worth naming: showFreezeOverlay()/enterFreezeEventView() is
+// the exact real function real Freeze events call — it's entirely
+// self-driving (own 5s announcement + real 12s countdown, own queue) and
+// safe to call directly with demo team ids since it makes no RPC calls
+// itself, just reads `teams` (already swapped) for names/colors.
 function renderMissionDemo(p){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
-  const sections=MISSION_DEMO[p]?.sections||[];
+  demoEnterMode();
   const card=gs.demo_card||0;
-  // Cards after the phone-demo sections: Mission Result, then Tournament Standing.
-  if(card===sections.length){
-    demoRenderMissionResult(p,el);return;
-  }
-  if(card===sections.length+1){
-    demoRenderTournamentStanding(p,el);return;
-  }
-  const s=sections[card];
-  if(!s)return;
-  el.innerHTML=`
-    <div class="demo-phone-wrap">
-      <div class="demo-phone">
-        <div class="demo-phone-notch"></div>
-        <div class="demo-phone-role">${s.phoneRole||''}</div>
-        <div class="demo-phone-body">
-          ${(s.phoneBtns||[]).map(b=>`<div class="demo-phone-btn${b===s.phoneBtns[s.phoneBtns.length-1]&&s.phoneRole==='LEADER'?' hl':''}">${b}</div>`).join('')}
-        </div>
-      </div>
-    </div>
-    <div class="demo-text-panel">
-      <div class="demo-section-title">${s.title}</div>
-      ${(s.callout||[]).map(line=>`<div class="demo-section-body">${line}</div>`).join('')}
-    </div>
-    <div class="demo-nav"><div class="demo-nav-dots">${[...Array(sections.length+2)].map((_,i)=>`<div class="intro-dot${i===card?' on':''}"></div>`).join('')}</div></div>`;
+  if(p===1)demoFrostbiteCard(card,el);
+  else if(p===2)demoBlitzCard(card,el);
 }
-
-// RPC-009F — MISSION RESULT demo card: the real leaderboard renderer,
-// fed representative sample data instead of live team scores. "The Emcee
-// will elaborate verbally" per Arena_Demo_System.md, so the callout here
-// stays to the two required lines.
-function demoRenderMissionResult(p,el){
-  // RPC-011: this was still using the old pre-RPC-010 .result-row style,
-  // which never got updated when the real Mission Result leaderboard was
-  // unified onto the larger .rank-row architecture — meaning the demo
-  // and real gameplay had visibly diverged. Fixed so both use the exact
-  // same markup; per the Demo system's own design principle, demo should
-  // always match real gameplay exactly, not the other way around.
-  const field=p===1?'trivia_score':'pipeline_score';
-  const sorted=[...DEMO_ARENA_TEAMS].sort((a,b)=>b[field]-a[field]);
-  const maxScore=Math.max(1,...DEMO_ARENA_TEAMS.map(t=>t[field]));
-  const ranks=computeRanks(sorted,field);
-  el.innerHTML=`
-    <div class="demo-text-panel" style="margin-bottom:.5rem;">
-      <div class="demo-section-title">MISSION COMPLETE</div>
-      <div class="demo-section-body">Finish 1st.</div>
-      <div class="demo-section-body">Mission Ranking determines Tournament Points.</div>
-    </div>
-    ${sorted.map((t,i)=>{
-      const clr=TC[t.id]||'#fff';
-      const pct=Math.max(4,(t[field]/maxScore)*86);
-      return `<div class="rank-row" style="background:rgba(${hexRgb(clr)},.04);border-color:rgba(${hexRgb(clr)},.12);">
-        <div class="rank-num" style="color:${clr};">${rankIcon(ranks[i])}</div>
-        <div class="rank-name" style="flex:1.4;color:${clr};">${t.leader_name}</div>
-        <div class="rank-bar-wrap">
-          <div class="rank-bar" style="width:${pct}%;background:linear-gradient(90deg,${clr}66,${clr});color:${clr};"></div>
-        </div>
-        <div class="rank-score" style="color:${clr};">${t[field].toLocaleString()}</div>
-      </div>`;
-    }).join('')}`;
+function demoFrostbiteCard(card,el){
+  const my=DEMO_ARENA_TEAMS[0];
+  switch(card){
+    case 0: // PLAYER MISSION — correct answer
+      demoClearTimers();
+      renderMissionLive(1);
+      addFeed(`✅ ${my.leader_name} ตอบถูก! +15 pts`);
+      demoShowCaption(el,'PLAYER MISSION','Answer correctly','Correct answers raise the team\'s score and move it up this Leaderboard. (Question/answer UI is on each player\'s phone.)');
+      break;
+    case 1: // SIGNAL LOST — wrong answer
+      demoClearTimers();
+      renderMissionLive(1);
+      addFeed(`❌ ${DEMO_ARENA_TEAMS[1].leader_name} ตอบผิด — Signal Lost`);
+      demoShowCaption(el,'SIGNAL LOST','Wrong answer','A wrong answer locks that player out for 3 seconds on their own phone and resets their streak. Team score on this board is unaffected by the miss itself.');
+      break;
+    case 2: // LEADER COMMAND — charge full, deploy available, target selected
+      demoClearTimers();
+      my.weapon_charges=1;
+      renderMissionLive(1); // real renderRankList() shows the FREEZE READY badge on this team's row
+      demoShowCaption(el,'LEADER COMMAND','Freeze ready to deploy','Once a team\'s Freeze charge is full, its Leader selects an opposing team and deploys — shown here as FREEZE READY on the Leaderboard.');
+      break;
+    case 3: { // FROZEN — real freeze takeover overlay, self-healing loop
+      demoClearTimers();
+      const target=DEMO_ARENA_TEAMS[2];
+      const tick=()=>{
+        renderMissionLive(1); // real leaderboard shows the live frozen-countdown tag underneath
+        demoShowCaption(el,'LEADER COMMAND','Freeze deployed','Watch the Arena take over with the Freeze announcement, then return here with the target locked out for the remaining countdown.');
+        const stillFrozen=target.frozen_until&&new Date(target.frozen_until)>new Date();
+        if(!stillFrozen&&!freezeShowing){
+          target.frozen_by_team=my.id;
+          target.frozen_until=new Date(Date.now()+12000).toISOString();
+          showFreezeOverlay(my.id,target.id); // real function — same one real gameplay calls off attack_log
+        }
+      };
+      tick();
+      demoSetInterval(tick,2000); // re-checks state rather than blindly re-triggering — safe no matter how often this card gets re-entered (the real takeover's own post-announcement callback re-enters it too)
+      break;
+    }
+    case 4: // MISSION LEADERBOARD
+      demoClearTimers();
+      renderMissionResultStage(1);
+      demoShowCaption(el,'MISSION 1','Mission Leaderboard','Final Frostbite standing, ranked by team trivia score.');
+      break;
+    case 5: // TOURNAMENT STANDING
+      demoClearTimers();
+      DEMO_ARENA_TEAMS.forEach(t=>{t.total_score=t.m1_points;}); // Mission 1 alone: Total must equal Mission 1's award exactly
+      renderTournamentStandingsStage(1);
+      demoShowCaption(el,'TOURNAMENT','Tournament Standing','Placement converts to Championship Points: 1st = 1,000 · 2nd = 800 · 3rd = 600 · 4th = 400 · 5th = 300 · 6th = 200.');
+      break;
+  }
 }
-// RPC-009F — CHAMPIONSHIP POINTS demo card: real Tournament Standing
-// layout, sample data, showing Mission Points + running Tournament Total.
-// RPC-011 fix: total_score used to be a hardcoded value with no
-// relationship to m1_points/m2_points at all (e.g. "Mission: 1,000" next
-// to "Total: 2,600" after only one mission, which is nonsensical — after
-// Mission 1 alone, Total must equal Mission 1's points exactly). Total is
-// now computed fresh from the actual mission points for whichever
-// mission is being demoed, and this uses the same unified .rank-row
-// style + tie-aware ranking as the real screen and the Mission Result
-// demo card above.
-function demoRenderTournamentStanding(p,el){
-  const mField=p===1?'m1_points':'m2_points';
-  const withTotal=DEMO_ARENA_TEAMS.map(t=>({
-    ...t,
-    total_score: p===1 ? t.m1_points : (t.m1_points+t.m2_points),
-  }));
-  const sorted=[...withTotal].sort((a,b)=>b.total_score-a.total_score);
-  const ranks=computeRanks(sorted,'total_score');
-  el.innerHTML=`
-    <div class="demo-text-panel" style="margin-bottom:.5rem;">
-      <div class="demo-section-title">CHAMPIONSHIP POINTS</div>
-      <div class="demo-section-body">Every rank earns Championship Points.</div>
-    </div>
-    <div class="ts-header-row"><span style="min-width:2.6rem;"></span><span style="flex:1.4;">Team</span><span class="ts-col">Mission</span><span class="ts-col total">Total</span></div>
-    ${sorted.map((t,i)=>{
-      const clr=TC[t.id]||'#fff';
-      return `<div class="rank-row" style="background:rgba(${hexRgb(clr)},.04);border-color:rgba(${hexRgb(clr)},.12);">
-        <div class="rank-num" style="color:${clr};min-width:2.6rem;">${rankIcon(ranks[i])}</div>
-        <div class="rank-name" style="flex:1.4;color:${clr};">${t.leader_name}</div>
-        <div class="ts-col" style="color:${clr};font-weight:700;">+${t[mField].toLocaleString()}</div>
-        <div class="ts-col total" style="color:${clr};">${t.total_score.toLocaleString()}</div>
-      </div>`;
-    }).join('')}`;
+function demoBlitzCard(card,el){
+  const my=DEMO_ARENA_TEAMS[0];
+  switch(card){
+    case 0: { // PLAYER MISSION — tapping happens on each phone; the Arena's
+      // real representation of it is the Leaderboard score creeping up as
+      // taps convert into pipeline_score. No live tap-counter exists on
+      // the Arena screen itself (same reasoning as Frostbite cards 0/1).
+      demoClearTimers();
+      renderMissionLive(2);
+      demoShowCaption(el,'PLAYER MISSION','Select a weapon and tap','Each player picks a product tier on their phone and taps to charge it. Taps convert into pipeline score, moving the team up this board.');
+      const loop=()=>{
+        my.pipeline_score=(my.pipeline_score||0)+Math.floor(Math.random()*30)+10;
+        renderMission2Leaderboard();
+        demoSetTimeout(loop,600);
+      };
+      loop();
+      break;
+    }
+    case 1: { // LEADER COMMAND — charge fills, Deploy unlocks, launch fires
+      demoClearTimers();
+      renderMissionLive(2);
+      demoShowCaption(el,'LEADER COMMAND','Deploy when charge is full','When a product\'s charge bar reaches 100% on the Leader\'s phone, Deploy unlocks — deploying launches it for points, shown here on the Feed and Leaderboard.');
+      const loop=()=>{
+        demoSetTimeout(()=>{
+          my.tier_a_launches=(my.tier_a_launches||0)+1;
+          my.pipeline_score=(my.pipeline_score||0)+500;
+          addBlitzFeed(`${my.leader_name} deployed CI Plus/Care`); // real feed function, same one triggerLaunchAnim() calls
+          renderMission2Leaderboard();
+          demoSetTimeout(loop,3000);
+        },1800);
+      };
+      loop();
+      break;
+    }
+    case 2: // MISSION LEADERBOARD
+      demoClearTimers();
+      renderMissionResultStage(2);
+      demoShowCaption(el,'MISSION 2','Mission Leaderboard','Final Blitz standing, ranked by team pipeline score.');
+      break;
+    case 3: // TOURNAMENT STANDING
+      demoClearTimers();
+      DEMO_ARENA_TEAMS.forEach(t=>{t.total_score=t.m1_points+t.m2_points;}); // both missions awarded by this point
+      renderTournamentStandingsStage(2);
+      demoShowCaption(el,'TOURNAMENT','Tournament Standing','Placement converts to Championship Points: 1st = 1,000 · 2nd = 800 · 3rd = 600 · 4th = 400 · 5th = 300 · 6th = 200.');
+      break;
+  }
 }
 
 /* ============================================================
