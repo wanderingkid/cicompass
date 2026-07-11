@@ -1662,8 +1662,7 @@ const JOKES = ['ลองใหม่อีกครั้ง! 💪','อ่า�
 // answering if the demo ends and gameplay starts while those are stuck).
 // ============================================================
 const DEMO_TEAMS=[
-  {id:1,name:'ทีมฟีโอม',leader_name:'ทีมฟีโอม',total_score:2600,trivia_score:1450,pipeline_score:3200,m1_points:1000,m2_points:800,tier_a_launches:2,tier_b_launches:1,tier_c_launches:0,weapon_charges:1,
-    correct_pool:0,frostbite_target:25,tier_a_taps:0,tier_b_taps:0,tier_c_taps:0},
+  {id:1,name:'ทีมฟีโอม',leader_name:'ทีมฟีโอม',total_score:2600,trivia_score:1450,pipeline_score:3200,m1_points:1000,m2_points:800,tier_a_launches:2,tier_b_launches:1,tier_c_launches:0,weapon_charges:1},
   {id:2,name:'ทีมพี่อ้น',leader_name:'ทีมพี่อ้น',total_score:2100,trivia_score:1200,pipeline_score:2600,m1_points:800,m2_points:600,tier_a_launches:1,tier_b_launches:1,tier_c_launches:0},
   {id:3,name:'ทีมพี่ต้น',leader_name:'ทีมพี่ต้น',total_score:1600,trivia_score:900,pipeline_score:1900,m1_points:600,m2_points:400,tier_a_launches:1,tier_b_launches:0,tier_c_launches:0},
   {id:4,name:'ทีมพี่พี',leader_name:'ทีมพี่พี',total_score:1200,trivia_score:700,pipeline_score:1300,m1_points:400,m2_points:300,tier_a_launches:0,tier_b_launches:1,tier_c_launches:0},
@@ -1677,70 +1676,6 @@ let demoTimers=[]; // every setTimeout/Interval a demo card starts, so switching
 function demoClearTimers(){demoTimers.forEach(t=>{clearTimeout(t);clearInterval(t);});demoTimers=[];}
 function demoSetTimeout(fn,ms){const t=setTimeout(fn,ms);demoTimers.push(t);return t;}
 function demoSetInterval(fn,ms){const t=setInterval(fn,ms);demoTimers.push(t);return t;}
-
-// ============================================================
-// RPC-011 — DEMO now reuses the REAL production renderers
-// (renderTrivia, renderLeaderP1Dashboard, renderLeaderP2Dashboard,
-// renderTapping, showMissionCompleteScreen, showTournamentStandingScreen)
-// instead of duplicating markup. Those renderers read straight from the
-// live globals (`player`, `teams`, `answeredTrivia`, `shuffledQs`,
-// `selFreezeTarget`), so entering Demo swaps those globals to synthetic
-// data and demoExitMode() restores the real ones. Two hazards this
-// creates, both guarded explicitly rather than assumed away:
-//
-// 1. Realtime teams updates: mission_stage is a single global switch, and
-//    while it's 'demo' no player is on a live gameplay screen calling the
-//    scoring RPCs, so a real 'teams' UPDATE firing mid-demo is not a
-//    realistic gameplay event. It's still guarded for free: the
-//    'play-teams' realtime handler defers (doesn't overwrite `teams`)
-//    while demoModeActive, and applies the deferred data the moment demo
-//    mode exits.
-// 2. The production renderers wire REAL onclick handlers to REAL RPCs
-//    (answerTrivia -> process_trivia_answer, fireFreeze -> execute_freeze,
-//    leaderLaunch -> pipeline scoring, registerTap -> log_taps). Demo's
-//    own auto-play sequences never click these, but the buttons are
-//    genuinely live on a real phone — a stray tap during a demo card must
-//    NOT reach the backend, especially since DEMO_TEAMS reuses ids 1-6,
-//    the same id range as real teams. Each of those four functions now
-//    starts with `if(demoModeActive)return;` as a hard backend cutoff,
-//    independent of anything the demo sequencing code does correctly.
-// ============================================================
-let demoModeActive=false;
-let demoSavedState=null;
-let demoPendingTeamsData=null; // real teams update that arrived mid-demo; applied on exit
-const DEMO_PLAYER_ID='demo-preview'; // never a real players.id, so any RPC that slips through fails safely (FK violation) rather than silently touching real data
-const DEMO_LEADER={id:DEMO_PLAYER_ID,team_id:1,role:'leader',session_score:1450,streak:2,has_answered_first:true};
-const DEMO_PLAYER={id:DEMO_PLAYER_ID,team_id:1,role:'player',session_score:140,streak:2,has_answered_first:true};
-// Deliberately NOT drawn from the real trivia_questions pool — a made-up
-// sample question so Demo never previews/spoils a real event question.
-const DEMO_QUESTION={id:-1,
-  question_th:DEMO_Q_TH,question_en:DEMO_Q_TH,
-  option_a_th:DEMO_OPTS[0][1],option_a_en:DEMO_OPTS[0][1],
-  option_b_th:DEMO_OPTS[1][1],option_b_en:DEMO_OPTS[1][1],
-  option_c_th:DEMO_OPTS[2][1],option_c_en:DEMO_OPTS[2][1],
-  option_d_th:DEMO_OPTS[3][1],option_d_en:DEMO_OPTS[3][1],
-  correct_answer:DEMO_CORRECT};
-function demoEnterMode(isLeader){
-  if(!demoModeActive){
-    demoSavedState={player,teams,answeredTrivia,shuffledQs,selFreezeTarget,game1TimeUp};
-  }
-  demoModeActive=true;
-  player=isLeader?DEMO_LEADER:DEMO_PLAYER;
-  teams=DEMO_TEAMS;
-  shuffledQs=[DEMO_QUESTION];
-  answeredTrivia={};
-  selFreezeTarget=null;
-  game1TimeUp=false; // renderTrivia() shows a real "time's up" banner when this is true — never leak that into Demo
-}
-function demoExitMode(){
-  if(!demoModeActive)return;
-  demoModeActive=false;
-  if(demoSavedState){
-    ({player,teams,answeredTrivia,shuffledQs,selFreezeTarget,game1TimeUp}=demoSavedState);
-    demoSavedState=null;
-  }
-  if(demoPendingTeamsData){teams=demoPendingTeamsData;demoPendingTeamsData=null;onTeamsUpdate();}
-}
 
 const {createClient} = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1896,10 +1831,7 @@ function subscribeAll(){
   }).subscribe();
   sb.channel('play-teams').on('postgres_changes',{event:'UPDATE',schema:'public',table:'teams'},async()=>{
     const{data}=await sb.from('teams').select('*').order('id');
-    if(data){
-      if(demoModeActive){demoPendingTeamsData=data;return;} // RPC-011: don't clobber the demo-swapped teams array
-      teams=data;onTeamsUpdate();
-    }
+    if(data){teams=data;onTeamsUpdate();}
   }).subscribe();
   // RPC-007C — editor.html question changes (add/edit/delete) were never
   // picked up after initial load; trivia_questions and fact_questions had
@@ -2132,9 +2064,6 @@ function applyState(){
   // through. Redundant (harmless) on the stage==='demo' path itself,
   // since showDemoScreen() still calls it too.
   demoClearTimers();
-  demoExitMode(); // RPC-011: same reasoning as demoClearTimers() above — call unconditionally on every
-                   // state change so real player/teams/answeredTrivia can never stay swapped to demo data
-                   // if the stage moves on. Harmless no-op when demo wasn't active. showDemoScreen() re-enters.
   tracePlay('applyState()',{
     phase, mission_stage:gameState.mission_stage, sub_state:gameState.sub_state,
     demo_card:gameState.demo_card, role:isLeader?'leader':'player',
@@ -2230,37 +2159,35 @@ function stopAllMissionTimers(){
 function showDemoScreen(){
   demoClearTimers();
   const p=gameState.phase, step=gameState.demo_card||0, isLeader=player?.role==='leader';
-  demoEnterMode(isLeader); // swap player/teams/answeredTrivia/shuffledQs to demo data; real ones restored by demoExitMode()
   if(p===1)demoFrostbiteCard(step,isLeader);
   else if(p===2)demoBlitzCard(step,isLeader);
 }
 
 // ---- FROSTBITE (6 cards) ----------------------------------------------
 function demoFrostbiteCard(step,isLeader){
-  const my=DEMO_TEAMS[0];
   switch(step){
     case 0: // PLAYER MISSION — 3 correct answers in a row, then loop
-      if(isLeader){setMobileBg('frostbite');demoSetLeaderP1Charge(42,false);showScreen('s-leader-p1');renderLeaderP1Dashboard();}
+      if(isLeader){setMobileBg('frostbite');demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
       else demoRunCorrectAnswerLoop();
       break;
     case 1: // SIGNAL LOST — wrong answer, then loop
-      if(isLeader){setMobileBg('frostbite');demoSetLeaderP1Charge(42,false);showScreen('s-leader-p1');renderLeaderP1Dashboard();}
+      if(isLeader){setMobileBg('frostbite');demoRenderLeaderP1(42,false);showScreen('s-leader-p1');}
       else demoRunSignalLostLoop();
       break;
     case 2: // LEADER COMMAND — freeze charge to 100%, select team, deploy, loop
       if(isLeader)demoRunLeaderFreezeSequence();
-      else{setMobileBg('frostbite');answeredTrivia={};showScreen('s-trivia');renderTrivia();}
+      else{setMobileBg('frostbite');demoRenderTrivia();showScreen('s-trivia');}
       break;
     case 3: // FROZEN EFFECT — both Player and Leader see it, per explicit instruction
       demoRunFrozenLoop();
       break;
-    case 4: // MISSION COMPLETE — real renderer, already shared, no change needed
+    case 4: // MISSION COMPLETE
       setMobileBg('frostbite');
       showMissionCompleteScreen();
       break;
-    case 5: // TOURNAMENT STANDING — real renderer (also picks up tie-aware ranking for free)
+    case 5: // TOURNAMENT STANDING
       setMobileBg('frostbite');
-      showTournamentStandingScreen();
+      demoShowStanding(1);
       break;
   }
 }
@@ -2269,72 +2196,86 @@ function demoFrostbiteCard(step,isLeader){
 function demoBlitzCard(step,isLeader){
   switch(step){
     case 0: // PLAYER MISSION — tap to charge, loop
-      if(isLeader){setMobileBg('blitz');demoSetTapProgress(35);showScreen('s-leader-p2');renderLeaderP2Dashboard();}
+      if(isLeader){setMobileBg('blitz');demoRenderLeaderP2(35,false);showScreen('s-leader-p2');}
       else demoRunTappingSequence();
       break;
     case 1: // LEADER COMMAND — charge, deploy, cooldown, loop
       if(isLeader)demoRunLeaderDeploySequence();
       else demoRunTappingSequence();
       break;
-    case 2: // MISSION COMPLETE — real renderer, already shared
+    case 2: // MISSION COMPLETE
       setMobileBg('blitz');
       showMissionCompleteScreen();
       break;
-    case 3: // TOURNAMENT STANDING — real renderer
+    case 3: // TOURNAMENT STANDING
       setMobileBg('blitz');
-      showTournamentStandingScreen();
+      demoShowStanding(2);
       break;
   }
 }
 
 // ---- FROSTBITE: trivia (Player Mission / Signal Lost) -----------------
-// RPC-011: no more demoRenderTrivia() duplicate markup — every card that
-// shows the trivia screen now sets sample state (DEMO_QUESTION via
-// shuffledQs, DEMO_PLAYER.streak/session_score, answeredTrivia) and calls
-// the real renderTrivia(). renderTrivia() is what owns #trivia-q,
-// #ans-list, #t-team/#t-pts/#t-prog/#t-stk and the answer-button
-// correct/wrong classes — a future gameplay UI change to any of that
-// shows up in Demo automatically.
-// RPC-009I/009J behaviour preserved: 3 correct answers in sequence with a
-// read-time pause before each, then a brief pause and restart.
+function demoRenderTrivia(){
+  const my=DEMO_TEAMS[0];
+  document.getElementById('t-team').textContent=my.leader_name;
+  document.getElementById('t-pts').textContent='140 pts';
+  document.getElementById('t-prog').textContent='Q 3 / 10';
+  document.getElementById('t-stk').textContent='🔥 2';
+  for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<2);
+  const bonusEl=document.getElementById('streak-bonus');if(bonusEl)bonusEl.textContent='';
+  document.getElementById('timeup-banner').style.display='none';
+  document.getElementById('trivia-q').textContent=DEMO_Q_TH;
+  document.getElementById('ans-list').innerHTML=DEMO_OPTS.map(([l,txt])=>
+    `<button class="ans-btn" id="demo-ans-${l}"><span class="ans-badge">${l}</span>${txt}</button>`
+  ).join('');
+}
+// RPC-009I: Player Mission demo now plays 3 correct answers in sequence
+// (matching the spec's "Player taps correct answer" combo build), then
+// pauses briefly and restarts — every demo card loops until the emcee
+// advances, rather than playing once and freezing on the end state.
+// RPC-009J: added a longer initial read-time before the first answer is
+// selected (was jumping to the answer almost immediately), and removed
+// confetti per instruction.
 function demoRunCorrectAnswerLoop(){
   const streakStart=2;
   const runRound=(round)=>{
     setMobileBg('frostbite');
-    answeredTrivia={};
-    DEMO_PLAYER.streak=streakStart+round;
     showScreen('s-trivia');
-    renderTrivia();
+    demoRenderTrivia();
+    const streak=streakStart+round;
+    document.getElementById('t-stk').textContent=`🔥 ${streak}`;
+    for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<streak);
     demoSetTimeout(()=>{
-      answeredTrivia[DEMO_QUESTION.id]=DEMO_CORRECT; // renderTrivia() colors this via q.correct_answer, same as real gameplay
-      DEMO_PLAYER.session_score=140+(round+1)*50;
-      DEMO_PLAYER.streak=streakStart+round+1;
-      renderTrivia();
-      if(round<2)demoSetTimeout(()=>runRound(round+1),2600);
-      else demoSetTimeout(()=>runRound(0),3000); // brief pause, then restart the whole 3-answer loop
+      document.querySelectorAll('#ans-list .ans-btn').forEach(b=>{
+        b.classList.add('disabled');
+        const l=b.querySelector('.ans-badge').textContent;
+        if(l===DEMO_CORRECT)b.classList.add('correct');
+      });
+      document.getElementById('t-pts').textContent=`${140+(round+1)*50} pts`;
+      const newStreak=streak+1;
+      document.getElementById('t-stk').textContent=`🔥 ${newStreak}`;
+      for(let i=0;i<7;i++)document.getElementById(`sd${i}`)?.classList.toggle('on',i<newStreak);
+      if(round<2){
+        demoSetTimeout(()=>runRound(round+1),2600);
+      } else {
+        demoSetTimeout(()=>runRound(0),3000); // brief pause, then restart the whole 3-answer loop
+      }
     },2800); // read time before the first (and each) answer is selected
   };
   runRound(0);
 }
 
 // RPC-009I: Signal Lost demo — only the wrong answer highlights red (the
-// correct one is NOT revealed, per explicit instruction), real Signal
-// Lost artwork/background, loops after the countdown ends. Penalty
-// countdown itself stays a light direct-DOM population rather than
-// reusing startPenalty() — that function is stateful (real penaltyTimer,
-// sets isPenalty=true) and must never run during Demo; it already targets
-// the exact real #s-penalty/#pen-clock/#pen-msg elements, so there's no
-// duplicated markup, just a demo-safe countdown.
+// correct one is NOT revealed, per explicit instruction for this card),
+// real Signal Lost artwork/background, loops after the countdown ends.
 function demoRunSignalLostLoop(){
-  const WRONG='A'; // any letter that isn't DEMO_CORRECT
   const loop=()=>{
     setMobileBg('frostbite');
-    answeredTrivia={};
     showScreen('s-trivia');
-    renderTrivia();
+    demoRenderTrivia();
     demoSetTimeout(()=>{
-      answeredTrivia[DEMO_QUESTION.id]=WRONG; // renderTrivia() marks this 'wrong' without revealing 'correct', same real logic
-      renderTrivia();
+      const wrongBtn=document.getElementById('demo-ans-A');
+      if(wrongBtn){wrongBtn.classList.add('disabled','wrong');}
       demoSetTimeout(()=>{
         setMobileBg('signallost');
         showScreen('s-penalty');
@@ -2358,48 +2299,69 @@ function demoRunSignalLostLoop(){
 }
 
 // ---- FROSTBITE: Leader Command (Freeze) --------------------------------
-// RPC-011: renderLeaderP1Dashboard() (+ its own renderFreezeTargets() call)
-// is now the single source of truth for this screen — this just prepares
-// DEMO_TEAMS[0]'s correct_pool/frostbite_target/weapon_charges so the real
-// renderer computes the same charge %, and drives the real
-// selectFreezeTarget()/target-locked-vs-open logic instead of a parallel
-// #tgt-grid template. selectFreezeTarget() only sets local UI state
-// (selFreezeTarget) — the real fireFreeze() RPC call is hard-guarded
-// against demoModeActive (see top of file), so simulating a "deploy" here
-// is done by writing frozen_until/frozen_by_team directly onto the demo
-// team object, which renderLeaderP1Dashboard() already knows how to show
-// (the "Freeze active on X" banner is real code, not demo-only).
-function demoSetLeaderP1Charge(pct,ready){
+// RPC-009J fix: this whole section previously used fabricated element IDs
+// and classes (#freeze-targets, .freeze-target-btn, .sel) that don't
+// exist anywhere in the real UI — renderFreezeTargets() actually targets
+// #tgt-grid with .tgt-btn.frz (plus .locked / .selected modifiers). That
+// meant the target list silently never appeared at all during the demo
+// (writing to a null element is a no-op). Now uses the exact real
+// structure: the target list is visible from the start of the card in
+// its "locked" state (matching what Players/Leaders actually see before
+// charge is ready), unlocks once charge reaches 100%, then a team is
+// selected, then Deploy fires — matching the real interaction order.
+function demoRenderLeaderP1(chargePct,ready){
   const my=DEMO_TEAMS[0];
-  my.frostbite_target=25;
-  my.correct_pool=Math.round((pct/100)*my.frostbite_target);
-  my.weapon_charges=ready?1:0;
+  document.getElementById('lcmd1-team').textContent=my.leader_name;
+  document.getElementById('lcmd1-score').textContent=`${my.trivia_score.toLocaleString()} pts`;
+  const fill=document.getElementById('lc-fill');
+  if(fill){fill.style.width=chargePct+'%';fill.textContent=chargePct>20?Math.round(chargePct)+'%':'';}
+  const poolEl=document.getElementById('lc-pool');
+  if(poolEl)poolEl.textContent=ready?'MAX CHARGES':`${Math.round(chargePct/100*15)} / 15 correct`;
+  const chgEl=document.getElementById('lc-charges');
+  if(chgEl)chgEl.textContent=`${ready?1:0} charges`;
+  document.getElementById('charge-card')?.classList.toggle('ready',ready);
+  const banner=document.getElementById('freeze-ready-banner');
+  if(banner)banner.style.display=ready?'block':'none';
+  const ogEl=document.getElementById('lcmd1-outgoing-freeze');
+  if(ogEl)ogEl.style.display='none';
+  const fc=document.getElementById('lcmd1-frozen');
+  if(fc)fc.style.display='none';
+  demoRenderFreezeTargets(ready);
+}
+function demoRenderFreezeTargets(canFire){
+  const tg=document.getElementById('tgt-grid');
+  if(!tg)return;
+  const opponents=DEMO_TEAMS.slice(1); // real renderFreezeTargets() excludes your own team the same way
+  tg.innerHTML=opponents.map(t=>{
+    if(!canFire)return `<div class="tgt-btn frz locked">🎯 ${t.leader_name}</div>`;
+    return `<div class="tgt-btn frz" id="demo-tgt-${t.id}" data-target-id="${t.id}">🎯 ${t.leader_name}</div>`;
+  }).join('');
+  const fireBtn=document.getElementById('fire-btn');
+  if(fireBtn)fireBtn.disabled=true; // nothing selected yet even once unlocked
 }
 function demoRunLeaderFreezeSequence(){
-  const my=DEMO_TEAMS[0],target=DEMO_TEAMS[2];
   const loop=()=>{
     setMobileBg('frostbite');
     showScreen('s-leader-p1');
-    my.frozen_by_team=null;target.frozen_until=null;
     let pct=20;
-    demoSetLeaderP1Charge(pct,false);
-    renderLeaderP1Dashboard(); // target list visible + locked from the very start, exactly like real gameplay pre-charge
+    demoRenderLeaderP1(pct,false); // target list visible + locked from the very start
     const iv=demoSetInterval(()=>{
       pct=Math.min(100,pct+16);
       const ready=pct>=100;
-      demoSetLeaderP1Charge(pct,ready);
-      renderLeaderP1Dashboard();
+      demoRenderLeaderP1(pct,ready);
       if(ready){
-        clearInterval(iv); // RPC-009I fix carried over: stop re-rendering once ready
+        clearInterval(iv); // RPC-009I fix: stop re-rendering once ready — this was the "bounce" bug
         demoSetTimeout(()=>{
-          selectFreezeTarget(target.id); // real selection logic — highlights the tile, enables Deploy
+          const target=document.getElementById(`demo-tgt-${DEMO_TEAMS[2].id}`);
+          if(target){
+            target.classList.add('selected');
+            const fireBtn=document.getElementById('fire-btn');
+            if(fireBtn)fireBtn.disabled=false;
+          }
         },900);
         demoSetTimeout(()=>{
-          target.frozen_until=new Date(Date.now()+12000).toISOString();
-          target.frozen_by_team=my.id;
-          my.weapon_charges=0;
-          selFreezeTarget=null;
-          renderLeaderP1Dashboard(); // shows the real "Freeze active on X" outgoing banner
+          const og=document.getElementById('lcmd1-outgoing-freeze');
+          if(og){og.style.display='block';og.innerHTML=`❄️ Freeze active on <b>${DEMO_TEAMS[2].leader_name}</b> · 12s left`;}
           demoSetTimeout(loop,3000); // wait a few seconds, then restart the journey
         },1900);
       }
@@ -2409,10 +2371,6 @@ function demoRunLeaderFreezeSequence(){
 }
 
 // ---- FROSTBITE: Frozen effect (both Player and Leader) ----------------
-// Same reasoning as Signal Lost above: a light direct population of the
-// real #s-frozen/#frz-clock/#frz-by elements, not a duplicate of anything
-// — startFreeze() is a stateful flow controller (real frozenTimer,
-// isFrozen=true) that must never run during Demo.
 function demoRunFrozenLoop(){
   const loop=()=>{
     setMobileBg('frozen');
@@ -2435,32 +2393,23 @@ function demoRunFrozenLoop(){
 }
 
 // ---- BLITZ: tapping (Player Mission) -----------------------------------
-// RPC-011: renderTapping()/renderProductRow() are the real renderers —
-// this just presets selTierVal + DEMO_TEAMS[0]'s tier taps and calls them.
-// registerTap()/flushTaps() are hard-guarded against demoModeActive, so a
-// stray real tap on the (genuinely live) tap-zone during this card can't
-// reach log_taps.
-function demoSetTapProgress(taps){
-  const my=DEMO_TEAMS[0];
-  my.tier_a_taps=taps;
-  my.tier_b_taps=Math.round(taps*0.6*(MISSION2_CONFIG.products.B.tapsRequired/MISSION2_CONFIG.products.A.tapsRequired));
-  my.tier_c_taps=Math.round(taps*0.3*(MISSION2_CONFIG.products.C.tapsRequired/MISSION2_CONFIG.products.A.tapsRequired));
-}
 function demoRunTappingSequence(){
   const loop=()=>{
     setMobileBg('blitz');
     showScreen('s-tapping');
-    selTierVal='A';
-    demoSetTapProgress(0);
-    renderTapping();
+    const my=DEMO_TEAMS[0];
+    document.getElementById('tap-team').textContent=my.leader_name;
     let taps=0;
+    document.getElementById('tap-count').textContent=taps;
+    const tapsLbl=document.getElementById('tap-taps');
+    if(tapsLbl)tapsLbl.textContent='0 taps';
+    demoRenderDemoProductRow(0);
     const iv=demoSetInterval(()=>{
-      taps=Math.min(MISSION2_CONFIG.products.A.tapsRequired,taps+Math.floor(Math.random()*15)+8);
-      demoSetTapProgress(taps);
-      renderProductRow();
-      const cEl=document.getElementById('tap-count');if(cEl)cEl.textContent=taps;
-      const tEl=document.getElementById('tap-taps');if(tEl)tEl.textContent=taps+' taps';
-      if(taps>=MISSION2_CONFIG.products.A.tapsRequired){
+      taps+=Math.floor(Math.random()*3)+1;
+      document.getElementById('tap-count').textContent=taps;
+      if(tapsLbl)tapsLbl.textContent=taps+' taps';
+      demoRenderDemoProductRow(Math.min(100,taps));
+      if(taps>=100){
         clearInterval(iv);
         demoSetTimeout(loop,2000);
       }
@@ -2468,36 +2417,102 @@ function demoRunTappingSequence(){
   };
   loop();
 }
+// RPC-009I fix: was using .charge-bar/.charge-fill — styling meant for a
+// different, taller context — instead of the real .product-bar-wrap/
+// .product-bar-fill used inside .product-card (see m2BarHTML). That
+// mismatch is what squeezed the layout and made the selected badge
+// overlap. Now matches the real markup exactly. Product names updated to
+// the actual configured ones.
+function demoRenderDemoProductRow(pct){
+  const el=document.getElementById('product-row');
+  if(!el)return;
+  const products={A:{name:'CI Plus/Care',speed:'เร็ว',stars:1},B:{name:'BT Care',speed:'กลาง',stars:2},C:{name:'MPCI+',speed:'ช้า',stars:3}};
+  el.innerHTML=Object.entries(products).map(([key,p])=>{
+    const sel=key==='A';
+    const barPct=sel?pct:0;
+    return `<div class="product-card ${key}${sel?' sel':''}">
+      <div class="product-sel-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-meta"><span>${p.speed}</span><span class="product-stars">${'★'.repeat(p.stars)}${'☆'.repeat(3-p.stars)}</span></div>
+      ${m2BarHTML(key,barPct)}
+    </div>`;
+  }).join('');
+}
 
 // ---- BLITZ: Leader Command (deploy weapon) -----------------------------
-// RPC-011: renderLeaderP2Dashboard() is the real renderer. "Deploy" is
-// simulated by bumping tier_a_launches and resetting taps directly on the
-// demo team object — leaderLaunch() itself is hard-guarded against
-// demoModeActive, so this never reaches process_phase2_launch.
-function demoRunLeaderDeploySequence(){
+function demoRenderLeaderP2(chargePct,deployed){
   const my=DEMO_TEAMS[0];
+  document.getElementById('lcmd2-team').textContent=my.leader_name;
+  document.getElementById('lcmd2-score').textContent=`${my.pipeline_score.toLocaleString()} pts`;
+  const el=document.getElementById('m2-product-list');
+  if(el){
+    const products={A:{name:'CI Plus/Care',pts:500},B:{name:'BT Care',pts:2000},C:{name:'MPCI+',pts:6000}};
+    el.innerHTML=Object.entries(products).map(([key,p])=>{
+      const pct=key==='A'?chargePct:(key==='B'?Math.min(100,chargePct*.6):Math.min(100,chargePct*.3));
+      const ready=pct>=100;
+      return `<div class="m2-product-item${ready?' ready':''}">
+        <div class="m2-product-head">
+          <div class="m2-product-title">${p.name}</div>
+          <div class="m2-product-pts">+${p.pts.toLocaleString()} pts</div>
+        </div>
+        ${m2BarHTML(key,pct)}
+        <button class="m2-deploy-btn" ${ready?'':'disabled'}>🚀 Deploy ${p.name}${deployed&&key==='A'?' ✓':''}</button>
+        <div class="m2-launch-count">Deployed ×${key==='A'&&deployed?1:0}</div>
+      </div>`;
+    }).join('');
+  }
+  const sorted=[...DEMO_TEAMS].sort((a,b)=>b.pipeline_score-a.pipeline_score);
+  const standingsEl=document.getElementById('lcmd2-standings');
+  if(standingsEl){
+    standingsEl.innerHTML=sorted.map((t,i)=>{
+      const isMe=t.id===1;
+      return `<div class="s-row ${isMe?'me':''}" style="border-left-color:${isMe?'var(--blue2)':'transparent'}">
+        <div class="s-rank" style="color:${TC[t.id]};">${i+1}</div>
+        <div class="s-name" style="color:${TC[t.id]};">${t.leader_name}${isMe?' 👈':''}</div>
+        <div class="s-pts">${t.pipeline_score.toLocaleString()}</div>
+        <div class="s-ico">A${t.tier_a_launches}B${t.tier_b_launches}C${t.tier_c_launches}</div>
+      </div>`;
+    }).join('');
+  }
+}
+// RPC-009I fix: same interval-never-stops bug as the Freeze sequence —
+// fixed the same way (clear the interval on reaching 100%, no confetti,
+// loop by re-calling after a pause instead of running forever).
+function demoRunLeaderDeploySequence(){
   const loop=()=>{
     setMobileBg('blitz');
     showScreen('s-leader-p2');
-    let taps=Math.round(0.3*MISSION2_CONFIG.products.A.tapsRequired);
-    demoSetTapProgress(taps);
-    renderLeaderP2Dashboard();
+    let pct=30;
+    demoRenderLeaderP2(pct,false);
     const iv=demoSetInterval(()=>{
-      taps=Math.min(MISSION2_CONFIG.products.A.tapsRequired,taps+Math.round(0.18*MISSION2_CONFIG.products.A.tapsRequired));
-      demoSetTapProgress(taps);
-      renderLeaderP2Dashboard();
-      if(taps>=MISSION2_CONFIG.products.A.tapsRequired){
+      pct=Math.min(100,pct+18);
+      const ready=pct>=100;
+      demoRenderLeaderP2(pct,false);
+      if(ready){
         clearInterval(iv);
         demoSetTimeout(()=>{
-          my.tier_a_launches=(my.tier_a_launches||0)+1;
-          demoSetTapProgress(0); // reset A's bar post-deploy, same as real gameplay after a launch
-          renderLeaderP2Dashboard();
+          demoRenderLeaderP2(100,true); // deployed
           demoSetTimeout(loop,3000); // wait a few seconds, then restart
         },400);
       }
     },500);
   };
   loop();
+}
+
+// ---- TOURNAMENT STANDING (both missions) -------------------------------
+function demoShowStanding(missionPhase){
+  showScreen('s-standing');
+  const field=missionPhase===2?'m2_points':'total_score';
+  const my=DEMO_TEAMS[0];
+  const sorted=[...DEMO_TEAMS].sort((a,b)=>b[field]-a[field]);
+  const rankIdx=sorted.findIndex(t=>t.id===my.id);
+  const teamEl=document.getElementById('standing-team');
+  const ptsEl=document.getElementById('standing-points');
+  const rankEl=document.getElementById('standing-rank');
+  if(teamEl)teamEl.textContent=my.leader_name;
+  if(ptsEl)ptsEl.textContent=my[field].toLocaleString();
+  if(rankEl)rankEl.textContent=`${MEDALS[rankIdx]||''} อันดับที่ ${rankIdx+1}`.trim();
 }
 
 // PRODUCT NAMES
@@ -2649,7 +2664,6 @@ function updateStreakUI(){
   document.getElementById('streak-bonus').textContent=s>=start?`+${bonus} streak bonus!`:'';
 }
 async function answerTrivia(letter,qId,correct){
-  if(demoModeActive)return; // RPC-011: real onclick, but a demo tap must never reach the backend
   if(answeredTrivia[qId]||isFrozen||isPenalty||game1TimeUp)return;
   answeredTrivia[qId]=letter;
   document.querySelectorAll('.ans-btn').forEach(b=>{
@@ -2811,10 +2825,6 @@ function renderLeaderP1Dashboard(){
   }).join('');
 }
 async function loadMomentum(){
-  if(demoModeActive){ // RPC-011: don't query real players' streaks for team_id=1 while showing the Demo
-    const el=document.getElementById('lcmd1-momentum');if(el)el.textContent='🔥 3 คนกำลัง Streak 3+!';
-    return;
-  }
   if(Date.now()-lastMomentumFetch<3000)return;
   lastMomentumFetch=Date.now();
   const{data}=await sb.from('players').select('streak').eq('team_id',player.team_id).eq('role','player');
@@ -2864,7 +2874,6 @@ function selectFreezeTarget(targetId){
   });
 }
 async function fireFreeze(){
-  if(demoModeActive)return; // RPC-011: DEMO_TEAMS ids overlap real team ids — never let this reach execute_freeze
   const targetId=selFreezeTarget;
   tracePlay('fireFreeze() called',{
     selectedTarget:targetId, mission_stage:gameState?.mission_stage,
@@ -2940,7 +2949,6 @@ function spawnRipple(x,y){
   setTimeout(()=>rip.remove(),650);
 }
 function registerTap(x,y){
-  if(demoModeActive)return; // RPC-011: don't let a real tap during a demo card feed flushTaps() -> log_taps RPC
   if(!selTierVal){toast('เลือกผลิตภัณฑ์ก่อน!');return;}
   if(phase!==2||mission2TimeUp)return; // don't gate on sub_state — the transient 'launch:...'
                         // signal used for screen.html's animation shouldn't block tapping
@@ -3007,7 +3015,6 @@ function renderLeaderP2Dashboard(){
   }).join('');
 }
 async function leaderLaunch(tier){
-  if(demoModeActive)return; // RPC-011: DEMO_TEAMS ids overlap real team ids — never let this reach process_phase2_launch
   if(mission2TimeUp){toast('หมดเวลาแล้ว! ไม่สามารถ Deploy ได้');return;}
   const my=teams.find(t=>t.id===player.team_id);if(!my)return;
   if(!m2Ready(my,tier)){toast(`${m2Product(tier).name} ยังไม่ชาร์จเต็ม!`);return;}
