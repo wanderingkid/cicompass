@@ -145,8 +145,42 @@ body{background:radial-gradient(ellipse at top,#0f1830,var(--bg));color:var(--te
 .player-row .pname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .kick-btn{background:var(--red);color:#fff;border:none;border-radius:8px;
   padding:.4rem .65rem;font-size:.68rem;font-weight:600;cursor:pointer;flex-shrink:0;min-height:36px;}
-#players-list{max-height:280px;overflow-y:auto;}
+#players-list{max-height:420px;overflow-y:auto;}
 .player-count-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.5rem;}
+
+/* RPC-015 Part 2/3 — per-team readiness card + expandable member list.
+   Same #players-list container, same loadPlayersPanel() data source and
+   admin-players realtime channel as before — this only changes how that
+   data is grouped/rendered. */
+.team-ready-card{background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r3);margin-bottom:.4rem;overflow:hidden;}
+.team-ready-head{display:flex;align-items:center;gap:.55rem;padding:.55rem .7rem;
+  cursor:pointer;user-select:none;}
+.team-ready-chevron{font-size:.65rem;color:var(--muted);transition:transform .15s;flex-shrink:0;}
+.team-ready-card.open .team-ready-chevron{transform:rotate(90deg);}
+.team-ready-name{flex:1;font-weight:700;font-size:.8rem;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.team-ready-stats{display:flex;gap:.35rem;flex-shrink:0;}
+.team-ready-stat{padding:.2rem .5rem;border-radius:8px;background:rgba(255,255,255,0.06);
+  font-size:.66rem;font-weight:700;white-space:nowrap;}
+.team-ready-stat.ok{background:rgba(16,185,129,0.16);color:var(--green);}
+.team-ready-stat.warn{background:rgba(239,68,68,0.16);color:var(--red);}
+.team-ready-body{max-height:0;overflow:hidden;transition:max-height .2s ease;}
+.team-ready-card.open .team-ready-body{max-height:900px;}
+.member-group-lbl{font-size:.6rem;letter-spacing:1.5px;color:var(--muted);
+  text-transform:uppercase;font-weight:700;padding:.5rem .7rem .2rem;
+  border-top:1px solid var(--border);}
+.member-row{display:flex;align-items:center;gap:.5rem;padding:.4rem .7rem;font-size:.74rem;}
+.member-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-role-badge{min-width:46px;text-align:center;font-size:.63rem;font-weight:700;
+  padding:.12rem .3rem;border-radius:6px;flex-shrink:0;}
+.member-role-badge.leader{background:rgba(245,158,11,.18);color:var(--amber);}
+.member-role-badge.player{background:rgba(148,163,184,.14);color:var(--text2);}
+.member-status{min-width:74px;text-align:center;font-size:.63rem;font-weight:600;
+  padding:.12rem .35rem;border-radius:6px;flex-shrink:0;}
+.member-status.connected{background:rgba(16,185,129,.15);color:var(--green);}
+.member-status.waiting{background:rgba(148,163,184,.12);color:var(--muted);}
+.member-empty{padding:.5rem .7rem;font-size:.7rem;color:var(--muted);}
 
 /* NOTES */
 .mc-note-row{display:flex;align-items:center;gap:.4rem;background:var(--card);
@@ -344,7 +378,7 @@ body{background:radial-gradient(ellipse at top,#0f1830,var(--bg));color:var(--te
         <button class="mc-btn mc-btn-danger" onclick="kickAllPlayers()">Disconnect All</button>
       </div>
       <div class="glass" style="margin-bottom:.6rem;">
-        <div class="mc-cfg-label">Kick Player</div>
+        <div class="mc-cfg-label">Team Readiness</div>
         <div class="player-count-lbl" id="players-count-lbl">0 joined</div>
         <button class="mc-save-btn" onclick="loadPlayersPanel()" style="margin-bottom:.4rem;">Refresh List</button>
         <div id="players-list"></div>
@@ -439,7 +473,6 @@ async function initAdmin(){
   await Promise.all([loadGS(), loadTeams(), loadFactQs()]);
   render();
   subscribeRT();
-  pollOnline();
   renderLeaderNameFields();
   renderFreezeRows();
   loadPlayersPanel();
@@ -470,12 +503,11 @@ function subscribeRT(){
     }).subscribe();
 }
 
-function pollOnline(){
-  setInterval(async()=>{
-    const{count}=await sb.from('players').select('*',{count:'exact',head:true});
-    onlineCount=count||0;
-  },3000);
-}
+// RPC-015 — pollOnline() removed: it polled every 3s to set onlineCount,
+// but nothing in the file ever read onlineCount — it was dead output.
+// Team Readiness above already gets live counts for free from the
+// existing admin-players realtime channel + loadPlayersPanel(), so this
+// redundant poll wasn't needed for that either.
 
 // ── SECTION TOGGLES ─────────────────────────────────────
 function toggleSection(name){
@@ -487,7 +519,6 @@ function toggleSection(name){
 }
 
 // ── HEADER + PRIMARY WORKFLOW (RPC-007F) ────────────────
-let onlineCount=0;
 function render(){
   if(!gs) return;
   const p=gs.phase, stage=gs.mission_stage||'background';
@@ -661,23 +692,66 @@ function renderLaunchMonitor(){
 }
 
 // ── PLAYERS PANEL (kick / soft reset) ───────────────────
+// RPC-015 — no per-team roster-size field exists anywhere in the schema
+// (teams has no max_players/roster_size column), and the RPC's own spec
+// explicitly says not to invent new backend fields. 30 is a display-only
+// target taken directly from the RPC's own example ("Joined / 30") — edit
+// this one constant if the real expected team size differs.
+const TEAM_ROSTER_TARGET=30;
+let teamReadyOpen={}; // {teamId: true} — which team cards are expanded; persists across re-renders so realtime updates don't collapse an operator's open panel
 async function loadPlayersPanel(){
   const{data}=await sb.from('players').select('*').order('team_id').order('role',{ascending:false}).order('name');
   const el=document.getElementById('players-list');
   const lbl=document.getElementById('players-count-lbl');
   if(!el)return;
+  if(lbl)lbl.textContent=`${data?.length||0} joined`;
   if(!data||!data.length){
     el.innerHTML='<div style="color:var(--muted);font-size:.7rem;">ยังไม่มีผู้เล่นเข้าร่วม</div>';
-    if(lbl)lbl.textContent='0 joined';
     return;
   }
-  if(lbl)lbl.textContent=`${data.length} joined`;
-  el.innerHTML=data.map(p=>`<div class="player-row">
-    <span class="pteam" style="color:${TC[p.team_id]||'#fff'}">ทีม ${p.team_id}</span>
-    <span class="prole">${p.role==='leader'?'👑':'👤'}</span>
-    <span class="pname">${p.name}</span>
-    <button class="kick-btn" onclick="kickPlayer('${p.id}',${JSON.stringify(p.name)})">✕ Kick</button>
-  </div>`).join('');
+  // Group the SAME already-fetched rows by team — no additional query.
+  // `teams` is the existing global kept live by the admin-teams channel.
+  const byTeam={};
+  data.forEach(p=>{ (byTeam[p.team_id]=byTeam[p.team_id]||[]).push(p); });
+  el.innerHTML=teams.map(t=>{
+    const members=byTeam[t.id]||[];
+    const leaders=members.filter(p=>p.role==='leader');
+    const players=members.filter(p=>p.role!=='leader');
+    const leaderOk=leaders.length>=1;
+    const nm=t.leader_name||t.name||`ทีม ${t.id}`;
+    const open=!!teamReadyOpen[t.id];
+    // Connected/Waiting uses only the existing has_answered_first flag —
+    // no presence/heartbeat field exists in the schema, and RPC-015 says
+    // not to invent one. has_answered_first is set the moment a player's
+    // first real gameplay action is recorded, so it's the closest existing
+    // signal to "actually engaged" vs. "joined but still on the wait screen".
+    const memberRow=p=>`<div class="member-row">
+        <span class="member-role-badge ${p.role}">${p.role==='leader'?'Leader':'Player'}</span>
+        <span class="member-name">${p.name}</span>
+        <span class="member-status ${p.has_answered_first?'connected':'waiting'}">${p.has_answered_first?'Connected':'Waiting'}</span>
+        <button class="kick-btn" onclick="kickPlayer('${p.id}',${JSON.stringify(p.name)})">✕</button>
+      </div>`;
+    return `<div class="team-ready-card${open?' open':''}" id="team-ready-${t.id}">
+      <div class="team-ready-head" onclick="toggleTeamReady(${t.id})">
+        <span class="team-ready-chevron">▶</span>
+        <span class="team-ready-name" style="color:${TC[t.id]||'var(--text)'}">${nm}</span>
+        <span class="team-ready-stats">
+          <span class="team-ready-stat">Players ${players.length} / ${TEAM_ROSTER_TARGET}</span>
+          <span class="team-ready-stat ${leaderOk?'ok':'warn'}">Leader ${leaders.length} / 1</span>
+        </span>
+      </div>
+      <div class="team-ready-body">
+        <div class="member-group-lbl">Leader</div>
+        ${leaders.length?leaders.map(memberRow).join(''):'<div class="member-empty">No leader joined yet</div>'}
+        <div class="member-group-lbl">Players</div>
+        ${players.length?players.map(memberRow).join(''):'<div class="member-empty">No players joined yet</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleTeamReady(teamId){
+  teamReadyOpen[teamId]=!teamReadyOpen[teamId];
+  document.getElementById(`team-ready-${teamId}`)?.classList.toggle('open',teamReadyOpen[teamId]);
 }
 async function kickPlayer(id,name){
   if(!confirm(`เตะ "${name}" ออก?\nผู้เล่นจะถูกส่งกลับไปหน้า Join ทันที (คะแนนทีมไม่เปลี่ยน)`))return;
