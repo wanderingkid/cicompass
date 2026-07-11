@@ -726,6 +726,39 @@ body::before{content:'';position:fixed;inset:0;
   background:rgba(255,255,255,.25);z-index:1;}
 .demo-presenter-iframe{width:100%;height:100%;border:0;background:#000;display:block;}
 .demo-presenter-caption{width:min(24vw,380px);flex-shrink:0;}
+/* RPC-013 Part 3 — static Tournament Points / Weapon Matrix presentation
+   card (Frostbite card 6, Blitz card 4). Same fixed, full-viewport
+   takeover as .demo-presenter-wrap, but centered as a single premium
+   glass card — no phone frame, since there's nothing to project here. */
+.demo-points-wrap{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;}
+.demo-points-card{background:linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));
+  backdrop-filter:blur(20px);border:1px solid rgba(245,158,11,0.25);border-radius:28px;
+  padding:clamp(2rem,3.5vw,3.5rem) clamp(2.4rem,4.5vw,4.5rem);box-shadow:0 0 90px rgba(0,0,0,.55);
+  min-width:min(34vw,520px);text-align:center;}
+.demo-points-eyebrow{font-size:clamp(.75rem,1.1vw,.9rem);color:var(--gold2);
+  font-weight:700;letter-spacing:5px;margin-bottom:.3rem;}
+.demo-points-title{font-size:clamp(1.5rem,2.6vw,2.1rem);font-weight:900;color:#fff;margin-bottom:1.1rem;}
+.demo-points-table{display:flex;flex-direction:column;gap:.4rem;}
+.demo-points-head{display:flex;justify-content:space-between;padding:0 .8rem .3rem;
+  font-size:.72rem;letter-spacing:2px;color:var(--text3);font-weight:700;}
+.demo-points-row{display:flex;justify-content:space-between;align-items:center;
+  padding:.6rem 1.1rem;border-radius:12px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);}
+.demo-points-row.top{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.4);}
+.demo-points-rank{font-size:clamp(1rem,1.6vw,1.3rem);font-weight:900;color:#fff;}
+.demo-points-pts{font-size:clamp(1.1rem,1.8vw,1.5rem);font-weight:900;color:var(--gold2);
+  font-variant-numeric:tabular-nums;}
+.demo-weapon-table{display:flex;flex-direction:column;gap:.4rem;margin-top:.6rem;}
+.demo-weapon-head{display:grid;grid-template-columns:1.3fr 1fr 1fr;padding:0 .8rem .3rem;
+  font-size:.68rem;letter-spacing:1.5px;color:var(--text3);font-weight:700;}
+.demo-weapon-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;align-items:center;
+  padding:.55rem 1.1rem;border-radius:12px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);}
+.demo-weapon-name{font-size:clamp(.85rem,1.3vw,1.05rem);font-weight:700;color:#fff;text-align:left;}
+.demo-weapon-taps{font-size:clamp(.85rem,1.3vw,1.05rem);font-weight:700;color:var(--text2);
+  font-variant-numeric:tabular-nums;}
+.demo-weapon-pts{font-size:clamp(.9rem,1.4vw,1.1rem);font-weight:900;color:var(--gold2);
+  font-variant-numeric:tabular-nums;}
 
 .demo-text-panel{background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));
   backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);border-radius:14px;
@@ -1655,16 +1688,30 @@ const DEMO_CAPTIONS={
   },
 };
 let demoPresenterRole=null; // 'player' | 'leader' | null — tracks what the iframe is currently loaded as, so we only reload it when the role actually changes
+// RPC-013 Part 3 — which (phase, demo_card) pairs get the static points
+// table instead of the presenter iframe: Frostbite card 6 (index 5),
+// Blitz card 4 (index 3). Demo-only — renderTournamentStandingsStage()
+// (the real, live Tournament Standing shown after an actual mission ends)
+// is completely untouched.
+const DEMO_POINTS_TABLE_CARD={1:5,2:3};
+const TOURNAMENT_POINTS_TABLE=[[1,1000],[2,800],[3,600],[4,400],[5,300],[6,200]]; // matches admin.html's confirmAwardTournamentPoints() default
+const WEAPON_MATRIX_TABLE=[['CI Plus/Care',50,300],['BT Care',40,60],['MPCI+',70,500]]; // matches RPC-012's product matrix
 function renderMissionDemo(p){
   const el=document.getElementById(`m${p}-overlay`);
   if(!el)return;
   const card=gs.demo_card||0;
+
+  if(DEMO_POINTS_TABLE_CARD[p]===card){
+    renderDemoPointsTable(el,p);
+    return;
+  }
+
   const role=(DEMO_PRESENTER_ROLE[p]||{})[card]||'player';
   const[eyebrow,title,body]=(DEMO_CAPTIONS[p]||{})[card]||['DEMO','',''];
 
   let wrap=document.getElementById('demo-presenter-wrap');
   if(!wrap||wrap.parentElement!==el){
-    el.innerHTML=''; // clear whatever stage (Live/Result/Standings) was previously built into this overlay
+    el.innerHTML=''; // clear whatever stage (Live/Result/Standings/points-table) was previously built into this overlay
     delete el.dataset.built; // renderMissionLive() otherwise thinks its old (now-removed) structure still exists
     wrap=document.createElement('div');
     wrap.id='demo-presenter-wrap';
@@ -1681,6 +1728,43 @@ function renderMissionDemo(p){
   }
   const cap=document.getElementById('demo-caption');
   if(cap)cap.innerHTML=`<div class="demo-section-eyebrow">${eyebrow}</div><div class="demo-section-title" style="font-size:clamp(.85rem,1.3vw,1.15rem);">${title}</div><div class="demo-section-body">${body}</div>`;
+}
+function renderDemoPointsTable(el,p){
+  let wrap=document.getElementById('demo-points-wrap');
+  if(!wrap||wrap.parentElement!==el){
+    el.innerHTML=''; // clear whatever was previously built into this overlay (the iframe wrap, Live, Result, etc.)
+    delete el.dataset.built;
+    demoPresenterRole=null; // the next iframe-based card visited must load fresh, not assume the old src still matches
+    wrap=document.createElement('div');
+    wrap.id='demo-points-wrap';
+    wrap.className='demo-points-wrap';
+    wrap.innerHTML=`
+      <div class="demo-points-card">
+        <div class="demo-points-eyebrow">TOURNAMENT</div>
+        <div class="demo-points-title">Tournament Points</div>
+        <div class="demo-points-table">
+          <div class="demo-points-head"><span>RANK</span><span>POINTS</span></div>
+          ${TOURNAMENT_POINTS_TABLE.map(([r,pts])=>`
+            <div class="demo-points-row${r===1?' top':''}">
+              <span class="demo-points-rank">${r===1?'🥇':r===2?'🥈':r===3?'🥉':r}</span>
+              <span class="demo-points-pts">${pts.toLocaleString()}</span>
+            </div>`).join('')}
+        </div>
+        ${p===2?`
+        <div class="demo-points-eyebrow" style="margin-top:1.8rem;">BLITZ</div>
+        <div class="demo-points-title" style="font-size:clamp(1.1rem,2vw,1.6rem);">Weapon Matrix</div>
+        <div class="demo-weapon-table">
+          <div class="demo-weapon-head"><span>WEAPON</span><span>AVG TAPS / PLAYER</span><span>DEPLOY PTS</span></div>
+          ${WEAPON_MATRIX_TABLE.map(([nm,taps,pts])=>`
+            <div class="demo-weapon-row">
+              <span class="demo-weapon-name">${nm}</span>
+              <span class="demo-weapon-taps">${taps}</span>
+              <span class="demo-weapon-pts">${pts.toLocaleString()}</span>
+            </div>`).join('')}
+        </div>`:''}
+      </div>`;
+    el.appendChild(wrap);
+  }
 }
 
 /* ============================================================
